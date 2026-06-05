@@ -11,8 +11,15 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
-/* ══════════ THEME VARIABLES ══════════ */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --bg-void:#020408; --bg-deep:#050c14; --bg-panel:#080f1a;
   --bg-card:#0d1e2e; --bg-card-hover:#0f2234;
@@ -29,8 +36,7 @@ body.theme-black {
   --grid-line:rgba(0,212,255,0.04); --border-glow:rgba(0,212,255,0.2);
   --text-secondary:#4a7a94; --text-muted:#1e3040;
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{scroll-behavior:smooth;}
+
 
 body {
   background: var(--bg-void);
@@ -38,6 +44,7 @@ body {
   font-family: var(--font-body);
   font-weight: 400;
   min-height: 100vh;
+  width: 100%;
   overflow-x: hidden;
   cursor: crosshair;
   position: relative;
@@ -51,11 +58,10 @@ body::before {
   position: fixed; inset: 0;
   z-index: -2;
   background-image: url('bg.jpg');
-  background-attachment: fixed;
+  background-attachment: scroll;   /* fixed breaks on iOS Safari */
   background-position: center top;
   background-size: cover;
   background-repeat: no-repeat;
-  /* Subtle desaturate so it doesn't compete with neon UI */
   filter: saturate(0.72) brightness(0.55);
   pointer-events: none;
   transition: filter 0.6s ease;
@@ -586,14 +592,14 @@ body.liquid-glass-enabled .profile-skills-section {
 .btn-danger-full:active{transform:translateY(0);}
 
 /* ══════════ MAIN LAYOUT ══════════ */
-.main-grid{position:relative;z-index:10;display:grid;grid-template-columns:1fr 420px;gap:0;min-height:100vh;align-items:start;padding-top:70px;}
-.left-panel{padding:20px 32px 48px 40px;border-right:1px solid var(--border-glow);display:flex;flex-direction:column;gap:24px;}
+.main-grid{position:relative;z-index:10;display:grid;grid-template-columns:1fr 420px;gap:0;min-height:100vh;align-items:start;padding-top:70px;width:100%;}
+.left-panel{padding:20px 16px 48px;border-right:1px solid var(--border-glow);display:flex;flex-direction:column;gap:20px;min-width:0;overflow:hidden;}
 
 /* ── SECTION HEADER ── */
-.section-header{display:flex;align-items:center;gap:12px;margin-bottom:4px;}
+.section-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;width:100%;min-width:0;}
 .section-icon{width:28px;height:28px;border:1px solid var(--neon-blue);display:flex;align-items:center;justify-content:center;font-size:13px;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);background:rgba(0,212,255,.08);color:var(--neon-blue);flex-shrink:0;}
-.section-title{font-family:var(--font-display);font-size:20px;letter-spacing:4px;color:var(--text-primary);}
-.section-badge{font-family:var(--font-mono);font-size:9px;padding:3px 10px;border:1px solid var(--neon-blue);color:var(--neon-blue);letter-spacing:2px;margin-left:auto;opacity:.6;border-radius:var(--r-sm);}
+.section-title{font-family:var(--font-display);font-size:20px;letter-spacing:3px;color:var(--text-primary);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.section-badge{font-family:var(--font-mono);font-size:9px;padding:3px 8px;border:1px solid var(--neon-blue);color:var(--neon-blue);letter-spacing:1px;opacity:.6;border-radius:var(--r-sm);flex-shrink:0;white-space:nowrap;}
 
 /* ── TASK FORM ── */
 .task-form{background:var(--bg-card);border:1px solid var(--border-glow);padding:20px;border-radius:var(--r-lg);position:relative;box-shadow:0 4px 24px rgba(0,0,0,.3);}
@@ -610,8 +616,8 @@ body.liquid-glass-enabled .profile-skills-section {
 .add-btn:active{transform:translateY(0);}
 
 /* ── FILTER BAR ── */
-.filter-bar{display:flex;gap:8px;flex-wrap:wrap;}
-.filter-btn{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;padding:5px 14px;border:1px solid var(--text-muted);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;text-transform:uppercase;border-radius:var(--r-sm);}
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start;width:100%;}
+.filter-btn{font-family:var(--font-mono);font-size:10px;letter-spacing:1px;padding:4px 10px;border:1px solid var(--text-muted);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;text-transform:uppercase;border-radius:var(--r-sm);white-space:nowrap;flex-shrink:0;}
 .filter-btn.active,.filter-btn:hover{border-color:var(--neon-blue);color:var(--neon-blue);background:rgba(0,212,255,.07);}
 
 /* ══════════ HABITSTACK CARDS ══════════ */
@@ -1018,10 +1024,41 @@ body.liquid-glass-enabled .profile-skills-section {
 .penalty-flash{position:fixed;inset:0;pointer-events:none;z-index:8000;animation:penaltyFlash .5s ease forwards;}
 @keyframes penaltyFlash{0%{background:rgba(255,36,66,.12);}100%{background:transparent;}}
 @media(max-width:900px){
-  .main-grid{grid-template-columns:1fr; padding-top:68px;}
-  .left-panel{padding:16px 16px 48px;border-right:none;border-bottom:1px solid var(--border-glow);}
-  .right-panel{padding:16px 16px 24px;}
-  .form-row{flex-wrap:wrap;} .skill-select{width:100%;}
+  .main-grid{
+    grid-template-columns: 1fr;
+    padding-top: 64px;
+    width: 100%;
+    overflow-x: hidden;
+  }
+  .left-panel{
+    padding: 12px 12px 120px;
+    border-right: none;
+    border-bottom: 1px solid var(--border-glow);
+    gap: 16px;
+  }
+  .right-panel{ padding: 12px 12px 24px; }
+  .section-title{ font-size: 16px; letter-spacing: 2px; }
+  .section-icon{ width: 22px; height: 22px; font-size: 10px; }
+  .filter-btn{ font-size: 9px; padding: 3px 8px; letter-spacing: .5px; }
+  .filter-bar{ gap: 4px; }
+  .stats-summary{ grid-template-columns: 1fr 1fr; }
+  .radar-card{ padding: 16px 12px; }
+  .form-row{ flex-wrap: wrap; }
+  .skill-select{ width: 100%; }
+  .add-btn{ width: 100%; justify-content: center; }
+  .floating-settings-btn{ top: 10px; left: 10px; width: 40px; height: 40px; font-size: 18px; }
+  .task-item{ padding: 12px 10px 10px; }
+  .hc-name{ font-size: 13px; }
+  .hc-desc{ font-size: 11px; }
+}
+
+/* Extra-small phones (360px and below) */
+@media(max-width:390px){
+  .section-title{ font-size: 14px; letter-spacing: 1.5px; }
+  .filter-btn{ font-size: 8px; padding: 3px 6px; letter-spacing: 0; }
+  .hc-cal-wrap{ overflow-x: auto; }
+  .hc-cal{ min-width: unset; }
+  .profile-screen{ padding: 12px 10px 120px; }
 }
 
 /* ══════════════════════════════════════════════
