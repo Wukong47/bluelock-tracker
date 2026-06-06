@@ -1038,13 +1038,14 @@ body.liquid-glass-enabled .profile-skills-section {
     width: 100%;
     overflow-x: hidden;
   }
+  /* Hide the desktop right panel on mobile — radar accessible via tap on card */
+  .right-panel{ display: none; }
   .left-panel{
     padding: 12px 12px 120px;
     border-right: none;
-    border-bottom: 1px solid var(--border-glow);
+    border-bottom: none;
     gap: 16px;
   }
-  .right-panel{ padding: 12px 12px 24px; }
   .section-title{ font-size: 16px; letter-spacing: 2px; }
   .section-icon{ width: 22px; height: 22px; font-size: 10px; }
   .filter-btn{ font-size: 9px; padding: 3px 8px; letter-spacing: .5px; }
@@ -1138,20 +1139,20 @@ body.liquid-glass-enabled .float-add-btn {
 ══════════════════════════════════════════════ */
 .bottom-nav-container {
   position: fixed;
-  bottom: 20px;
+  bottom: 16px;
   left: 50%;
   transform: translateX(-50%) translateY(0);
   z-index: 999;
 
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 
-  /* prevent overflow on narrow screens */
+  /* With zoom:0.75 on html, vw units are in the unzoomed space.
+     Use a safe pixel cap so the + button never overflows. */
   width: max-content;
-  max-width: 95vw;
+  max-width: min(95vw, 420px);
 
-  /* GPU layer for smooth slide animation */
   will-change: transform, opacity;
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
               opacity  0.35s ease;
@@ -1162,20 +1163,19 @@ body.liquid-glass-enabled .float-add-btn {
   pointer-events: none;
 }
 
-/* ── Dock (inside container — no longer position:fixed itself) ── */
+/* ── Dock ── */
 .float-dock {
   display: flex;
   align-items: center;
   gap: 0;
-  padding: 10px 20px;
+  padding: 8px 12px;       /* reduced from 10px 20px */
   border-radius: 30px;
-  flex-shrink: 0;
+  flex-shrink: 1;           /* allow dock to shrink if needed */
+  min-width: 0;
 
-  /* Solid dark bg by default — NO backdrop-filter for perf */
   background: rgba(14, 22, 34, 0.92);
   border: 1px solid rgba(0, 212, 255, 0.22);
   box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-  /* no backdrop-filter here — moved to liquid-glass-enabled */
 }
 
 /* dock items */
@@ -1183,35 +1183,34 @@ body.liquid-glass-enabled .float-add-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 6px 22px;
+  gap: 2px;
+  padding: 5px 14px;        /* reduced from 6px 22px */
   cursor: pointer;
   border-radius: 20px;
   transition: background 0.18s ease, transform 0.15s ease, opacity 0.15s;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  flex-shrink: 1;
 }
 .dock-item:hover { background: rgba(0,212,255,0.1); transform: translateY(-2px); }
 .dock-item:active { transform: scale(0.92); opacity: 0.75; }
 .dock-item.active .dock-icon { color: var(--neon-blue); filter: drop-shadow(0 0 6px var(--neon-blue)); }
 .dock-item.active .dock-label { color: var(--neon-blue); }
-.dock-icon { font-size: 22px; color: rgba(255,255,255,0.7); line-height: 1; transition: color 0.18s, filter 0.18s; }
-.dock-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.45); transition: color 0.18s; }
-.dock-separator { width: 1px; height: 28px; background: rgba(255,255,255,0.1); flex-shrink: 0; }
+.dock-icon { font-size: 20px; color: rgba(255,255,255,0.7); line-height: 1; transition: color 0.18s, filter 0.18s; }
+.dock-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.45); transition: color 0.18s; white-space: nowrap; }
+.dock-separator { width: 1px; height: 24px; background: rgba(255,255,255,0.1); flex-shrink: 0; }
 
-/* ── Add (+) Button (inside container) ── */
+/* ── Add (+) Button ── */
 .float-add-btn {
-  width: 56px;
-  height: 56px;
+  width: 46px;              /* reduced from 56px */
+  height: 46px;
   border-radius: 50%;
   cursor: pointer;
   flex-shrink: 0;
 
-  /* Solid bg by default — NO backdrop-filter for perf */
   background: rgba(0, 80, 120, 0.9);
   border: 1px solid rgba(0, 212, 255, 0.5);
   box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 12px rgba(0,212,255,0.15);
-  /* no backdrop-filter — moved to liquid-glass-enabled */
 
   display: flex;
   align-items: center;
