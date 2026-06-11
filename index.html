@@ -1167,83 +1167,25 @@ body.flow-active #bgOverlay {
 }
 
 /* ══════════════════════════════════════════════
-   LIQUID GLASS — iOS 27 style
-   Universal class: just add .liquid-glass to any element.
-   Three intensity tiers via modifier classes.
+   LIQUID GLASS — iOS 27
+   Один класс. Жёсткие !important. Нельзя сломать.
 ══════════════════════════════════════════════ */
-
-/* ── Tier 1: Cards & panels (subtle) ── */
 .liquid-glass {
-  background: linear-gradient(135deg,
-    rgba(255,255,255,0.08) 0%,
-    rgba(255,255,255,0.03) 100%) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border: 1px solid rgba(255,255,255,0.15) !important;
-  border-radius: 20px !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.20),
-    inset 0 -1px 0 rgba(0,0,0,0.10),
-    0 8px 32px rgba(0,0,0,0.37) !important;
-  will-change: backdrop-filter;
-  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+  background: rgba(255,255,255,0.03) !important;
+  backdrop-filter: blur(25px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(190%) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.3) !important;
 }
 
-/* ── Tier 2: Modals & overlays (stronger blur) ── */
-.liquid-glass--modal {
-  background: linear-gradient(160deg,
-    rgba(255,255,255,0.11) 0%,
-    rgba(255,255,255,0.04) 100%) !important;
-  backdrop-filter: blur(40px) saturate(200%) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
-  border: 1px solid rgba(255,255,255,0.20) !important;
-  border-radius: 20px !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.28),
-    inset 0 -1px 0 rgba(0,0,0,0.12),
-    0 20px 60px rgba(0,0,0,0.50) !important;
-  will-change: backdrop-filter;
-  transition: background 0.3s ease, border-color 0.3s ease !important;
-}
-
-/* ── Tier 3: Navigation dock & floating buttons ── */
-.liquid-glass--nav {
-  background: linear-gradient(135deg,
-    rgba(255,255,255,0.14) 0%,
-    rgba(255,255,255,0.05) 100%) !important;
-  backdrop-filter: blur(28px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
-  border: 1px solid rgba(255,255,255,0.22) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.30),
-    0 12px 40px rgba(0,0,0,0.45) !important;
-  will-change: backdrop-filter;
-  transition: background 0.3s ease, border-color 0.3s ease !important;
-}
-
-/* ── Specular shimmer on modals only (cards already have ::before for accent stripe) ── */
-.liquid-glass--modal::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 12px; right: 12px; height: 1px;
-  background: linear-gradient(90deg,
-    transparent,
-    rgba(255,255,255,0.35),
-    transparent);
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0.7;
-  z-index: 1;
-}
-
-/* Profile cards get liquid glass too */
+/* Profile cards */
 body.liquid-glass-enabled .pstat-card,
 body.liquid-glass-enabled .profile-hero,
 body.liquid-glass-enabled .profile-skills-section {
-  background: linear-gradient(135deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.02) 100%) !important;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255,255,255,.18) !important;
+  background: rgba(255,255,255,0.03) !important;
+  backdrop-filter: blur(25px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(190%) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
 }
 
 /* ══════════════════════════════════════════════
@@ -2727,28 +2669,53 @@ function applyTheme(theme){
 
 // ── Liquid Glass element registry ───────────────────────────────
 // tier → [selector, className]
-const LG_TARGETS = [
-  // Tier 1: cards & panels
-  { sel: '.task-item, .radar-card, .task-form, .event-log, .stat-box, .pstat-card, .profile-hero, .profile-skills-section, .tac-block, .profile-tac-right', cls: 'liquid-glass' },
-  // Tier 2: modals
-  { sel: '.settings-panel, .edit-modal, .add-modal, .confirm-modal, .skills-modal, .ios-menu, .cal-ctx-menu', cls: 'liquid-glass--modal' },
-  // Tier 3: navigation
-  { sel: '.float-dock, .float-add-btn', cls: 'liquid-glass--nav' },
-];
+// ════════════════════════════════════════════════════════════════
+// LIQUID GLASS — единственная функция управления
+// ════════════════════════════════════════════════════════════════
+const LG_SELECTORS = [
+  // Карточки привычек и статистики
+  '.task-item',
+  '.radar-card',
+  '.task-form',
+  '.event-log',
+  '.stat-box',
+  // Профиль
+  '.pstat-card',
+  '.profile-hero',
+  '.profile-skills-section',
+  '.tac-block',
+  // Модальные окна
+  '.settings-panel',
+  '.edit-modal',
+  '.add-modal',
+  '.confirm-modal',
+  '.skills-modal',
+  // Навигация
+  '.float-dock',
+  '.float-add-btn',
+  // Меню
+  '.ios-menu',
+  '.cal-ctx-menu',
+].join(', ');
 
-// Pure DOM stamper — no side-effects, no save, no recursion
-function stampLiquidGlass(on) {
-  LG_TARGETS.forEach(({ sel, cls }) => {
-    document.querySelectorAll(sel).forEach(el => el.classList.toggle(cls, on));
+function toggleLiquidGlass(isEnabled) {
+  document.body.classList.toggle('liquid-glass-enabled', isEnabled);
+  document.querySelectorAll(LG_SELECTORS).forEach(el => {
+    if (isEnabled) {
+      el.classList.add('liquid-glass');
+    } else {
+      el.classList.remove('liquid-glass');
+    }
   });
 }
 
-function applyGlass(glass){
+// Обёртка для совместимости с остальным кодом
+function stampLiquidGlass(on) { toggleLiquidGlass(on); }
+
+function applyGlass(glass) {
   uiSettings.glass = glass;
-  const on = glass === 'on';
-  document.body.classList.toggle('liquid-glass-enabled', on);
-  stampLiquidGlass(on);
-  document.querySelectorAll('#glassToggle .toggle-pill').forEach(b=>b.classList.toggle('active', b.dataset.glass === glass));
+  toggleLiquidGlass(glass === 'on');
+  document.querySelectorAll('#glassToggle .toggle-pill').forEach(b => b.classList.toggle('active', b.dataset.glass === glass));
   saveUISettings();
 }
 
