@@ -576,6 +576,31 @@ body.liquid-glass-enabled .profile-skills-section {
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255,255,255,.18) !important;
 }
+/* ══════════ MODAL / OVERLAY SCALE FIX ══════════
+   position:fixed elements escape the html{zoom:0.75} context.
+   Solution: apply zoom:0.75 to each overlay, then compensate
+   inset so it still covers the full physical screen.          */
+.settings-overlay,
+.edit-overlay,
+.add-overlay,
+.confirm-overlay,
+.skills-overlay {
+  zoom: 0.75;
+  /* At zoom:0.75, inset:0 only covers 75% of physical screen.
+     Stretch to 133.333% and shift -16.667% to re-fill the screen. */
+  width:  133.333vw !important;
+  height: 133.333vh !important;
+  top:    -16.667vh !important;
+  left:   -16.667vw !important;
+  right:  auto !important;
+  bottom: auto !important;
+}
+/* Small floating menus don't need size compensation — just zoom */
+.ios-menu,
+.cal-ctx-menu,
+.achievement-popup {
+  zoom: 0.75;
+}
 .settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s ease;}
 .settings-overlay.open{opacity:1;pointer-events:all;}
 .settings-panel{background:var(--bg-panel);border:1px solid var(--border-glow);border-radius:var(--r-xl);padding:32px;width:min(480px,calc(100vw - 40px));position:relative;box-shadow:0 0 60px rgba(0,212,255,.12),0 20px 60px rgba(0,0,0,.8);transform:translateY(20px);transition:transform .3s ease;}
