@@ -2203,12 +2203,12 @@ body.metavision-active .skills-detail-bars {
 
       <!-- CUSTOM BACKGROUND IMAGE -->
       <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:10px;">
-        <span class="settings-row-label">Custom Background</span>
+        <span class="settings-row-label" data-i18n="settings_custom_bg">Custom Background</span>
         <div class="bg-preview-row">
           <input type="file" id="bgFileInput" accept="image/*" style="display:none;">
-          <label for="bgFileInput" class="custom-file-upload" id="bgFileLabel">⬆ CHOOSE IMAGE</label>
+          <label for="bgFileInput" class="custom-file-upload" id="bgFileLabel" data-i18n="bg_choose">⬆ CHOOSE IMAGE</label>
           <span class="bg-filename" id="bgFilename"></span>
-          <button class="bg-clear-btn" id="bgClearBtn">✕ CLEAR</button>
+          <button class="bg-clear-btn" id="bgClearBtn" data-i18n="bg_clear">✕ CLEAR</button>
         </div>
       </div>
     </div>
@@ -2624,6 +2624,13 @@ const I18N = {
     dock_none:'None',
     dock_profile:'Profile',
     dow_short: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    settings_custom_bg:'Custom Background',
+    bg_choose:'⬆ CHOOSE IMAGE',
+    bg_set:'✔ IMAGE SET',
+    bg_clear:'✕ CLEAR',
+    toast_bg_updated:'✔ Background updated',
+    toast_bg_cleared:'Background cleared',
+    toast_bg_too_large:'Image applied (too large to save)',
   },
   ru: {
     header_num:'ИГРОК № 11 // ОБЪЕКТ СИНЯЯ ТЮРЬМА', header_sub:'Исаги Йоичи — Система тактического управления',
@@ -2681,6 +2688,13 @@ const I18N = {
     dock_none:'Прочее',
     dock_profile:'Профиль',
     dow_short: ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'],
+    settings_custom_bg:'Фоновое изображение',
+    bg_choose:'⬆ ВЫБРАТЬ ФАЙЛ',
+    bg_set:'✔ ФОТО УСТАНОВЛЕНО',
+    bg_clear:'✕ СБРОСИТЬ',
+    toast_bg_updated:'✔ Фон обновлён',
+    toast_bg_cleared:'Фон сброшен',
+    toast_bg_too_large:'Фон применён (файл слишком большой для сохранения)',
   }
 };
 
@@ -2714,6 +2728,18 @@ function applyLang(lang){
   // Update confirm modal cancel label (dynamically created, not data-i18n)
   const cc = document.getElementById('confirmCancel');
   if(cc) cc.textContent = dict.edit_cancel || 'Cancel';
+  // Re-translate bg button — label loses data-i18n when image is set, handle manually
+  const bgLabel = document.getElementById('bgFileLabel');
+  if(bgLabel){
+    if(bgLabel.dataset.i18nBgSet){
+      bgLabel.textContent = dict.bg_set || '✔ IMAGE SET';
+    }
+    // if data-i18n is present, querySelectorAll above already handled it
+  }
+  const bgClear = document.getElementById('bgClearBtn');
+  if(bgClear && bgClear.classList.contains('visible')){
+    bgClear.textContent = dict.bg_clear || '✕ CLEAR';
+  }
   renderFilterBar();
   renderAll();
   saveUISettings();
@@ -4645,9 +4671,19 @@ function applyCustomBg(dataUrl, filename) {
   const label    = document.getElementById('bgFileLabel');
   const fnEl     = document.getElementById('bgFilename');
   const clearBtn = document.getElementById('bgClearBtn');
-  if (label)    { label.textContent = '✔ IMAGE SET'; label.classList.add('has-image'); }
+  const lang     = uiSettings.lang || 'en';
+  const dict     = I18N[lang] || I18N.en;
+  if (label)    {
+    label.textContent = dict.bg_set || '✔ IMAGE SET';
+    label.classList.add('has-image');
+    label.removeAttribute('data-i18n'); // prevent applyLang from overwriting "set" state
+    label.dataset.i18nBgSet = '1';      // mark so we can restore on lang change
+  }
   if (fnEl)     { fnEl.textContent = filename || ''; fnEl.classList.add('visible'); }
-  if (clearBtn) { clearBtn.classList.add('visible'); }
+  if (clearBtn) {
+    clearBtn.textContent = dict.bg_clear || '✕ CLEAR';
+    clearBtn.classList.add('visible');
+  }
 }
 
 function clearCustomBg() {
@@ -4658,11 +4694,18 @@ function clearCustomBg() {
   const fnEl     = document.getElementById('bgFilename');
   const clearBtn = document.getElementById('bgClearBtn');
   const input    = document.getElementById('bgFileInput');
-  if (label)    { label.textContent = '⬆ CHOOSE IMAGE'; label.classList.remove('has-image'); }
+  const lang     = uiSettings.lang || 'en';
+  const dict     = I18N[lang] || I18N.en;
+  if (label)    {
+    label.textContent = dict.bg_choose || '⬆ CHOOSE IMAGE';
+    label.classList.remove('has-image');
+    label.setAttribute('data-i18n', 'bg_choose'); // restore i18n binding
+    delete label.dataset.i18nBgSet;
+  }
   if (fnEl)     { fnEl.textContent = ''; fnEl.classList.remove('visible'); }
   if (clearBtn) { clearBtn.classList.remove('visible'); }
   if (input)    { input.value = ''; }
-  showToast('Background cleared', 'info');
+  showToast(dict.toast_bg_cleared || 'Background cleared', 'info');
 }
 
 // Auto-load saved background on startup
@@ -4681,15 +4724,16 @@ document.getElementById('bgFileInput')?.addEventListener('change', function(e) {
   const reader = new FileReader();
   reader.onload = function(ev) {
     const dataUrl = ev.target.result;
+    const lang = uiSettings.lang || 'en';
+    const dict = I18N[lang] || I18N.en;
     try {
       localStorage.setItem('app_custom_bg', dataUrl);
       localStorage.setItem('app_custom_bg_name', file.name);
     } catch(err) {
-      // localStorage quota exceeded (large image) — apply without saving
-      showToast('Image applied (too large to save)', 'warn');
+      showToast(dict.toast_bg_too_large || 'Image applied (too large to save)', 'warn');
     }
     applyCustomBg(dataUrl, file.name);
-    showToast('✔ Background updated', 'success');
+    showToast(dict.toast_bg_updated || '✔ Background updated', 'success');
     try { playTone('click'); } catch(ex){}
   };
   reader.readAsDataURL(file);
