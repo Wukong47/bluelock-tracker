@@ -1272,10 +1272,10 @@ body.liquid-glass-enabled .float-add-btn {
   display: flex;
   align-items: center;
   gap: 0;
-  padding: 8px 12px;       /* reduced from 10px 20px */
+  padding: 8px 4px;
   border-radius: 30px;
-  flex-shrink: 1;           /* allow dock to shrink if needed */
-  min-width: 0;
+  flex-shrink: 0;           /* dock never shrinks */
+  width: 240px;             /* fixed total width — language-proof */
 
   background: rgba(14, 22, 34, 0.92);
   border: 1px solid rgba(0, 212, 255, 0.22);
@@ -1287,21 +1287,25 @@ body.liquid-glass-enabled .float-add-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
-  padding: 5px 14px;        /* reduced from 6px 22px */
+  flex: 1;                  /* equal thirds of the dock width */
+  width: 0;                 /* let flex-basis do the work */
+  padding: 5px 0;
   cursor: pointer;
   border-radius: 20px;
   transition: background 0.18s ease, transform 0.15s ease, opacity 0.15s;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-  flex-shrink: 1;
+  text-align: center;
+  overflow: hidden;
 }
 .dock-item:hover { background: rgba(0,212,255,0.1); transform: translateY(-2px); }
 .dock-item:active { transform: scale(0.92); opacity: 0.75; }
 .dock-item.active .dock-icon { color: var(--neon-blue); filter: drop-shadow(0 0 6px var(--neon-blue)); }
 .dock-item.active .dock-label { color: var(--neon-blue); }
 .dock-icon { font-size: 20px; color: rgba(255,255,255,0.7); line-height: 1; transition: color 0.18s, filter 0.18s; }
-.dock-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.45); transition: color 0.18s; white-space: nowrap; }
+.dock-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.45); transition: color 0.18s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .dock-separator { width: 1px; height: 24px; background: rgba(255,255,255,0.1); flex-shrink: 0; }
 
 /* ── Add (+) Button ── */
@@ -1903,10 +1907,9 @@ body.metavision-active .skills-detail-bars {
   background: rgba(0,0,0,0.68);
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   z-index: 900;
-  display: flex; align-items: flex-end; justify-content: center;
+  display: flex !important; align-items: center !important; justify-content: center !important;
   opacity: 0; pointer-events: none;
   transition: opacity 0.25s ease;
-  padding-bottom: 100px; /* above dock */
 }
 .add-overlay.open { opacity: 1; pointer-events: all; }
 
@@ -1916,15 +1919,16 @@ body.metavision-active .skills-detail-bars {
   backdrop-filter: blur(40px) saturate(200%);
   -webkit-backdrop-filter: blur(40px) saturate(200%);
   border: .5px solid rgba(255,255,255,.14);
-  border-radius: 20px 20px 20px 20px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 -8px 48px rgba(0,0,0,.7), 0 0 0 .5px rgba(255,255,255,.05) inset;
+  box-shadow: 0 8px 48px rgba(0,0,0,.7), 0 0 0 .5px rgba(255,255,255,.05) inset;
   position: relative !important;
-  transform: scale(0.75) translateY(40px) !important;
-  transform-origin: center bottom !important;
+  margin: auto !important;
+  transform: scale(0.675) !important;
+  transform-origin: center center !important;
   transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
 }
-.add-overlay.open .add-modal { transform: scale(0.75) translateY(0) !important; }
+.add-overlay.open .add-modal { transform: scale(0.75) !important; }
 
 .add-modal-header {
   padding: 18px 20px 0;
