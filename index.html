@@ -646,15 +646,7 @@ body.flow-active #bgOverlay {
   flex-shrink: 0;
 }
 
-/* Liquid Glass override for profile cards */
-body.liquid-glass-enabled .pstat-card,
-body.liquid-glass-enabled .profile-hero,
-body.liquid-glass-enabled .profile-skills-section {
-  background: linear-gradient(135deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.02) 100%) !important;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255,255,255,.18) !important;
-}
+
 /* ══════════ MODAL / OVERLAY SCALE FIX ══════════
    position:fixed elements escape the html{zoom:0.75} context.
    Solution: keep overlays covering the full physical screen via inset:0,
@@ -1175,66 +1167,83 @@ body.liquid-glass-enabled .profile-skills-section {
 }
 
 /* ══════════════════════════════════════════════
-   LIQUID GLASS — applied ONLY when body.liquid-glass-enabled
-   (backdrop-filter is NOT active by default for performance)
+   LIQUID GLASS — iOS 27 style
+   Universal class: just add .liquid-glass to any element.
+   Three intensity tiers via modifier classes.
 ══════════════════════════════════════════════ */
-body.liquid-glass-enabled .task-item,
-body.liquid-glass-enabled .radar-card,
-body.liquid-glass-enabled .task-form,
-body.liquid-glass-enabled .event-log,
-body.liquid-glass-enabled .stat-box {
+
+/* ── Tier 1: Cards & panels (subtle) ── */
+.liquid-glass {
   background: linear-gradient(135deg,
     rgba(255,255,255,0.08) 0%,
-    rgba(255,255,255,0.02) 100%) !important;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255,255,255,0.18) !important;
+    rgba(255,255,255,0.03) 100%) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  border-radius: 20px !important;
   box-shadow:
-    inset 0 1px 1px rgba(255,255,255,0.22),
-    0 8px 32px rgba(0,0,0,0.38) !important;
+    inset 0 1px 0 rgba(255,255,255,0.20),
+    inset 0 -1px 0 rgba(0,0,0,0.10),
+    0 8px 32px rgba(0,0,0,0.37) !important;
   will-change: backdrop-filter;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
 }
-body.liquid-glass-enabled .edit-modal,
-body.liquid-glass-enabled .confirm-modal,
-body.liquid-glass-enabled .settings-panel,
-body.liquid-glass-enabled .ios-menu,
-body.liquid-glass-enabled .cal-ctx-menu,
-body.liquid-glass-enabled .add-modal,
-body.liquid-glass-enabled .skills-modal {
+
+/* ── Tier 2: Modals & overlays (stronger blur) ── */
+.liquid-glass--modal {
   background: linear-gradient(160deg,
     rgba(255,255,255,0.11) 0%,
-    rgba(255,255,255,0.03) 100%) !important;
-  backdrop-filter: blur(32px) saturate(200%);
-  -webkit-backdrop-filter: blur(32px) saturate(200%);
-  border: 1px solid rgba(255,255,255,0.22) !important;
+    rgba(255,255,255,0.04) 100%) !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+  border: 1px solid rgba(255,255,255,0.20) !important;
+  border-radius: 20px !important;
   box-shadow:
-    inset 0 1px 1px rgba(255,255,255,0.28),
-    0 20px 60px rgba(0,0,0,0.5) !important;
+    inset 0 1px 0 rgba(255,255,255,0.28),
+    inset 0 -1px 0 rgba(0,0,0,0.12),
+    0 20px 60px rgba(0,0,0,0.50) !important;
   will-change: backdrop-filter;
+  transition: background 0.3s ease, border-color 0.3s ease !important;
 }
-body.liquid-glass-enabled .float-dock {
+
+/* ── Tier 3: Navigation dock & floating buttons ── */
+.liquid-glass--nav {
   background: linear-gradient(135deg,
     rgba(255,255,255,0.14) 0%,
-    rgba(255,255,255,0.04) 100%) !important;
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border: 1px solid rgba(255,255,255,0.24) !important;
+    rgba(255,255,255,0.05) 100%) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border: 1px solid rgba(255,255,255,0.22) !important;
   box-shadow:
-    inset 0 1px 1px rgba(255,255,255,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.30),
     0 12px 40px rgba(0,0,0,0.45) !important;
   will-change: backdrop-filter;
+  transition: background 0.3s ease, border-color 0.3s ease !important;
 }
-body.liquid-glass-enabled .float-add-btn {
-  background: linear-gradient(135deg,
-    rgba(255,255,255,0.15) 0%,
-    rgba(255,255,255,0.05) 100%) !important;
-  border: 1px solid rgba(255,255,255,0.28) !important;
-  box-shadow:
-    inset 0 1px 1px rgba(255,255,255,0.3),
-    0 8px 32px rgba(0,0,0,0.5) !important;
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  will-change: backdrop-filter;
+
+/* ── Highlight specular shimmer on top edge ── */
+.liquid-glass::before,
+.liquid-glass--modal::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 12px; right: 12px; height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(255,255,255,0.35),
+    transparent);
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Profile cards get liquid glass too */
+body.liquid-glass-enabled .pstat-card,
+body.liquid-glass-enabled .profile-hero,
+body.liquid-glass-enabled .profile-skills-section {
+  background: linear-gradient(135deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.02) 100%) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255,255,255,.18) !important;
 }
 
 /* ══════════════════════════════════════════════
@@ -2716,9 +2725,29 @@ function applyTheme(theme){
   saveUISettings();
 }
 
+// ── Liquid Glass element registry ───────────────────────────────
+// tier → [selector, className]
+const LG_TARGETS = [
+  // Tier 1: cards & panels
+  { sel: '.task-item, .radar-card, .task-form, .event-log, .stat-box, .pstat-card, .profile-hero, .profile-skills-section, .tac-block, .profile-tac-right', cls: 'liquid-glass' },
+  // Tier 2: modals
+  { sel: '.settings-panel, .edit-modal, .add-modal, .confirm-modal, .skills-modal, .ios-menu, .cal-ctx-menu', cls: 'liquid-glass--modal' },
+  // Tier 3: navigation
+  { sel: '.float-dock', cls: 'liquid-glass--nav' },
+  { sel: '.float-add-btn', cls: 'liquid-glass--nav' },
+];
+
 function applyGlass(glass){
   uiSettings.glass = glass;
-  document.body.classList.toggle('liquid-glass-enabled', glass === 'on');
+  const on = glass === 'on';
+  document.body.classList.toggle('liquid-glass-enabled', on);
+
+  LG_TARGETS.forEach(({ sel, cls }) => {
+    document.querySelectorAll(sel).forEach(el => {
+      el.classList.toggle(cls, on);
+    });
+  });
+
   document.querySelectorAll('#glassToggle .toggle-pill').forEach(b=>b.classList.toggle('active', b.dataset.glass === glass));
   saveUISettings();
 }
@@ -3286,6 +3315,8 @@ function renderAll(){
   renderSkillBarsModal();
   updateChart();
   updateTotals();
+  // Re-apply liquid glass to newly rendered dynamic elements
+  if(uiSettings.glass === 'on') applyGlass('on');
 }
 
 // ════════════════════════════════════════════════════════════════
