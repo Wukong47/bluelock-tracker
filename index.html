@@ -1221,9 +1221,8 @@ body.flow-active #bgOverlay {
   transition: background 0.3s ease, border-color 0.3s ease !important;
 }
 
-/* ── Highlight specular shimmer on top edge ── */
-.liquid-glass::before,
-.liquid-glass--modal::before {
+/* ── Specular shimmer on modals only (cards already have ::before for accent stripe) ── */
+.liquid-glass--modal::after {
   content: '';
   position: absolute;
   top: 0; left: 12px; right: 12px; height: 1px;
@@ -1234,6 +1233,7 @@ body.flow-active #bgOverlay {
   border-radius: inherit;
   pointer-events: none;
   opacity: 0.7;
+  z-index: 1;
 }
 
 /* Profile cards get liquid glass too */
@@ -2733,21 +2733,21 @@ const LG_TARGETS = [
   // Tier 2: modals
   { sel: '.settings-panel, .edit-modal, .add-modal, .confirm-modal, .skills-modal, .ios-menu, .cal-ctx-menu', cls: 'liquid-glass--modal' },
   // Tier 3: navigation
-  { sel: '.float-dock', cls: 'liquid-glass--nav' },
-  { sel: '.float-add-btn', cls: 'liquid-glass--nav' },
+  { sel: '.float-dock, .float-add-btn', cls: 'liquid-glass--nav' },
 ];
+
+// Pure DOM stamper — no side-effects, no save, no recursion
+function stampLiquidGlass(on) {
+  LG_TARGETS.forEach(({ sel, cls }) => {
+    document.querySelectorAll(sel).forEach(el => el.classList.toggle(cls, on));
+  });
+}
 
 function applyGlass(glass){
   uiSettings.glass = glass;
   const on = glass === 'on';
   document.body.classList.toggle('liquid-glass-enabled', on);
-
-  LG_TARGETS.forEach(({ sel, cls }) => {
-    document.querySelectorAll(sel).forEach(el => {
-      el.classList.toggle(cls, on);
-    });
-  });
-
+  stampLiquidGlass(on);
   document.querySelectorAll('#glassToggle .toggle-pill').forEach(b=>b.classList.toggle('active', b.dataset.glass === glass));
   saveUISettings();
 }
@@ -3315,8 +3315,8 @@ function renderAll(){
   renderSkillBarsModal();
   updateChart();
   updateTotals();
-  // Re-apply liquid glass to newly rendered dynamic elements
-  if(uiSettings.glass === 'on') applyGlass('on');
+  // Re-stamp liquid glass onto freshly rendered dynamic elements (no recursion — call helper directly)
+  stampLiquidGlass(uiSettings.glass === 'on');
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -4686,14 +4686,14 @@ loadFlowMode();
 loadSoundPref();
 loadPenaltyMode();
 applyTheme(uiSettings.theme);
-applyGlass(uiSettings.glass ?? 'on');
 applyLang(uiSettings.lang);
 applyFlowMode();
 applySoundToggle();
 applyPenaltyModeToggle();
 renderFilterBar();
-renderAll();
-runDailyPenaltyCheck();   // ← check for missed habits on page open
+renderAll();                          // ← карточки рендерятся здесь
+applyGlass(uiSettings.glass ?? 'on'); // ← теперь классы вешаются на уже существующие элементы
+runDailyPenaltyCheck();
 addLog(t('log_sys_ready'),'success');
 
 // ════════════════════════════════════════════════════════════════
