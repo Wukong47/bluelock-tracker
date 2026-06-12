@@ -3423,27 +3423,31 @@ function openContextMenu(card,id,x,y){
   card.classList.add('long-pressing');
   backdrop.classList.add('visible');
 
-  // html{zoom:0.75} shrinks the layout space — clientX/Y are in physical pixels,
-  // but positioned elements live in the zoomed coordinate system.
-  // Divide by zoom to convert to layout coords.
+  // Pre-show with opacity:0 so browser can measure real dimensions
+  iosMenu.style.opacity = '0';
+  iosMenu.style.pointerEvents = 'none';
+  iosMenu.classList.add('visible');
+
   const ZOOM = 0.75;
   const lx = x / ZOOM;
   const ly = y / ZOOM;
-
-  const menuW=230, menuH=160;
-  // window.innerWidth/Height are also in zoomed coords after zoom, so compensate:
   const vw = window.innerWidth  / ZOOM;
   const vh = window.innerHeight / ZOOM;
+  const menuW = iosMenu.offsetWidth  || 230;
+  const menuH = iosMenu.offsetHeight || 160;
 
-  let left = lx + 10, top = ly + 10;
-  if(left + menuW > vw - 16) left = lx - menuW - 10;
-  if(top  + menuH > vh - 16) top  = ly - menuH - 10;
-  if(left < 8) left = 8;
-  if(top  < 8) top  = 8;
+  // Center the menu on the finger
+  let left = lx - menuW / 2;
+  let top  = ly - menuH / 2;
+
+  // Boundary clamp — keep fully inside viewport with 8px margin
+  left = Math.max(8, Math.min(left, vw - menuW - 8));
+  top  = Math.max(8, Math.min(top,  vh - menuH - 8));
 
   iosMenu.style.left = left + 'px';
   iosMenu.style.top  = top  + 'px';
-  iosMenu.classList.add('visible');
+  iosMenu.style.opacity = '';
+  iosMenu.style.pointerEvents = '';
 }
 
 function closeContextMenu(){
