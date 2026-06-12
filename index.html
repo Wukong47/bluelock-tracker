@@ -878,10 +878,10 @@ body.flow-active #bgOverlay {
   position:fixed;
   z-index:1200;
   width:200px;
-  background:rgba(28,28,32,.96);
+  background:var(--bg-modal, #0e1825);
   backdrop-filter:blur(28px) saturate(180%);
   -webkit-backdrop-filter:blur(28px) saturate(180%);
-  border:.5px solid rgba(255,255,255,.14);
+  border:1px solid rgba(0,212,255,0.18);
   border-radius:13px;
   overflow:hidden;
   box-shadow:0 16px 48px rgba(0,0,0,.75),0 0 0 .5px rgba(255,255,255,.04) inset;
@@ -922,7 +922,7 @@ body.flow-active #bgOverlay {
 /* ══════════ iOS LONG-PRESS ══════════ */
 .lp-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:500;opacity:0;pointer-events:none;transition:opacity .22s ease;}
 .lp-backdrop.visible{opacity:1;pointer-events:all;}
-.ios-menu{position:fixed;z-index:700;width:230px;background:rgba(28,28,32,.92);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:.5px solid rgba(255,255,255,.12);border-radius:13px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.7),0 0 0 .5px rgba(255,255,255,.05) inset;opacity:0;pointer-events:none;transform:scale(.85) translateY(-8px);transform-origin:top center;transition:opacity .2s cubic-bezier(.34,1.56,.64,1),transform .2s cubic-bezier(.34,1.56,.64,1);}
+.ios-menu{position:fixed;z-index:700;width:230px;background:var(--bg-modal, #0e1825);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(0,212,255,0.18);border-radius:13px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.7),0 0 0 .5px rgba(255,255,255,.08) inset;opacity:0;pointer-events:none;transform:scale(.85) translateY(-8px);transform-origin:top center;transition:opacity .2s cubic-bezier(.34,1.56,.64,1),transform .2s cubic-bezier(.34,1.56,.64,1);}
 .ios-menu.visible{opacity:1;pointer-events:all;transform:scale(1) translateY(0);}
 .ios-menu-item{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;font-family:-apple-system,'SF Pro Text','Rajdhani',sans-serif;font-size:16px;font-weight:400;color:rgba(255,255,255,.9);cursor:pointer;transition:background .1s ease;border:none;background:transparent;width:100%;text-align:left;letter-spacing:.2px;}
 .ios-menu-item:hover,.ios-menu-item:active{background:rgba(255,255,255,.08);}
@@ -3422,12 +3422,27 @@ function openContextMenu(card,id,x,y){
   lpActiveId=id; lpActiveCard=card;
   card.classList.add('long-pressing');
   backdrop.classList.add('visible');
+
+  // html{zoom:0.75} shrinks the layout space — clientX/Y are in physical pixels,
+  // but positioned elements live in the zoomed coordinate system.
+  // Divide by zoom to convert to layout coords.
+  const ZOOM = 0.75;
+  const lx = x / ZOOM;
+  const ly = y / ZOOM;
+
   const menuW=230, menuH=160;
-  let left=x+10, top=y+10;
-  if(left+menuW>window.innerWidth-16)  left=x-menuW-10;
-  if(top+menuH>window.innerHeight-16)  top=y-menuH-10;
-  if(left<8) left=8; if(top<8) top=8;
-  iosMenu.style.left=left+'px'; iosMenu.style.top=top+'px';
+  // window.innerWidth/Height are also in zoomed coords after zoom, so compensate:
+  const vw = window.innerWidth  / ZOOM;
+  const vh = window.innerHeight / ZOOM;
+
+  let left = lx + 10, top = ly + 10;
+  if(left + menuW > vw - 16) left = lx - menuW - 10;
+  if(top  + menuH > vh - 16) top  = ly - menuH - 10;
+  if(left < 8) left = 8;
+  if(top  < 8) top  = 8;
+
+  iosMenu.style.left = left + 'px';
+  iosMenu.style.top  = top  + 'px';
   iosMenu.classList.add('visible');
 }
 
@@ -3514,11 +3529,16 @@ function openCalCtxMenu(dateStr, x, y){
   document.getElementById('calCtxFailedLabel').textContent = t('cal_ctx_failed');
   document.getElementById('calCtxSkipLabel').textContent   = t('cal_ctx_skip');
 
-  // Position menu — keep it fully inside viewport
+  // Position menu — compensate for html{zoom:0.75}
+  const ZOOM = 0.75;
+  const lx = x / ZOOM;
+  const ly = y / ZOOM;
+  const vw = window.innerWidth  / ZOOM;
+  const vh = window.innerHeight / ZOOM;
   const menuW = 200, menuH = 110;
-  let left = x + 10, top = y + 10;
-  if(left + menuW > window.innerWidth  - 12) left = x - menuW - 10;
-  if(top  + menuH > window.innerHeight - 12) top  = y - menuH - 10;
+  let left = lx + 10, top = ly + 10;
+  if(left + menuW > vw - 12) left = lx - menuW - 10;
+  if(top  + menuH > vh - 12) top  = ly - menuH - 10;
   if(left < 8) left = 8;
   if(top  < 8) top  = 8;
 
