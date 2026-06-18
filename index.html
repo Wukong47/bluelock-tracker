@@ -2,31 +2,54 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<!-- ── Viewport: natural 1:1 scale, no browser zoom tricks ── -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+
+<!-- ── PWA: manifest + theme ── -->
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#00d4ff" />
+
+<!-- ── Apple PWA meta tags (Add to Home Screen) ── -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Egoist Engine" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+
+<!-- ── Microsoft / general ── -->
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="application-name" content="Egoist Engine" />
+
 <title>BLUE LOCK — ISAGI YOICHI // EGOIST ENGINE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- ── Register Service Worker ── -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .catch(err => console.warn('SW registration failed:', err));
+  });
+}
+</script>
+
 <style>
-/* ══════════ MOBILE SCALE FIX ══════════ */
+/* ══════════ BASE RESET ══════════ */
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   scroll-behavior: smooth;
-  /* zoom: 0.75 shrinks the viewport by 25%.
-     body width: 133.333vw fills it back to 100% of physical screen. */
-  zoom: 0.75;
-  overflow-x: hidden;
+  /* NO zoom hack — viewport handles scaling natively */
 }
 body {
-  /* 100vw here is measured AFTER zoom, so multiply back to fill screen */
-  width: 133.333vw;
-  /* NO max-width — that was cutting off the compensation */
+  width: 100%;
   overflow-x: hidden;
   margin: 0;
   padding: 0;
+  /* Safe area insets for notch/home-bar devices */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
-/* Belt-and-braces: prevent any ancestor clipping */
-html, body { box-sizing: border-box; }
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --bg-void:#020408; --bg-deep:#050c14; --bg-panel:#080f1a;
@@ -647,33 +670,10 @@ body.flow-active #bgOverlay {
 }
 
 
-/* ══════════ MODAL / OVERLAY SCALE FIX ══════════
-   position:fixed elements escape the html{zoom:0.75} context.
-   Solution: keep overlays covering the full physical screen via inset:0,
-   then use transform:scale(0.75) on the overlay itself so its flex
-   centering works correctly at the scaled size.                    */
-
-/* Overlay wrapper: fills the full physical viewport, flex-centers its modal */
-.settings-overlay,
-.edit-overlay,
-.add-overlay,
-.confirm-overlay,
-.skills-overlay {
-  /* inset:0 defined per-overlay below — don't override here */
-  transform: scale(1.3333);          /* compensate for html{zoom:0.75} → 1/0.75 */
-  transform-origin: center center;
-}
-
-/* Small floating menus: compensate for html zoom */
-.ios-menu,
-.cal-ctx-menu,
-.achievement-popup {
-  zoom: 0.75;
-}
 .settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s ease;}
 .settings-overlay.open{opacity:1;pointer-events:all;}
-.settings-panel{background:var(--bg-card);border:1px solid var(--border-glow);border-radius:var(--r-xl);padding:32px;width:min(640px,calc(100vw * 1.2)) !important;position:relative !important;max-height:90vh;overflow-y:auto;box-shadow:0 0 40px rgba(0,212,255,.08),0 20px 60px rgba(0,0,0,.6);transform:scale(0.75) translateY(20px) !important;transform-origin:center center !important;transition:transform .3s ease;}
-.settings-overlay.open .settings-panel{transform:scale(0.75) translateY(0) !important;}
+.settings-panel{background:var(--bg-card);border:1px solid var(--border-glow);border-radius:var(--r-xl);padding:28px 24px;width:min(480px,calc(100vw - 32px));position:relative;max-height:92vh;overflow-y:auto;box-shadow:0 0 40px rgba(0,212,255,.08),0 20px 60px rgba(0,0,0,.6);transform:scale(0.92) translateY(20px);transform-origin:center center;transition:transform .3s ease;}
+.settings-overlay.open .settings-panel{transform:scale(1) translateY(0);}
 .settings-panel::before{content:'';position:absolute;top:0;left:12px;right:12px;height:1px;background:linear-gradient(90deg,transparent,var(--neon-blue),transparent);border-radius:var(--r-xl);opacity:.7;}
 .settings-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
 .settings-title{font-family:var(--font-display);font-size:22px;letter-spacing:5px;}
@@ -875,22 +875,27 @@ body.flow-active #bgOverlay {
 
 /* ── Calendar date context mini-menu ── */
 .cal-ctx-menu{
-  position:fixed;
-  z-index:1200;
-  width:200px;
-  background:var(--bg-modal, #0e1825);
-  backdrop-filter:blur(28px) saturate(180%);
-  -webkit-backdrop-filter:blur(28px) saturate(180%);
-  border:1px solid rgba(0,212,255,0.18);
-  border-radius:13px;
-  overflow:hidden;
-  box-shadow:0 16px 48px rgba(0,0,0,.75),0 0 0 .5px rgba(255,255,255,.04) inset;
-  opacity:0;pointer-events:none;
-  transform:scale(.88) translateY(-6px);
-  transform-origin:top center;
-  transition:opacity .18s cubic-bezier(.34,1.56,.64,1), transform .18s cubic-bezier(.34,1.56,.64,1);
+  position: fixed !important;
+  z-index: 99999 !important;
+  width: 200px;
+  margin: 0 !important;
+  transform: translate(-50%, -50%) scale(0.88) !important;
+  transform-origin: center center;
+  background: var(--bg-modal, #0e1825);
+  border: 1px solid rgba(0,212,255,0.18);
+  border-radius: 13px;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0,0,0,.75), 0 0 0 .5px rgba(255,255,255,.04) inset;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s cubic-bezier(.34,1.56,.64,1);
 }
-.cal-ctx-menu.visible{opacity:1;pointer-events:all;transform:scale(1) translateY(0);}
+.cal-ctx-menu.visible{
+  opacity: 1;
+  pointer-events: all;
+  transform: translate(-50%, -50%) scale(1) !important;
+  animation: menuFadeIn .18s ease forwards;
+}
 .cal-ctx-item{
   display:flex;align-items:center;justify-content:space-between;
   padding:13px 16px;
@@ -922,8 +927,33 @@ body.flow-active #bgOverlay {
 /* ══════════ iOS LONG-PRESS ══════════ */
 .lp-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:500;opacity:0;pointer-events:none;transition:opacity .22s ease;}
 .lp-backdrop.visible{opacity:1;pointer-events:all;}
-.ios-menu{position:fixed;z-index:700;width:230px;background:var(--bg-modal, #0e1825);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(0,212,255,0.18);border-radius:13px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.7),0 0 0 .5px rgba(255,255,255,.08) inset;opacity:0;pointer-events:none;transform:translate(-50%,-50%) scale(.85) translateY(-8px);transform-origin:center center;transition:opacity .2s cubic-bezier(.34,1.56,.64,1),transform .2s cubic-bezier(.34,1.56,.64,1);}
-.ios-menu.visible{opacity:1;pointer-events:all;transform:translate(-50%,-50%) scale(1) translateY(0);}
+.ios-menu{
+  position: fixed !important;
+  z-index: 99999 !important;
+  width: 230px;
+  margin: 0 !important;
+  /* translate(-50%,-50%) centres the menu on the JS-supplied left/top point */
+  transform: translate(-50%, -50%) scale(0.85) !important;
+  transform-origin: center center;
+  background: var(--bg-modal, #0e1825);
+  border: 1px solid rgba(0,212,255,0.18);
+  border-radius: 13px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,.7), 0 0 0 .5px rgba(255,255,255,.08) inset;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s cubic-bezier(.34,1.56,.64,1);
+}
+.ios-menu.visible{
+  opacity: 1;
+  pointer-events: all;
+  transform: translate(-50%, -50%) scale(1) !important;
+  animation: menuFadeIn .18s ease forwards;
+}
+@keyframes menuFadeIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1);   }
+}
 .ios-menu-item{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;font-family:-apple-system,'SF Pro Text','Rajdhani',sans-serif;font-size:16px;font-weight:400;color:rgba(255,255,255,.9);cursor:pointer;transition:background .1s ease;border:none;background:transparent;width:100%;text-align:left;letter-spacing:.2px;}
 .ios-menu-item:hover,.ios-menu-item:active{background:rgba(255,255,255,.08);}
 .ios-menu-divider{height:.5px;background:rgba(255,255,255,.1);margin:0;}
@@ -946,7 +976,7 @@ body.flow-active #bgOverlay {
 .edit-overlay.open{opacity:1;pointer-events:all;}
 
 .edit-modal{
-  width:min(640px,calc(100vw * 1.2)) !important;
+  width:min(520px,calc(100vw - 24px));
   max-height:90vh;
   background:var(--bg-card);
   border:1px solid var(--border-glow);
@@ -955,11 +985,11 @@ body.flow-active #bgOverlay {
   display:flex;flex-direction:column;
   box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 40px rgba(0,212,255,.08);
   position:relative !important;
-  transform:scale(0.675) translateY(20px) !important;
-  transform-origin:center center !important;
+  transform:scale(0.92) translateY(20px);
+  transform-origin:center center;
   transition:transform .3s cubic-bezier(.34,1.56,.64,1);
 }
-.edit-overlay.open .edit-modal{transform:scale(0.75) translateY(0) !important;}
+.edit-overlay.open .edit-modal{transform:scale(1) translateY(0);}
 
 .edit-modal-header{padding:20px 20px 0;text-align:center;flex-shrink:0;}
 .edit-modal-title{font-family:-apple-system,'SF Pro Display','Bebas Neue',sans-serif;font-size:17px;font-weight:600;color:rgba(255,255,255,.95);letter-spacing:.3px;margin-bottom:4px;}
@@ -1074,8 +1104,8 @@ body.flow-active #bgOverlay {
 /* ══════════ iOS CONFIRM MODAL (danger) ══════════ */
 .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:900;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .22s ease;}
 .confirm-overlay.open{opacity:1;pointer-events:all;}
-.confirm-modal{width:min(280px,calc(100vw - 60px));background:var(--bg-card);border:1px solid var(--border-glow);border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 40px rgba(0,212,255,.08);position:relative !important;transform:scale(0.675) !important;transform-origin:center center !important;transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
-.confirm-overlay.open .confirm-modal{transform:scale(0.75) !important;}
+.confirm-modal{width:min(280px,calc(100vw - 60px));background:var(--bg-card);border:1px solid var(--border-glow);border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 40px rgba(0,212,255,.08);position:relative;transform:scale(0.92);transform-origin:center center;transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
+.confirm-overlay.open .confirm-modal{transform:scale(1);}
 .confirm-modal-body{padding:20px 20px 14px;text-align:center;}
 .confirm-modal-title{font-family:-apple-system,'SF Pro Display',sans-serif;font-size:17px;font-weight:600;color:rgba(255,255,255,.95);margin-bottom:8px;letter-spacing:.2px;}
 .confirm-modal-msg{font-family:-apple-system,'SF Pro Text',sans-serif;font-size:13px;color:rgba(255,255,255,.55);line-height:1.5;letter-spacing:.1px;}
@@ -1864,7 +1894,7 @@ body.metavision-active .skills-detail-bars {
 .add-overlay.open { opacity: 1; pointer-events: all; }
 
 .add-modal {
-  width: min(693px, calc(100vw * 1.2)) !important;
+  width: min(520px, calc(100vw - 24px));
   background: var(--bg-card);
   border: 1px solid var(--border-glow);
   border-radius: 20px;
@@ -1872,11 +1902,11 @@ body.metavision-active .skills-detail-bars {
   box-shadow: 0 20px 60px rgba(0,0,0,.6), 0 0 40px rgba(0,212,255,.08);
   position: relative !important;
   margin: auto !important;
-  transform: scale(0.675) !important;
-  transform-origin: center center !important;
+  transform: scale(0.92);
+  transform-origin: center center;
   transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
 }
-.add-overlay.open .add-modal { transform: scale(0.75) !important; }
+.add-overlay.open .add-modal { transform: scale(1); }
 
 .add-modal-header {
   padding: 18px 20px 0;
@@ -1916,7 +1946,7 @@ body.metavision-active .skills-detail-bars {
 .skills-overlay.open { opacity: 1; pointer-events: all; }
 
 .skills-modal {
-  width: min(747px, calc(100vw * 1.2)) !important;
+  width: min(100vw, 100vw);
   max-height: 92vh;
   background: var(--bg-card);
   border: 1px solid var(--border-glow);
@@ -1925,11 +1955,11 @@ body.metavision-active .skills-detail-bars {
   display: flex; flex-direction: column;
   box-shadow: 0 -8px 40px rgba(0,212,255,.08), 0 20px 60px rgba(0,0,0,.6);
   position: relative !important;
-  transform: scale(0.75) translateY(60px) !important;
-  transform-origin: center bottom !important;
+  transform: scale(0.92) translateY(40px);
+  transform-origin: center bottom;
   transition: transform .32s cubic-bezier(.34,1.56,.64,1);
 }
-.skills-overlay.open .skills-modal { transform: scale(0.75) translateY(0) !important; }
+.skills-overlay.open .skills-modal { transform: scale(1) translateY(0); }
 
 .skills-modal-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -3423,15 +3453,12 @@ function openContextMenu(card,id,x,y){
   card.classList.add('long-pressing');
   backdrop.classList.add('visible');
 
-  // CSS handles centering via translate(-50%,-50%).
-  // Just place the anchor at the tap point in viewport (clientX/Y) coords.
-  // Clamp so the menu never escapes the viewport edges.
+  // x,y are raw clientX/clientY — position:fixed + translate(-50%,-50%) centres menu here.
+  // Clamp so the menu (230×165px) never escapes the physical viewport.
   const menuW = 230, menuH = 165;
   const vw = window.innerWidth, vh = window.innerHeight;
-  const half_w = menuW / 2, half_h = menuH / 2;
-
-  const left = Math.max(half_w + 8, Math.min(x, vw - half_w - 8));
-  const top  = Math.max(half_h + 8, Math.min(y, vh - half_h - 8));
+  const left = Math.max(menuW/2 + 8, Math.min(x, vw - menuW/2 - 8));
+  const top  = Math.max(menuH/2 + 8, Math.min(y, vh - menuH/2 - 8));
 
   iosMenu.style.left = left + 'px';
   iosMenu.style.top  = top  + 'px';
@@ -3514,25 +3541,18 @@ let calCtxTimer   = null;
 const CAL_LP_MS   = 600;
 
 function openCalCtxMenu(dateStr, x, y){
-  // Capture date into a local snapshot AND the module var
   calCtxDate = dateStr;
 
-  // Update labels from i18n
   document.getElementById('calCtxFailedLabel').textContent = t('cal_ctx_failed');
   document.getElementById('calCtxSkipLabel').textContent   = t('cal_ctx_skip');
 
-  // Position menu — compensate for html{zoom:0.75}
-  const ZOOM = 0.75;
-  const lx = x / ZOOM;
-  const ly = y / ZOOM;
-  const vw = window.innerWidth  / ZOOM;
-  const vh = window.innerHeight / ZOOM;
+  // x,y are raw clientX/clientY from the event.
+  // position:fixed + translate(-50%,-50%) centres the menu on this point.
+  // Clamp so it never escapes the physical viewport.
   const menuW = 200, menuH = 110;
-  let left = lx + 10, top = ly + 10;
-  if(left + menuW > vw - 12) left = lx - menuW - 10;
-  if(top  + menuH > vh - 12) top  = ly - menuH - 10;
-  if(left < 8) left = 8;
-  if(top  < 8) top  = 8;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const left = Math.max(menuW/2 + 8, Math.min(x, vw - menuW/2 - 8));
+  const top  = Math.max(menuH/2 + 8, Math.min(y, vh - menuH/2 - 8));
 
   calCtxMenu.style.left = left + 'px';
   calCtxMenu.style.top  = top  + 'px';
