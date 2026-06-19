@@ -686,6 +686,72 @@ body.flow-active #bgOverlay {
 .settings-close:hover{background:rgba(255,36,66,.18);box-shadow:0 0 12px rgba(255,36,66,.3);}
 .settings-group{margin-bottom:16px;}
 .settings-group-label{font-family:var(--font-mono);font-size:8px;letter-spacing:3px;color:var(--text-muted);text-transform:uppercase;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(0,212,255,.08);}
+
+/* ── Interface Scale Slider ── */
+.scale-setting-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.scale-setting-item label {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: .3px;
+}
+.scale-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#interfaceScale {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(90deg, rgba(0,212,255,.5), rgba(0,212,255,.1));
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+}
+#interfaceScale::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--neon-blue);
+  box-shadow: 0 0 10px rgba(0,212,255,.7), 0 2px 4px rgba(0,0,0,.4);
+  cursor: pointer;
+  border: 2px solid #0a1622;
+  transition: transform .15s ease;
+}
+#interfaceScale::-webkit-slider-thumb:active { transform: scale(1.2); }
+#interfaceScale::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--neon-blue);
+  box-shadow: 0 0 10px rgba(0,212,255,.7);
+  cursor: pointer;
+  border: 2px solid #0a1622;
+}
+#scaleValue {
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 1px;
+  color: var(--neon-blue);
+  min-width: 46px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── App content wrapper: scales via JS, origin top-center ── */
+#app-content-wrapper {
+  transform-origin: top center;
+  transition: transform .25s ease;
+  will-change: transform;
+}
 .settings-row{display:flex;align-items:center;justify-content:space-between;gap:13px;padding:8px 0;}
 .settings-row-label{font-family:var(--font-body);font-size:13px;font-weight:600;letter-spacing:1px;color:var(--text-secondary);}
 .toggle-group{display:flex;background:rgba(0,0,0,.4);border:1px solid rgba(0,212,255,.15);border-radius:999px;padding:2px;gap:2px;}
@@ -2200,6 +2266,18 @@ body.metavision-active .skills-detail-bars {
       </div>
     </div>
 
+    <!-- INTERFACE SCALE SLIDER -->
+    <div class="settings-group">
+      <div class="settings-group-label" data-i18n="settings_display">DISPLAY</div>
+      <div class="setting-item scale-setting-item">
+        <label for="interfaceScale" data-i18n="settings_scale_label">Масштаб интерфейса</label>
+        <div class="scale-slider-row">
+          <input type="range" id="interfaceScale" min="0.7" max="1.0" step="0.05" value="1.0" />
+          <span id="scaleValue">100%</span>
+        </div>
+      </div>
+    </div>
+
     <div class="settings-group">
       <div class="settings-group-label" data-i18n="settings_language_group">LANGUAGE</div>
       <div class="settings-row">
@@ -2350,6 +2428,13 @@ body.metavision-active .skills-detail-bars {
 <button class="floating-settings-btn" id="settingsBtn" title="Settings">⚙</button>
 
 <!-- Main -->
+<!-- ════════════════════════════════════════════════════════════
+     APP CONTENT WRAPPER — everything inside this scales via
+     the "Interface Scale" slider in Settings. System overlays
+     (menus, modals, dock) live OUTSIDE this div and are never
+     affected, so clientX/clientY always match the finger 1:1.
+════════════════════════════════════════════════════════════ -->
+<div id="app-content-wrapper">
 <div class="main-grid">
   <!-- LEFT -->
   <div class="left-panel">
@@ -2533,6 +2618,7 @@ body.metavision-active .skills-detail-bars {
 
   <!-- Bottom padding for dock -->
 </div><!-- end profile-screen -->
+</div><!-- end app-content-wrapper -->
 
 <script>
 // ════════════════════════════════════════════════════════════════
@@ -2559,6 +2645,7 @@ const I18N = {
     header_num:'PLAYER № 11 // BLUE LOCK FACILITY', header_sub:'Isagi Yoichi — Tactical Override System',
     player_id:'UNIT BLUE-011', score_label:'TOTAL ATTRIBUTE POINTS',
     settings_title:'SETTINGS', settings_appearance:'APPEARANCE', settings_theme:'Background Theme',
+    settings_display:'DISPLAY', settings_scale_label:'Interface Scale',
     theme_standard:'Standard', theme_black:'Pure Black',
     settings_language_group:'LANGUAGE', settings_language:'Interface Language',
     settings_saved:'Settings are saved automatically',
@@ -2623,6 +2710,7 @@ const I18N = {
     header_num:'ИГРОК № 11 // ОБЪЕКТ СИНЯЯ ТЮРЬМА', header_sub:'Исаги Йоичи — Система тактического управления',
     player_id:'ЮНИТ СИНИЙ-011', score_label:'СУММА ОЧКОВ АТРИБУТОВ',
     settings_title:'НАСТРОЙКИ', settings_appearance:'ВНЕШНИЙ ВИД', settings_theme:'Тема фона',
+    settings_display:'ДИСПЛЕЙ', settings_scale_label:'Масштаб интерфейса',
     theme_standard:'Стандарт', theme_black:'Чёрный',
     settings_language_group:'ЯЗЫК', settings_language:'Язык интерфейса',
     settings_saved:'Настройки сохраняются автоматически',
@@ -3316,6 +3404,16 @@ function renderAll(){
   updateTotals();
   // Re-stamp liquid glass onto freshly rendered dynamic elements (no recursion — call helper directly)
   stampLiquidGlass(uiSettings.glass === 'on');
+  // Content height may have changed (cards added/removed) — recompute scale compensation
+  if(typeof applyInterfaceScale === 'function' && typeof interfaceScale !== 'undefined'){
+    requestAnimationFrame(() => {
+      const wrapper = document.getElementById('app-content-wrapper');
+      if(wrapper && interfaceScale !== 1){
+        const realHeight = wrapper.scrollHeight;
+        wrapper.style.marginBottom = `${realHeight * (interfaceScale - 1)}px`;
+      }
+    });
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -4678,6 +4776,55 @@ function runDailyPenaltyCheck(){
 }
 
 // ════════════════════════════════════════════════════════════════
+// INTERFACE SCALE SLIDER
+// Scales ONLY #app-content-wrapper via transform:scale().
+// System overlays (menus, dock, modals) live outside this wrapper
+// in the DOM, so their position:fixed + clientX/clientY stay 1:1
+// accurate no matter what scale the user picks.
+// ════════════════════════════════════════════════════════════════
+
+let interfaceScale = 1.0;
+
+function loadInterfaceScale(){
+  try {
+    const saved = localStorage.getItem('blInterfaceScale');
+    if(saved) interfaceScale = parseFloat(saved);
+  } catch(e){}
+}
+
+function saveInterfaceScale(){
+  try { localStorage.setItem('blInterfaceScale', String(interfaceScale)); } catch(e){}
+}
+
+function applyInterfaceScale(value){
+  interfaceScale = value;
+  const wrapper = document.getElementById('app-content-wrapper');
+  if(wrapper){
+    wrapper.style.transform = `scale(${value})`;
+    wrapper.style.transformOrigin = 'top center';
+
+    // Compensate layout height: transform:scale shrinks visuals but NOT
+    // the space the element occupies in the page flow. Without this fix,
+    // a large empty gap appears below the content at scale < 1.
+    requestAnimationFrame(() => {
+      const realHeight = wrapper.scrollHeight; // natural (unscaled) height
+      wrapper.style.marginBottom = `${realHeight * (value - 1)}px`;
+    });
+  }
+  const slider = document.getElementById('interfaceScale');
+  const label  = document.getElementById('scaleValue');
+  if(slider) slider.value = value;
+  if(label)  label.textContent = Math.round(value * 100) + '%';
+}
+
+// ── Wire up the slider ──────────────────────────────────────────
+document.getElementById('interfaceScale')?.addEventListener('input', (e) => {
+  const value = parseFloat(e.target.value);
+  applyInterfaceScale(value);
+  saveInterfaceScale();
+});
+
+// ════════════════════════════════════════════════════════════════
 // 13. INIT
 // ════════════════════════════════════════════════════════════════
 loadUISettings();
@@ -4686,11 +4833,13 @@ loadAchievements();
 loadFlowMode();
 loadSoundPref();
 loadPenaltyMode();
+loadInterfaceScale();
 applyTheme(uiSettings.theme);
 applyLang(uiSettings.lang);
 applyFlowMode();
 applySoundToggle();
 applyPenaltyModeToggle();
+applyInterfaceScale(interfaceScale);
 renderFilterBar();
 renderAll();                          // ← карточки рендерятся здесь
 applyGlass(uiSettings.glass ?? 'on'); // ← теперь классы вешаются на уже существующие элементы
