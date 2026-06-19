@@ -6,14 +6,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 
 <!-- ── PWA: manifest + theme ── -->
-<link rel="manifest" href="manifest.json" />
+<link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#00d4ff" />
 
 <!-- ── Apple PWA meta tags (Add to Home Screen) ── -->
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Egoist Engine" />
-<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="./icon-192.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png" />
 
 <!-- ── Microsoft / general ── -->
 <meta name="mobile-web-app-capable" content="yes" />
@@ -23,13 +25,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-<!-- ── Register Service Worker ── -->
+<!-- ── Register Service Worker (required for Chrome's "Install App" prompt) ── -->
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .catch(err => console.warn('SW registration failed:', err));
+    navigator.serviceWorker.register('./sw.js', { scope: './' })
+      .then(reg => console.log('[SW] registered, scope:', reg.scope))
+      .catch(err => console.error('[SW] registration FAILED:', err));
   });
+} else {
+  console.warn('[SW] serviceWorker not supported in this browser');
 }
 </script>
 
