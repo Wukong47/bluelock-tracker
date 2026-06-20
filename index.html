@@ -755,8 +755,11 @@ body.flow-active #bgOverlay {
 /* ── App content wrapper: scales via JS, origin top-center ── */
 #app-content-wrapper {
   transform-origin: top center;
-  transition: transform .25s ease;
+  transition: transform .25s ease, width .25s ease;
   will-change: transform;
+  /* Compensate width so the scaled-down content still spans 100% of
+     the physical viewport — no empty side gaps at scale < 1. */
+  width: calc(100% / var(--current-scale, 1));
 }
 .settings-row{display:flex;align-items:center;justify-content:space-between;gap:13px;padding:8px 0;}
 .settings-row-label{font-family:var(--font-body);font-size:13px;font-weight:600;letter-spacing:1px;color:var(--text-secondary);}
@@ -4809,11 +4812,17 @@ function applyInterfaceScale(value){
     wrapper.style.transform = `scale(${value})`;
     wrapper.style.transformOrigin = 'top center';
 
-    // Compensate layout height: transform:scale shrinks visuals but NOT
+    // Set --current-scale so CSS can compute width: calc(100% / var(--current-scale))
+    // This makes the wrapper wider BEFORE shrinking it, so the visual
+    // result still spans edge-to-edge instead of leaving side gaps.
+    wrapper.style.setProperty('--current-scale', value);
+
+    // Compensate layout height too: transform:scale shrinks visuals but NOT
     // the space the element occupies in the page flow. Without this fix,
     // a large empty gap appears below the content at scale < 1.
+    // Run after the width change has been applied so scrollHeight is correct.
     requestAnimationFrame(() => {
-      const realHeight = wrapper.scrollHeight; // natural (unscaled) height
+      const realHeight = wrapper.scrollHeight; // natural (pre-scale) height
       wrapper.style.marginBottom = `${realHeight * (value - 1)}px`;
     });
   }
