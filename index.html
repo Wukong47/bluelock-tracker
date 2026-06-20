@@ -28,11 +28,17 @@
 <!-- ── Register Service Worker (required for Chrome's "Install App" prompt) ── -->
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js', { scope: './' })
-      .then(reg => console.log('[SW] registered, scope:', reg.scope))
-      .catch(err => console.error('[SW] registration FAILED:', err));
-  });
+  // Skip registration on Claude's preview/test domains — sw.js isn't
+  // served there, so registration would 404 and clutter the console.
+  if (window.location.hostname.includes('claudeusercontent.com')) {
+    console.log('Тестовая среда Claude: Сервис-воркер пропущен.');
+  } else {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js', { scope: './' })
+        .then(reg => console.log('SW зарегистрирован успешно:', reg.scope))
+        .catch(err => console.error('Ошибка регистрации SW:', err));
+    });
+  }
 } else {
   console.warn('[SW] serviceWorker not supported in this browser');
 }
