@@ -684,7 +684,7 @@ body.flow-active #bgOverlay {
 .settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s ease;}
 .settings-overlay.open{opacity:1;pointer-events:all;}
 .settings-panel{background:var(--bg-card);border:1px solid var(--border-glow);border-radius:var(--r-xl);padding:22px 19px;width:min(480px,calc(100vw - 32px));position:relative;max-height:92vh;overflow-y:auto;box-shadow:0 0 40px rgba(0,212,255,.08),0 20px 60px rgba(0,0,0,.6);transform:scale(0.92) translateY(20px);transform-origin:center center;transition:transform .3s ease;}
-.settings-overlay.open .settings-panel{transform:scale(1) translateY(0);}
+.settings-overlay.open .settings-panel{transform:scale(var(--ui-scale,1)) translateY(0);}
 .settings-panel::before{content:'';position:absolute;top:0;left:12px;right:12px;height:1px;background:linear-gradient(90deg,transparent,var(--neon-blue),transparent);border-radius:var(--r-xl);opacity:.7;}
 .settings-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
 .settings-title{font-family:var(--font-display);font-size:19px;letter-spacing:5px;}
@@ -978,7 +978,7 @@ body.flow-active #bgOverlay {
 .cal-ctx-menu.visible{
   opacity: 1;
   pointer-events: all;
-  transform: translate(-50%, -50%) scale(1) !important;
+  transform: translate(-50%, -50%) scale(var(--ui-scale,1)) !important;
   animation: menuFadeIn .18s ease forwards;
 }
 .cal-ctx-item{
@@ -1032,12 +1032,12 @@ body.flow-active #bgOverlay {
 .ios-menu.visible{
   opacity: 1;
   pointer-events: all;
-  transform: translate(-50%, -50%) scale(1) !important;
+  transform: translate(-50%, -50%) scale(var(--ui-scale,1)) !important;
   animation: menuFadeIn .18s ease forwards;
 }
 @keyframes menuFadeIn {
   from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
-  to   { opacity: 1; transform: translate(-50%, -50%) scale(1);   }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(var(--ui-scale,1)); }
 }
 .ios-menu-item{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;font-family:-apple-system,'SF Pro Text','Rajdhani',sans-serif;font-size:14px;font-weight:400;color:rgba(255,255,255,.9);cursor:pointer;transition:background .1s ease;border:none;background:transparent;width:100%;text-align:left;letter-spacing:.2px;}
 .ios-menu-item:hover,.ios-menu-item:active{background:rgba(255,255,255,.08);}
@@ -1074,7 +1074,7 @@ body.flow-active #bgOverlay {
   transform-origin:center center;
   transition:transform .3s cubic-bezier(.34,1.56,.64,1);
 }
-.edit-overlay.open .edit-modal{transform:scale(1) translateY(0);}
+.edit-overlay.open .edit-modal{transform:scale(var(--ui-scale,1)) translateY(0);}
 
 .edit-modal-header{padding:16px 16px 0;text-align:center;flex-shrink:0;}
 .edit-modal-title{font-family:-apple-system,'SF Pro Display','Bebas Neue',sans-serif;font-size:14px;font-weight:600;color:rgba(255,255,255,.95);letter-spacing:.3px;margin-bottom:3px;}
@@ -1190,7 +1190,7 @@ body.flow-active #bgOverlay {
 .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:900;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .22s ease;}
 .confirm-overlay.open{opacity:1;pointer-events:all;}
 .confirm-modal{width:min(280px,calc(100vw - 60px));background:var(--bg-card);border:1px solid var(--border-glow);border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 40px rgba(0,212,255,.08);position:relative;transform:scale(0.92);transform-origin:center center;transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
-.confirm-overlay.open .confirm-modal{transform:scale(1);}
+.confirm-overlay.open .confirm-modal{transform:scale(var(--ui-scale,1));}
 .confirm-modal-body{padding:16px 16px 11px;text-align:center;}
 .confirm-modal-title{font-family:-apple-system,'SF Pro Display',sans-serif;font-size:14px;font-weight:600;color:rgba(255,255,255,.95);margin-bottom:6px;letter-spacing:.2px;}
 .confirm-modal-msg{font-family:-apple-system,'SF Pro Text',sans-serif;font-size:11px;color:rgba(255,255,255,.55);line-height:1.5;letter-spacing:.1px;}
@@ -1993,7 +1993,7 @@ body.metavision-active .skills-detail-bars {
   transform-origin: center center;
   transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
 }
-.add-overlay.open .add-modal { transform: scale(1); }
+.add-overlay.open .add-modal { transform: scale(var(--ui-scale,1)); }
 
 .add-modal-header {
   padding: 14px 16px 0;
@@ -2046,7 +2046,7 @@ body.metavision-active .skills-detail-bars {
   transform-origin: center bottom;
   transition: transform .32s cubic-bezier(.34,1.56,.64,1);
 }
-.skills-overlay.open .skills-modal { transform: scale(1) translateY(0); }
+.skills-overlay.open .skills-modal { transform: scale(var(--ui-scale,1)) translateY(0); }
 
 .skills-modal-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -4812,6 +4812,12 @@ function saveInterfaceScale(){
 
 function applyInterfaceScale(value){
   interfaceScale = value;
+
+  // Global CSS var: every modal/menu's .open / .visible state reads
+  // scale(var(--ui-scale,1)) so they shrink/grow together with the
+  // main content, WITHOUT touching position:fixed positioning logic.
+  document.documentElement.style.setProperty('--ui-scale', value);
+
   const wrapper = document.getElementById('app-content-wrapper');
   if(wrapper){
     // translateX(-50%) re-centers the widened element (left:50% in CSS
