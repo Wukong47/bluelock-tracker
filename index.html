@@ -754,6 +754,11 @@ body.flow-active #bgOverlay {
 
 /* ── App content wrapper: scales via JS, origin top-center ── */
 #app-content-wrapper {
+  /* Position relative + left:50% lets us use translateX(-50%) to truly
+     center the widened element, then scale() shrinks it back down.
+     transform-origin stays top-center so vertical anchor doesn't shift. */
+  position: relative;
+  left: 50%;
   transform-origin: top center;
   transition: transform .25s ease, width .25s ease;
   will-change: transform;
@@ -4809,7 +4814,12 @@ function applyInterfaceScale(value){
   interfaceScale = value;
   const wrapper = document.getElementById('app-content-wrapper');
   if(wrapper){
-    wrapper.style.transform = `scale(${value})`;
+    // translateX(-50%) re-centers the widened element (left:50% in CSS
+    // pushes it right by half the VIEWPORT; translateX(-50%) pulls it
+    // back by half of ITS OWN width — net result: true center).
+    // scale() is applied AFTER translate so it shrinks around that
+    // already-centered position instead of re-introducing an offset.
+    wrapper.style.transform = `translateX(-50%) scale(${value})`;
     wrapper.style.transformOrigin = 'top center';
 
     // Set --current-scale so CSS can compute width: calc(100% / var(--current-scale))
