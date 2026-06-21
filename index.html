@@ -683,7 +683,7 @@ body.flow-active #bgOverlay {
 
 .settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s ease;}
 .settings-overlay.open{opacity:1;pointer-events:all;}
-.settings-panel{background:var(--bg-card);border:1px solid var(--border-glow);border-radius:var(--r-xl);padding:22px 19px;width:min(480px,calc(100vw - 32px));position:relative;max-height:92vh;overflow-y:auto;box-shadow:0 0 40px rgba(0,212,255,.08),0 20px 60px rgba(0,0,0,.6);transform:scale(0.92) translateY(20px);transform-origin:center center;transition:transform .3s ease;}
+.settings-panel{background:var(--bg-card);border:1px solid var(--border-glow);border-radius:var(--r-xl);padding:22px 19px;width:calc((100vw - 32px) / var(--ui-scale,1));position:relative;max-height:92vh;overflow-y:auto;box-shadow:0 0 40px rgba(0,212,255,.08),0 20px 60px rgba(0,0,0,.6);transform:scale(0.92) translateY(20px);transform-origin:center center;transition:transform .3s ease;}
 .settings-overlay.open .settings-panel{transform:scale(var(--ui-scale,1)) translateY(0);}
 .settings-panel::before{content:'';position:absolute;top:0;left:12px;right:12px;height:1px;background:linear-gradient(90deg,transparent,var(--neon-blue),transparent);border-radius:var(--r-xl);opacity:.7;}
 .settings-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
@@ -1061,7 +1061,7 @@ body.flow-active #bgOverlay {
 .edit-overlay.open{opacity:1;pointer-events:all;}
 
 .edit-modal{
-  width:min(520px,calc(100vw - 24px));
+  width:calc((100vw - 24px) / var(--ui-scale,1));
   max-height:90vh;
   background:var(--bg-card);
   border:1px solid var(--border-glow);
@@ -1189,7 +1189,7 @@ body.flow-active #bgOverlay {
 /* ══════════ iOS CONFIRM MODAL (danger) ══════════ */
 .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:900;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .22s ease;}
 .confirm-overlay.open{opacity:1;pointer-events:all;}
-.confirm-modal{width:min(280px,calc(100vw - 60px));background:var(--bg-card);border:1px solid var(--border-glow);border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 40px rgba(0,212,255,.08);position:relative;transform:scale(0.92);transform-origin:center center;transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
+.confirm-modal{width:calc(min(280px,calc(100vw - 60px)) / var(--ui-scale,1));background:var(--bg-card);border:1px solid var(--border-glow);border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 40px rgba(0,212,255,.08);position:relative;transform:scale(0.92);transform-origin:center center;transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
 .confirm-overlay.open .confirm-modal{transform:scale(var(--ui-scale,1));}
 .confirm-modal-body{padding:16px 16px 11px;text-align:center;}
 .confirm-modal-title{font-family:-apple-system,'SF Pro Display',sans-serif;font-size:14px;font-weight:600;color:rgba(255,255,255,.95);margin-bottom:6px;letter-spacing:.2px;}
@@ -1981,7 +1981,7 @@ body.metavision-active .skills-detail-bars {
 .add-overlay.open { opacity: 1; pointer-events: all; }
 
 .add-modal {
-  width: min(520px, calc(100vw - 24px));
+  width: calc((100vw - 24px) / var(--ui-scale,1));
   background: var(--bg-card);
   border: 1px solid var(--border-glow);
   border-radius: 20px;
@@ -2033,7 +2033,7 @@ body.metavision-active .skills-detail-bars {
 .skills-overlay.open { opacity: 1; pointer-events: all; }
 
 .skills-modal {
-  width: min(100vw, 100vw);
+  width: calc(100vw / var(--ui-scale,1));
   max-height: 92vh;
   background: var(--bg-card);
   border: 1px solid var(--border-glow);
