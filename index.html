@@ -870,29 +870,6 @@ body.flow-active #bgOverlay {
 /* Top section: icon + body + controls — flex-shrink:0 so it never collapses */
 .hc-top{display:flex;align-items:flex-start;gap:7px;flex-shrink:0;}
 
-/* ── Subtask chevron (toggle) ── */
-.hc-subtask-toggle{
-  width: calc(20px / var(--ui-scale,1));
-  height: calc(20px / var(--ui-scale,1));
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--text-muted);
-  font-size: calc(11px / var(--ui-scale,1));
-  transition: transform .25s cubic-bezier(.4,0,.2,1), color .2s;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-.hc-subtask-toggle.expanded{
-  transform: rotate(90deg);
-  color: var(--neon-blue);
-}
-.hc-subtask-toggle:hover{ color: var(--neon-blue); }
-/* Hide chevron entirely if a task has zero subtasks */
-.hc-subtask-toggle.no-subtasks{ visibility: hidden; pointer-events: none; }
-
 /* ── Subtask list container — animated expand/collapse ── */
 .hc-subtask-list{
   display: grid;
@@ -968,12 +945,15 @@ body.flow-active #bgOverlay {
 }
 .hc-subtask-del:hover{ opacity: 1; color: var(--neon-red); }
 .hc-subtask-progress{
+  display: inline-flex;
+  align-items: center;
+  gap: calc(2px / var(--ui-scale,1));
   font-family: var(--font-mono);
   font-size: calc(9px / var(--ui-scale,1));
-  color: var(--text-muted);
   letter-spacing: .5px;
-  margin-left: calc(4px / var(--ui-scale,1));
+  color: var(--neon-green);
 }
+.hc-subtask-progress .ico{ font-size: calc(9px / var(--ui-scale,1)); }
 .hc-icon{width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;background:color-mix(in srgb,var(--skill-color,#00d4ff) 18%,transparent);border:1px solid color-mix(in srgb,var(--skill-color,#00d4ff) 35%,transparent);box-shadow:0 0 14px color-mix(in srgb,var(--skill-color,#00d4ff) 20%,transparent);}
 .hc-body{flex:1;min-width:0;}
 .hc-name{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;}
@@ -3385,13 +3365,11 @@ function toggleSubtaskExpand(taskId){
   if(expandedSubtaskIds.has(taskId)) expandedSubtaskIds.delete(taskId);
   else expandedSubtaskIds.add(taskId);
 
-  // Update just this card's chevron + list, no full re-render needed
+  // Update just this card's subtask list, no full re-render needed
   const card = document.querySelector(`.task-item[data-id="${taskId}"]`);
   if(!card) { renderTasks(); return; }
-  const chevron = card.querySelector('.hc-subtask-toggle');
-  const list    = card.querySelector('.hc-subtask-list');
+  const list = card.querySelector('.hc-subtask-list');
   const expanded = expandedSubtaskIds.has(taskId);
-  chevron?.classList.toggle('expanded', expanded);
   list?.classList.toggle('expanded', expanded);
 }
 
@@ -3566,7 +3544,7 @@ function renderTasks(){
       </div>`).join('');
 
     const subtaskProgress = hasSubtasks
-      ? `<span class="hc-subtask-progress">${doneCount}/${subtasks.length}</span>`
+      ? `<span class="hc-subtask-progress hc-counter" title="Subtasks"><span class="ico">📋</span>${doneCount}/${subtasks.length}</span>`
       : '';
 
     try {
@@ -3580,10 +3558,6 @@ function renderTasks(){
               <span class="hc-skill-tag" style="--skill-color:${cfg.color}">${escapeHtml(cfg.label)}</span>
               ${schedTag}
             </div>
-            <div style="display:flex;align-items:center;">
-              <div class="hc-subtask-toggle${!hasSubtasks ? ' no-subtasks' : ''}${isExpanded ? ' expanded' : ''}" data-id="${task.id}">▸</div>
-              ${subtaskProgress}
-            </div>
             <div class="hc-subtask-list${isExpanded ? ' expanded' : ''}" data-id="${task.id}">
               <div class="hc-subtask-list-inner">${subtaskRowsHtml}</div>
             </div>
@@ -3593,6 +3567,7 @@ function renderTasks(){
             <div class="hc-counters">
               <span class="hc-counter trophy" title="Best Streak"><span class="ico">🏆</span>${bestStreak}</span>
               <span class="hc-counter streak" title="Current Streak"><span class="ico">🔥</span>${streak}</span>
+              ${subtaskProgress}
             </div>
           </div>
         </div>
@@ -3605,12 +3580,25 @@ function renderTasks(){
       if(checkEl) checkEl.addEventListener('click', e=>{ e.stopPropagation(); toggleToday(task.id); });
       attachLongPress(card, task.id);
 
-      // ── Subtask chevron toggle ──
-      const chevronEl = card.querySelector('.hc-subtask-toggle');
-      if(chevronEl && hasSubtasks){
-        chevronEl.addEventListener('click', e=>{
-          e.stopPropagation();
+      // ── Double-click/double-tap on the card body expands subtasks ──
+      // (chevron removed — toggling now happens via dblclick anywhere
+      // on the card, except on interactive children like checkboxes,
+      // the calendar grid, and subtask rows themselves)
+      if(hasSubtasks){
+        card.addEventListener('dblclick', e=>{
+          if(e.target.closest('.hc-check, .hc-history, .hc-subtask-list, .hc-controls')) return;
           toggleSubtaskExpand(task.id);
+        });
+        // Mobile double-tap (dblclick doesn't fire reliably on touch)
+        let lastTap = 0;
+        card.addEventListener('touchend', e=>{
+          if(e.target.closest('.hc-check, .hc-history, .hc-subtask-list, .hc-controls')) return;
+          const now = Date.now();
+          if(now - lastTap < 320){
+            toggleSubtaskExpand(task.id);
+            e.preventDefault();
+          }
+          lastTap = now;
         });
       }
 
