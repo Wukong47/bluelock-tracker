@@ -869,6 +869,111 @@ body.flow-active #bgOverlay {
 
 /* Top section: icon + body + controls — flex-shrink:0 so it never collapses */
 .hc-top{display:flex;align-items:flex-start;gap:7px;flex-shrink:0;}
+
+/* ── Subtask chevron (toggle) ── */
+.hc-subtask-toggle{
+  width: calc(20px / var(--ui-scale,1));
+  height: calc(20px / var(--ui-scale,1));
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: calc(11px / var(--ui-scale,1));
+  transition: transform .25s cubic-bezier(.4,0,.2,1), color .2s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.hc-subtask-toggle.expanded{
+  transform: rotate(90deg);
+  color: var(--neon-blue);
+}
+.hc-subtask-toggle:hover{ color: var(--neon-blue); }
+/* Hide chevron entirely if a task has zero subtasks */
+.hc-subtask-toggle.no-subtasks{ visibility: hidden; pointer-events: none; }
+
+/* ── Subtask list container — animated expand/collapse ── */
+.hc-subtask-list{
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  overflow: hidden;
+  transition: grid-template-rows .3s cubic-bezier(.4,0,.2,1), opacity .25s ease;
+}
+.hc-subtask-list.expanded{
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.hc-subtask-list-inner{
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(4px / var(--ui-scale,1));
+  padding: calc(6px / var(--ui-scale,1)) 0 calc(2px / var(--ui-scale,1)) calc(26px / var(--ui-scale,1));
+}
+.hc-subtask-row{
+  display: flex;
+  align-items: center;
+  gap: calc(8px / var(--ui-scale,1));
+}
+.hc-subtask-check{
+  width: calc(16px / var(--ui-scale,1));
+  height: calc(16px / var(--ui-scale,1));
+  flex-shrink: 0;
+  border: 1.5px solid rgba(0,212,255,.4);
+  border-radius: calc(4px / var(--ui-scale,1));
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px / var(--ui-scale,1));
+  color: transparent;
+  transition: all .15s;
+}
+.hc-subtask-check:hover{ border-color: var(--neon-green); }
+.hc-subtask-check.checked{
+  border-color: var(--neon-green);
+  background: rgba(57,255,20,.18);
+  color: var(--neon-green);
+  box-shadow: 0 0 8px rgba(57,255,20,.3);
+}
+.hc-subtask-text{
+  font-family: var(--font-body);
+  font-size: calc(12px / var(--ui-scale,1));
+  color: var(--text-secondary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hc-subtask-row.done .hc-subtask-text{
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+.hc-subtask-del{
+  width: calc(16px / var(--ui-scale,1));
+  height: calc(16px / var(--ui-scale,1));
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(11px / var(--ui-scale,1));
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: .5;
+  transition: opacity .15s, color .15s;
+}
+.hc-subtask-del:hover{ opacity: 1; color: var(--neon-red); }
+.hc-subtask-progress{
+  font-family: var(--font-mono);
+  font-size: calc(9px / var(--ui-scale,1));
+  color: var(--text-muted);
+  letter-spacing: .5px;
+  margin-left: calc(4px / var(--ui-scale,1));
+}
 .hc-icon{width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;background:color-mix(in srgb,var(--skill-color,#00d4ff) 18%,transparent);border:1px solid color-mix(in srgb,var(--skill-color,#00d4ff) 35%,transparent);box-shadow:0 0 14px color-mix(in srgb,var(--skill-color,#00d4ff) 20%,transparent);}
 .hc-body{flex:1;min-width:0;}
 .hc-name{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;}
@@ -1199,6 +1304,7 @@ body.flow-active #bgOverlay {
 .confirm-modal-btn:hover{background:rgba(255,255,255,.06);}
 .confirm-modal-btn.cancel{color:rgba(255,255,255,.7);border-right:.5px solid rgba(255,255,255,.1);}
 .confirm-modal-btn.destructive{color:#ff453a;font-weight:600;}
+.confirm-modal-btn.confirm{color:var(--neon-blue);font-weight:600;}
 
 /* ══════════ TOAST ══════════ */
 .toast-container{position:fixed;top:80px;right:20px;z-index:9000;display:flex;flex-direction:column;gap:6px;}
@@ -2156,6 +2262,8 @@ body.metavision-active .skills-detail-bars {
 
 <!-- iOS Context Menu -->
 <div class="ios-menu" id="iosMenu">
+  <button class="ios-menu-item" id="menuAddSubtask"><span data-i18n="ctx_add_subtask">Add Subtask</span><span class="ios-icon">➕</span></button>
+  <div class="ios-menu-divider"></div>
   <button class="ios-menu-item" id="menuEdit"><span data-i18n="ctx_edit">Edit</span><span class="ios-icon">✏️</span></button>
   <div class="ios-menu-divider"></div>
   <button class="ios-menu-item" id="menuReset"><span data-i18n="ctx_reset">Reset Progress</span><span class="ios-icon">🔄</span></button>
@@ -2239,6 +2347,22 @@ body.metavision-active .skills-detail-bars {
     <div class="confirm-modal-footer">
       <button class="confirm-modal-btn cancel" id="confirmCancel" data-i18n="edit_cancel">Cancel</button>
       <button class="confirm-modal-btn destructive" id="confirmOk"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Subtask Add Prompt — independent of confirm-modal so we never overwrite it -->
+<div class="confirm-overlay" id="subtaskPromptOverlay">
+  <div class="confirm-modal">
+    <div class="confirm-modal-body">
+      <div class="confirm-modal-title" id="subtaskPromptTitle" data-i18n="ctx_add_subtask">Add Subtask</div>
+      <div class="confirm-modal-msg" id="subtaskPromptSub"></div>
+      <input type="text" id="subtaskInputField" class="edit-field" style="margin-top:10px;width:100%;"
+        maxlength="60" data-i18n-placeholder="subtask_placeholder" placeholder="e.g. Warm-up" />
+    </div>
+    <div class="confirm-modal-footer">
+      <button class="confirm-modal-btn cancel" id="subtaskCancelBtn" data-i18n="edit_cancel">Cancel</button>
+      <button class="confirm-modal-btn confirm" id="subtaskConfirmBtn" data-i18n="btn_add_short">Add</button>
     </div>
   </div>
 </div>
@@ -3250,6 +3374,80 @@ function renderSkillBarsModal(){
   });
 }
 
+// ════════════════════════════════════════════════════════════════
+// SUBTASKS — independent mini-checklist inside each habit card
+// ════════════════════════════════════════════════════════════════
+
+// Tracks which cards have their subtask list expanded (persists across re-renders)
+const expandedSubtaskIds = new Set();
+
+function toggleSubtaskExpand(taskId){
+  if(expandedSubtaskIds.has(taskId)) expandedSubtaskIds.delete(taskId);
+  else expandedSubtaskIds.add(taskId);
+
+  // Update just this card's chevron + list, no full re-render needed
+  const card = document.querySelector(`.task-item[data-id="${taskId}"]`);
+  if(!card) { renderTasks(); return; }
+  const chevron = card.querySelector('.hc-subtask-toggle');
+  const list    = card.querySelector('.hc-subtask-list');
+  const expanded = expandedSubtaskIds.has(taskId);
+  chevron?.classList.toggle('expanded', expanded);
+  list?.classList.toggle('expanded', expanded);
+}
+
+function addSubtask(taskId, text){
+  const task = state.tasks.find(t => t.id === taskId);
+  if(!task) return;
+  if(!Array.isArray(task.subtasks)) task.subtasks = [];
+  const trimmed = (text || '').trim();
+  if(!trimmed) return;
+
+  task.subtasks.push({
+    id: 'st_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    text: trimmed,
+    completed: false,
+  });
+
+  // Auto-expand so the user immediately sees what they just added
+  expandedSubtaskIds.add(taskId);
+
+  saveState();
+  renderTasks();
+  showToast('✓ ' + (uiSettings.lang==='ru' ? 'Подзадача добавлена' : 'Subtask added'), 'success');
+}
+
+function toggleSubtaskDone(taskId, subtaskId){
+  const task = state.tasks.find(t => t.id === taskId);
+  if(!task || !Array.isArray(task.subtasks)) return;
+  const st = task.subtasks.find(s => s.id === subtaskId);
+  if(!st) return;
+  st.completed = !st.completed;
+  saveState();
+
+  // Lightweight DOM update (no full re-render — keeps expand state, no flicker)
+  const card = document.querySelector(`.task-item[data-id="${taskId}"]`);
+  if(card){
+    const row   = card.querySelector(`.hc-subtask-row[data-subtask-id="${subtaskId}"]`);
+    const check = card.querySelector(`.hc-subtask-check[data-subtask-id="${subtaskId}"]`);
+    row?.classList.toggle('done', st.completed);
+    check?.classList.toggle('checked', st.completed);
+    const doneCount = task.subtasks.filter(s => s.completed).length;
+    const progressEl = card.querySelector('.hc-subtask-progress');
+    if(progressEl) progressEl.textContent = `${doneCount}/${task.subtasks.length}`;
+  }
+}
+
+function deleteSubtask(taskId, subtaskId){
+  const task = state.tasks.find(t => t.id === taskId);
+  if(!task || !Array.isArray(task.subtasks)) return;
+  task.subtasks = task.subtasks.filter(s => s.id !== subtaskId);
+  saveState();
+  renderTasks();
+}
+
+// (promptAddSubtask is defined once, further down, as a styled modal —
+//  see "Add Subtask: independent styled prompt" section)
+
 function renderTasks(){
   const container=document.getElementById('taskList');
   if(!container) return;
@@ -3354,6 +3552,23 @@ function renderTasks(){
     // Lock check button if today is inactive
     const checkLocked = !isTodayActive ? ' style="pointer-events:none;opacity:.35"' : '';
 
+    // ── Subtasks: build chevron + list HTML ──────────────────────
+    const subtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
+    const hasSubtasks = subtasks.length > 0;
+    const isExpanded = expandedSubtaskIds.has(task.id);
+    const doneCount = subtasks.filter(s => s.completed).length;
+
+    const subtaskRowsHtml = subtasks.map(st => `
+      <div class="hc-subtask-row${st.completed ? ' done' : ''}" data-subtask-id="${st.id}">
+        <div class="hc-subtask-check${st.completed ? ' checked' : ''}" data-subtask-id="${st.id}">✓</div>
+        <span class="hc-subtask-text">${escapeHtml(st.text)}</span>
+        <span class="hc-subtask-del" data-subtask-id="${st.id}" title="Delete">✕</span>
+      </div>`).join('');
+
+    const subtaskProgress = hasSubtasks
+      ? `<span class="hc-subtask-progress">${doneCount}/${subtasks.length}</span>`
+      : '';
+
     try {
       card.innerHTML = `
         <div class="hc-top">
@@ -3364,6 +3579,13 @@ function renderTasks(){
             <div class="hc-meta">
               <span class="hc-skill-tag" style="--skill-color:${cfg.color}">${escapeHtml(cfg.label)}</span>
               ${schedTag}
+            </div>
+            <div style="display:flex;align-items:center;">
+              <div class="hc-subtask-toggle${!hasSubtasks ? ' no-subtasks' : ''}${isExpanded ? ' expanded' : ''}" data-id="${task.id}">▸</div>
+              ${subtaskProgress}
+            </div>
+            <div class="hc-subtask-list${isExpanded ? ' expanded' : ''}" data-id="${task.id}">
+              <div class="hc-subtask-list-inner">${subtaskRowsHtml}</div>
             </div>
           </div>
           <div class="hc-controls">
@@ -3382,6 +3604,31 @@ function renderTasks(){
       const checkEl = card.querySelector('.hc-check');
       if(checkEl) checkEl.addEventListener('click', e=>{ e.stopPropagation(); toggleToday(task.id); });
       attachLongPress(card, task.id);
+
+      // ── Subtask chevron toggle ──
+      const chevronEl = card.querySelector('.hc-subtask-toggle');
+      if(chevronEl && hasSubtasks){
+        chevronEl.addEventListener('click', e=>{
+          e.stopPropagation();
+          toggleSubtaskExpand(task.id);
+        });
+      }
+
+      // ── Subtask checkbox toggle ──
+      card.querySelectorAll('.hc-subtask-check').forEach(el=>{
+        el.addEventListener('click', e=>{
+          e.stopPropagation();
+          toggleSubtaskDone(task.id, el.dataset.subtaskId);
+        });
+      });
+
+      // ── Subtask delete ──
+      card.querySelectorAll('.hc-subtask-del').forEach(el=>{
+        el.addEventListener('click', e=>{
+          e.stopPropagation();
+          deleteSubtask(task.id, el.dataset.subtaskId);
+        });
+      });
 
     } catch(e) {
       console.error('[renderTasks] card innerHTML failed for task', task.id, e);
@@ -3455,6 +3702,7 @@ function addTask(){
     dayMap:{}, totalDone:0, bestStreak:0,
     activeDays,       // [0..6] Mon=0..Sun=6, all 7 by default
     hideOnInactive,   // boolean
+    subtasks:[],      // [{ id, text, completed }] — independent mini-checklist
   };
   state.tasks.unshift(task);
   nameInput.value=''; descInput.value='';
@@ -3606,9 +3854,58 @@ function attachLongPress(card,id){
 }
 
 backdrop.addEventListener('click',closeContextMenu);
+document.getElementById('menuAddSubtask').addEventListener('click',()=>{ const id=lpActiveId; closeContextMenu(); promptAddSubtask(id); });
 document.getElementById('menuEdit').addEventListener('click',()=>{ const id=lpActiveId; closeContextMenu(); openEditModal(id); });
 document.getElementById('menuReset').addEventListener('click',()=>{ const id=lpActiveId; closeContextMenu(); resetTaskProgress(id); });
 document.getElementById('menuDelete').addEventListener('click',()=>{ const id=lpActiveId; closeContextMenu(); deleteTask(id); });
+
+// ── Add Subtask: independent styled prompt (does NOT touch confirm-modal) ──
+function promptAddSubtask(taskId){
+  const task = state.tasks.find(t => t.id === taskId);
+  if(!task) return;
+
+  const overlay = document.getElementById('subtaskPromptOverlay');
+  const input   = document.getElementById('subtaskInputField');
+  const subEl   = document.getElementById('subtaskPromptSub');
+  if(!overlay || !input) {
+    // Fallback to native prompt if the modal markup is somehow missing
+    const text = window.prompt(uiSettings.lang === 'ru' ? 'Текст подзадачи:' : 'Subtask text:');
+    if(text && text.trim()) { addSubtask(taskId, text.trim()); renderAll(); }
+    return;
+  }
+
+  const isRu = uiSettings.lang === 'ru';
+  if(subEl) subEl.textContent = isRu ? `Для привычки «${task.name}»` : `For habit "${task.name}"`;
+  input.value = '';
+
+  overlay.classList.add('open');
+  hideDock?.();
+  setTimeout(() => input.focus(), 250);
+
+  const cancelBtn  = document.getElementById('subtaskCancelBtn');
+  const confirmBtn = document.getElementById('subtaskConfirmBtn');
+
+  // Use an AbortController so ALL listeners (click + keydown) are torn
+  // down together in one call — prevents duplicate-handler accumulation
+  // from previous opens of this same modal.
+  const ac = new AbortController();
+
+  function closeIt(){
+    overlay.classList.remove('open');
+    showDock?.();
+    ac.abort(); // removes cancelBtn click, confirmBtn click, AND input keydown at once
+  }
+  function submitIt(){
+    const text = input.value.trim();
+    if(text){ addSubtask(taskId, text); renderAll(); }
+    closeIt();
+  }
+  function onKey(e){ if(e.key === 'Enter') submitIt(); }
+
+  cancelBtn.addEventListener('click', closeIt,  { signal: ac.signal });
+  confirmBtn.addEventListener('click', submitIt, { signal: ac.signal });
+  input.addEventListener('keydown', onKey,       { signal: ac.signal });
+}
 
 // ════════════════════════════════════════════════════════════════
 // 10. iOS CONFIRM MODAL (danger actions)
