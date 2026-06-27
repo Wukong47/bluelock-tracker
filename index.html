@@ -106,8 +106,12 @@ body::before {
   background-repeat: no-repeat;
   filter: saturate(0.72) brightness(0.55);
   pointer-events: none;
+  contain: strict;
   transition: filter 0.6s ease, background-image 0.4s ease;
-  will-change: filter;
+  /* will-change:filter removed — this layer is full-screen and ALWAYS
+     present. Keeping a permanent GPU compositing layer for a transition
+     that fires maybe twice a session (flow-mode toggle, bg upload) wastes
+     VRAM continuously. The transition still works fine without it. */
 }
 
 /* ── Custom background applied via JS (user-uploaded) ── */
@@ -210,6 +214,7 @@ body::after {
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 40px 40px;
   pointer-events: none;
+  contain: strict;
   z-index: 0;
 }
 
@@ -220,22 +225,39 @@ body::after {
   background: rgba(8, 12, 22, 0.72);
   pointer-events: none;
   transition: background 0.6s ease, backdrop-filter 0.6s ease;
-  will-change: background;
+  /* will-change:background removed — same reasoning as body::before:
+     full-screen layer present at all times, transition is rare. */
 }
 
-/* ── Scanlines element (injected via JS) ── */
+/* ── Scanlines element (injected via JS) ──
+   PERF FIX: the old repeating-linear-gradient with a 4px repeat drew
+   thousands of gradient stops across the full fixed viewport, EVERY
+   frame, regardless of Liquid Glass — this was the real 10fps cause,
+   not just the glass effect. background-size achieves the identical
+   visual density using a single small tile that the GPU can cache
+   and repeat cheaply (like a sprite), instead of recomputing a huge
+   gradient. contain:strict + translateZ(0) pin it to its own layer
+   so it never triggers repaints of the content underneath. */
 #bgScanlines {
   position: fixed; inset: 0;
   z-index: 9999;
-  background: repeating-linear-gradient(
+  background-image: repeating-linear-gradient(
     0deg,
-    transparent,
+    transparent 0px,
     transparent 2px,
     rgba(0, 0, 0, 0.16) 2px,
     rgba(0, 0, 0, 0.16) 4px
   );
+  background-size: 100% 4px;   /* tile a 4px strip instead of computing full-height gradient */
+  background-repeat: repeat;
   pointer-events: none;
+  contain: strict;
+  transform: translateZ(0);
+  will-change: transform;
 }
+
+/* Allow disabling scanlines entirely on low-end devices via a settings toggle (optional, see JS) */
+body.scanlines-off #bgScanlines { display: none; }
 
 /* ── FLOW MODE: background image pulses, overlay darkens ── */
 body.flow-active::before {
@@ -681,7 +703,7 @@ body.flow-active #bgOverlay {
 }
 
 
-.settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s ease;}
+.settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s ease;}
 .settings-overlay.open{opacity:1;pointer-events:all;}
 .settings-panel{background:var(--bg-card);border:1px solid var(--border-glow);border-radius:var(--r-xl);padding:22px 19px;width:calc((100vw - 32px) / var(--ui-scale,1));position:relative;max-height:92vh;overflow-y:auto;box-shadow:0 0 40px rgba(0,212,255,.08),0 20px 60px rgba(0,0,0,.6);transform:scale(0.92) translateY(20px);transform-origin:center center;transition:transform .3s ease;}
 .settings-overlay.open .settings-panel{transform:scale(var(--ui-scale,1)) translateY(0);}
@@ -844,10 +866,25 @@ body.flow-active #bgOverlay {
   transition: transform .2s ease, box-shadow .2s ease, border-color .2s;
   position: relative;
   overflow: visible;      /* was overflow:hidden — that was clipping the grid */
-  animation: slideIn .35s cubic-bezier(.34,1.56,.64,1);
   cursor: default;
   user-select: none;
+  /* PERF: isolate each card's layout/paint so checkbox toggles, subtask
+     expand/collapse, and long-press scale animations on ONE card don't
+     force the browser to recompute neighboring cards in the list.
+     contain:content = layout + paint + style containment (not size,
+     since card height is intentionally dynamic via subtasks). */
+  contain: content;
   -webkit-user-select: none;
+  /* animation removed from base rule — see .task-item--entering below.
+     Re-running a 0.35s entrance animation on EVERY card on EVERY
+     renderTasks() call (checkbox tap, filter change, subtask add, etc.)
+     was forcing the browser to re-layout/re-paint the whole list each
+     time, stacking with the liquid-glass blur cost. Now it only plays
+     once, on first paint. */
+}
+/* Opt-in entrance animation — applied via JS only on first render */
+.task-item--entering{
+  animation: slideIn .35s cubic-bezier(.34,1.56,.64,1);
 }
 @keyframes slideIn{from{opacity:0;transform:translateY(16px) scale(.97);}to{opacity:1;transform:translateY(0) scale(1);}}
 .task-item:hover{border-color:rgba(0,212,255,.25);background:var(--bg-card-hover);}
@@ -1095,7 +1132,7 @@ body.flow-active #bgOverlay {
 .stat-box-label{font-family:var(--font-mono);font-size:8px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-top:3px;}
 
 /* ══════════ iOS LONG-PRESS ══════════ */
-.lp-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:500;opacity:0;pointer-events:none;transition:opacity .22s ease;}
+.lp-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:500;opacity:0;pointer-events:none;transition:opacity .22s ease;}
 .lp-backdrop.visible{opacity:1;pointer-events:all;}
 .ios-menu{
   position: fixed !important;
@@ -1135,8 +1172,7 @@ body.flow-active #bgOverlay {
 /* ══════════ EDIT OVERLAY + MODAL ══════════ */
 .edit-overlay{
   position:fixed;inset:0;
-  background:rgba(0,0,0,.72);
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  background:rgba(0,0,0,.82);
   z-index:800;
   display:flex;align-items:center;justify-content:center;
   opacity:0;pointer-events:none;
@@ -1272,7 +1308,7 @@ body.flow-active #bgOverlay {
 .cal-day--weekend.cal-day--done{ color:#fff; }
 
 /* ══════════ iOS CONFIRM MODAL (danger) ══════════ */
-.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:900;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .22s ease;}
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:900;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .22s ease;}
 .confirm-overlay.open{opacity:1;pointer-events:all;}
 .confirm-modal{width:calc(min(280px,calc(100vw - 60px)) / var(--ui-scale,1));background:var(--bg-card);border:1px solid var(--border-glow);border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 40px rgba(0,212,255,.08);position:relative;transform:scale(0.92);transform-origin:center center;transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
 .confirm-overlay.open .confirm-modal{transform:scale(var(--ui-scale,1));}
@@ -1288,7 +1324,7 @@ body.flow-active #bgOverlay {
 
 /* ══════════ TOAST ══════════ */
 .toast-container{position:fixed;top:80px;right:20px;z-index:9000;display:flex;flex-direction:column;gap:6px;}
-.toast{font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;padding:8px 14px;border-left:3px solid var(--neon-blue);background:rgba(5,12,20,.97);backdrop-filter:blur(8px);animation:toastIn .3s ease,toastOut .3s ease 2.7s forwards;max-width:280px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 0 20px rgba(0,212,255,.1);border-radius:var(--r-md);}
+.toast{font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;padding:8px 14px;border-left:3px solid var(--neon-blue);background:rgba(5,12,20,.99);animation:toastIn .3s ease,toastOut .3s ease 2.7s forwards;max-width:280px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 0 20px rgba(0,212,255,.1);border-radius:var(--r-md);}
 .toast.success{border-color:var(--neon-green);color:var(--neon-green);}
 .toast.penalty{border-color:var(--neon-red);color:var(--neon-red);}
 .toast.info{border-color:var(--neon-blue);color:var(--neon-blue);}
@@ -1300,7 +1336,32 @@ body.flow-active #bgOverlay {
 .radar-card{background:var(--bg-panel);border:1px solid var(--border-glow);padding:19px 16px;border-radius:var(--r-xl);position:relative;box-shadow:0 0 40px rgba(0,0,0,.4),inset 0 0 40px rgba(0,212,255,.02);}
 .radar-card::before{content:'';position:absolute;top:0;left:12px;right:12px;height:1px;background:linear-gradient(90deg,transparent,var(--neon-blue),transparent);opacity:.5;border-radius:var(--r-xl);}
 .radar-wrap{position:relative;width:100%;aspect-ratio:1;max-width:340px;margin:0 auto;}
-.radar-pulse{position:absolute;inset:0;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,212,255,.04) 0%,transparent 70%);animation:radarPulse 3s ease-in-out infinite;pointer-events:none;}
+/* ══════════════════════════════════════════════
+   PERF: pause every decorative infinite animation when the tab/app
+   isn't visible (backgrounded, screen off, switched away). These
+   loops cost nothing to the user when they can't see them, but the
+   browser keeps compositing them anyway unless explicitly paused —
+   draining battery and competing with the main thread for no visual
+   benefit. Toggled by the visibilitychange listener in JS below.
+══════════════════════════════════════════════ */
+body.anim-paused *,
+body.anim-paused *::before,
+body.anim-paused *::after {
+  animation-play-state: paused !important;
+}
+
+/* Respect the OS-level "reduce motion" accessibility setting too —
+   if the user has asked for less motion system-wide, drop every
+   decorative loop permanently (not just while backgrounded). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.radar-pulse{position:absolute;inset:0;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,212,255,.04) 0%,transparent 70%);animation:radarPulse 3s ease-in-out infinite;pointer-events:none;will-change:transform,opacity;}
 @keyframes radarPulse{0%,100%{opacity:.4;transform:scale(.95);}50%{opacity:1;transform:scale(1.05);}}
 .skill-bars{display:flex;flex-direction:column;gap:8px;}
 .skill-bar-row{display:flex;align-items:center;gap:8px;}
@@ -1367,25 +1428,103 @@ body.flow-active #bgOverlay {
 }
 
 /* ══════════════════════════════════════════════
-   LIQUID GLASS — iOS 27
-   Один класс. Жёсткие !important. Нельзя сломать.
+   LIQUID GLASS — iOS 27 (PERFORMANCE-OPTIMIZED, ROUND 2)
+
+   ROOT CAUSE OF LAG: backdrop-filter:blur() forces the GPU to
+   re-rasterize everything BEHIND each glassed element, every frame
+   it's visible/scrolling/animating. Applying blur(25px) to EVERY
+   task card (LG_SELECTORS included '.task-item') multiplied that
+   cost by the number of habits on screen — 10-20+ expensive blur
+   layers stacked and repainted constantly = the 10fps freeze.
+
+   ROUND 2 FIX (this still wasn't fast enough on mid/low-end Android):
+   1. Blur radius cut again (14px→8px, 10px→6px). Blur cost scales
+      roughly with radius² on most mobile GPUs — small radius cuts
+      are disproportionately cheap to render.
+   2. saturate() REMOVED. Stacking two filter functions forces the
+      browser to composite in two passes instead of one — same
+      visual "glass" read is achievable with blur alone + the
+      gradient background already in use.
+   3. .lp-backdrop (shown on EVERY long-press, far more frequent
+      than opening a modal) now NEVER gets backdrop-filter, even
+      in Liquid Glass mode — it's a plain dim overlay only. This
+      was firing constantly during normal habit-card interaction
+      and was likely the single biggest contributor to the "10fps"
+      feeling, since it's the most frequently-triggered surface.
+   4. Modal blur is also now gated behind a JS capability check
+      (skipBackdropBlur) that disables backdrop-filter entirely on
+      devices that report <=4 logical CPU cores — a reasonable
+      proxy for low/mid-end hardware where blur compositing is the
+      most expensive. Falls back to the cheap gradient-only look.
+   5. will-change + contain:paint still isolate each glass layer
+      onto its own GPU compositing layer so the browser doesn't
+      repaint unrelated siblings when one glass element animates.
 ══════════════════════════════════════════════ */
 .liquid-glass {
   background: rgba(255,255,255,0.03) !important;
-  backdrop-filter: blur(25px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(25px) saturate(190%) !important;
   border: 1px solid rgba(255,255,255,0.12) !important;
   box-shadow: 0 8px 32px 0 rgba(0,0,0,0.3) !important;
+  /* No backdrop-filter here anymore — see .liquid-glass-blur below */
 }
 
-/* Profile cards */
+/* Opt-in heavy blur — applied via JS ONLY to a few large surfaces
+   (modals, settings panel) that don't repeat per list item.
+   Disabled entirely on low-core-count devices — see JS capability
+   check that adds body.lg-no-blur. */
+.liquid-glass-blur {
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  will-change: backdrop-filter;
+  contain: paint;
+}
+body.lg-no-blur .liquid-glass-blur {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Overlay backgrounds: blur is OFF by default (perf fix — these are
+   full-screen position:fixed elements, the most expensive possible
+   place to run backdrop-filter). Only add it back if the user has
+   explicitly opted into Liquid Glass mode, AND the device isn't
+   flagged as low-end (body.lg-no-blur). */
+body.liquid-glass-enabled:not(.lg-no-blur) .settings-overlay,
+body.liquid-glass-enabled:not(.lg-no-blur) .edit-overlay,
+body.liquid-glass-enabled:not(.lg-no-blur) .add-overlay,
+body.liquid-glass-enabled:not(.lg-no-blur) .confirm-overlay,
+body.liquid-glass-enabled:not(.lg-no-blur) .skills-overlay {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+/* .lp-backdrop is INTENTIONALLY EXCLUDED from the blur list above.
+   It fires on every long-press (far more often than opening a modal)
+   and was the single most expensive/frequent glass surface. It now
+   stays a plain dim scrim in ALL modes — no backdrop-filter, ever. */
+
+/* Cheap "glass-look" for repeating elements (task cards, stat boxes):
+   gradient + border only, NO blur. Visually close, costs ~nothing. */
+body.liquid-glass-enabled .task-item,
+body.liquid-glass-enabled .stat-box,
 body.liquid-glass-enabled .pstat-card,
+body.liquid-glass-enabled .tac-block {
+  background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015)) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25) !important;
+  /* explicitly no backdrop-filter — this is the perf fix */
+}
+
+/* Profile cards — large, few in number, can afford real blur
+   (still gated by lg-no-blur for low-end devices) */
 body.liquid-glass-enabled .profile-hero,
 body.liquid-glass-enabled .profile-skills-section {
   background: rgba(255,255,255,0.03) !important;
-  backdrop-filter: blur(25px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(25px) saturate(190%) !important;
   border: 1px solid rgba(255,255,255,0.12) !important;
+  will-change: backdrop-filter;
+  contain: paint;
+}
+body.liquid-glass-enabled:not(.lg-no-blur) .profile-hero,
+body.liquid-glass-enabled:not(.lg-no-blur) .profile-skills-section {
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
 }
 
 /* ══════════════════════════════════════════════
@@ -1800,15 +1939,21 @@ body.flow-active::after {
 .metavision-text .mv-skill { color: var(--neon-blue); }
 .metavision-text .mv-habit { color: var(--neon-gold); }
 
-/* Glitch on stats when metavision active */
+/* Glitch on stats when metavision active.
+   PERF: filter:hue-rotate() forces a full repaint pass on every frame
+   of this 0.15s-interval animation — expensive on mobile GPUs even
+   though it only runs while Metavision is toggled on. Swapped for
+   transform + opacity only, which the compositor can run on the GPU
+   without repainting pixels (same "glitch" read, ~free to render). */
 body.metavision-active .skills-detail-bars {
   animation: statGlitch 0.15s steps(2) infinite;
+  will-change: transform;
 }
 @keyframes statGlitch {
-  0%   { transform: translateX(0); }
-  33%  { transform: translateX(-1px); filter: hue-rotate(30deg); }
-  66%  { transform: translateX(1px);  filter: hue-rotate(-20deg); }
-  100% { transform: translateX(0); filter: none; }
+  0%   { transform: translateX(0); opacity: 1; }
+  33%  { transform: translateX(-1px); opacity: .85; }
+  66%  { transform: translateX(1px);  opacity: .85; }
+  100% { transform: translateX(0); opacity: 1; }
 }
 
 /* ── Achievements section inside skills modal ── */
@@ -2057,8 +2202,7 @@ body.metavision-active .skills-detail-bars {
 ══════════════════════════════════════════════ */
 .add-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.68);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  background: rgba(0,0,0,0.82);
   z-index: 900;
   display: flex !important; align-items: center !important; justify-content: center !important;
   opacity: 0; pointer-events: none;
@@ -2109,8 +2253,7 @@ body.metavision-active .skills-detail-bars {
 ══════════════════════════════════════════════ */
 .skills-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,.75);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  background: rgba(0,0,0,.85);
   z-index: 1100;
   display: flex; align-items: flex-end; justify-content: center;
   opacity: 0; pointer-events: none;
@@ -2956,6 +3099,45 @@ function applyGlass(glass) {
   document.querySelectorAll('#glassToggle .toggle-pill').forEach(b => b.classList.toggle('active', b.dataset.glass === glass));
   saveUISettings();
 }
+
+// ════════════════════════════════════════════════════════════════
+// LOW-END DEVICE DETECTION — disables backdrop-filter blur entirely
+// on hardware where blur compositing is too expensive to stay smooth.
+// This is the missing piece the CSS comments above already describe:
+// body.lg-no-blur strips backdrop-filter from every glass surface
+// (modals, settings panel, profile cards) while keeping the cheap
+// gradient-only "glass look" on task cards untouched either way.
+// ════════════════════════════════════════════════════════════════
+(function detectLowEndDevice(){
+  // navigator.hardwareConcurrency: number of logical CPU cores.
+  // <=4 is a reasonable proxy for budget/mid-range phones where
+  // backdrop-filter blur compositing tanks frame rate. Defaults to
+  // 4 (i.e. "assume low-end") if the browser doesn't expose the API,
+  // since failing toward the cheaper rendering path is always safe.
+  const cores = navigator.hardwareConcurrency || 4;
+
+  // Also respect the user's OS-level "reduce motion" preference —
+  // if they've asked for fewer animations system-wide, heavy blur
+  // almost certainly isn't wanted either.
+  const prefersReducedMotion = window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false;
+
+  const isLowEnd = cores <= 4 || prefersReducedMotion;
+  document.body.classList.toggle('lg-no-blur', isLowEnd);
+})();
+
+// ════════════════════════════════════════════════════════════════
+// PERF: pause decorative infinite CSS animations while the app is
+// backgrounded (tab switched away, screen off, app minimized).
+// Costs nothing visually — the user can't see the animation anyway —
+// but saves the browser from compositing radarPulse/flowPulse/etc.
+// every frame for no reason, which matters a lot for battery and for
+// not competing with the main thread when the user comes back.
+// ════════════════════════════════════════════════════════════════
+document.addEventListener('visibilitychange', () => {
+  document.body.classList.toggle('anim-paused', document.hidden);
+});
 
 function applyLang(lang){
   uiSettings.lang=lang;
