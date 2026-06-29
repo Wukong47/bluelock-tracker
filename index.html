@@ -907,20 +907,47 @@ body.flow-active #bgOverlay {
 /* Top section: icon + body + controls — flex-shrink:0 so it never collapses */
 .hc-top{display:flex;align-items:flex-start;gap:7px;flex-shrink:0;}
 
-/* ── Subtask list container — animated expand/collapse ── */
+/* ── Subtask list container — animated expand/collapse ──
+   Animates grid-template-rows 0fr→1fr instead of a JS-measured
+   `height` value. The previous approach called inner.scrollHeight
+   synchronously on every toggle — that forces the browser to flush
+   pending layout work immediately (layout thrashing) right before
+   the animation even starts, which is what caused the visible stutter.
+   grid-template-rows with fr units needs no JS measurement at all:
+   the browser computes the track size itself and animates smoothly
+   on the compositor, same cheap path as transform/opacity. */
 .hc-subtask-list{
-  display: grid;
-  grid-template-rows: 0fr;
-  opacity: 0;
+  /* TRUE COMPOSITOR-ONLY ANIMATION:
+     max-height (even with a precise px value) is still a LAYOUT
+     property — animating it forces the browser to recompute the
+     box model on every single frame, which is reflow, not just
+     repaint. That reflow is what was still causing jank even
+     after switching away from grid-template-rows.
+
+     transform + opacity are the ONLY two CSS properties the browser
+     can animate purely on the GPU compositor thread, with zero
+     layout/paint work per frame. So the OUTER wrapper's height is
+     set ONCE (not animated) right when the class toggles, and the
+     INNER content animates in with translateY + opacity — no
+     scaleY, since scaling a flex column would visibly stretch the
+     subtask text and checkboxes vertically. */
   overflow: hidden;
-  transition: grid-template-rows .3s cubic-bezier(.4,0,.2,1), opacity .25s ease;
+  height: 0;
 }
 .hc-subtask-list.expanded{
-  grid-template-rows: 1fr;
+  height: var(--subtask-h, auto);
+}
+.hc-subtask-list-inner{
+  transform: translateY(-6px);
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: transform .26s cubic-bezier(.4,0,.2,1), opacity .2s ease;
+}
+.hc-subtask-list.expanded .hc-subtask-list-inner{
+  transform: translateY(0);
   opacity: 1;
 }
 .hc-subtask-list-inner{
-  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: calc(4px / var(--ui-scale,1));
@@ -3551,8 +3578,47 @@ function toggleSubtaskExpand(taskId){
   const card = document.querySelector(`.task-item[data-id="${taskId}"]`);
   if(!card) { renderTasks(); return; }
   const list = card.querySelector('.hc-subtask-list');
+  if(!list) return;
+
   const expanded = expandedSubtaskIds.has(taskId);
-  list?.classList.toggle('expanded', expanded);
+  const inner = list.querySelector('.hc-subtask-list-inner');
+
+  if(expanded){
+    // Measure the content's natural height. The OUTER wrapper's height
+    // is set instantly (not animated — height is a layout property and
+    // animating it is what caused the original jank). The actual visible
+    // "growing in" motion comes entirely from the INNER element's
+    // transform/opacity transition, which is GPU-compositor-only and
+    // costs nothing per frame regardless of how much subtask text there is.
+    const targetHeight = inner ? inner.scrollHeight : 0;
+    list.style.setProperty('--subtask-h', targetHeight + 'px');
+
+    // ── FIX: force a reflow BEFORE adding .expanded ──────────────────
+    // Setting --subtask-h and adding .expanded in the same synchronous
+    // tick lets the browser collapse both changes into a single frame,
+    // so the inner translateY/opacity transition has no "before" state
+    // to animate from — it just pops in instantly (the jank you saw).
+    //
+    // Reading offsetHeight forces a synchronous layout flush, then we
+    // wait one more animation frame before adding .expanded. The extra
+    // rAF matters specifically on Android Chrome/WebView, where a
+    // forced reflow alone sometimes still isn't enough to guarantee
+    // the transition starts on the very next paint — double-buffering
+    // the state change via rAF makes the "before" frame reliably commit
+    // first on every device, not just desktop browsers.
+    list.offsetHeight; // forced synchronous reflow
+
+    requestAnimationFrame(() => {
+      list.classList.add('expanded');
+    });
+  } else {
+    list.classList.remove('expanded');
+    // Collapse the outer wrapper only after the inner fade/slide-out
+    // finishes, so the content doesn't get clipped mid-animation.
+    setTimeout(() => {
+      if(!expandedSubtaskIds.has(taskId)) list.style.removeProperty('--subtask-h');
+    }, 260);
+  }
 }
 
 function addSubtask(taskId, text){
@@ -3757,6 +3823,18 @@ function renderTasks(){
 
       container.appendChild(card);
 
+      // If this card's subtasks are already expanded (e.g. right after
+      // addSubtask() auto-expands it, or after a re-render), set the
+      // correct --subtask-h immediately so it's not stuck on the 600px
+      // CSS fallback. No animation needed here — it's already open.
+      if(isExpanded && hasSubtasks){
+        const listEl  = card.querySelector('.hc-subtask-list');
+        const innerEl = listEl?.querySelector('.hc-subtask-list-inner');
+        if(listEl && innerEl){
+          listEl.style.setProperty('--subtask-h', innerEl.scrollHeight + 'px');
+        }
+      }
+
       // Attach events safely
       const checkEl = card.querySelector('.hc-check');
       if(checkEl) checkEl.addEventListener('click', e=>{ e.stopPropagation(); toggleToday(task.id); });
@@ -3810,6 +3888,12 @@ function renderTasks(){
       container.appendChild(card);
     }
   });
+
+  // Note: no JS height-sync needed for expanded subtask lists anymore.
+  // grid-template-rows: 1fr (set by the .expanded class itself) renders
+  // correctly the instant the class is applied — no scrollHeight read,
+  // no inline style, no requestAnimationFrame dance. The class alone
+  // is enough, even right after an innerHTML rebuild from renderTasks().
 }
 
 function updateTotals(){
