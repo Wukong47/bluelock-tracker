@@ -1133,6 +1133,8 @@ body.flow-active #bgOverlay {
 .cal-ctx-divider{height:.5px;background:rgba(255,255,255,.1);margin:0;}
 .cal-ctx-item.destructive{color:#ff453a;}
 .cal-ctx-item.skip-item{color:rgba(255,255,255,.65);}
+.cal-ctx-item.note-item{color:var(--neon-blue);}
+.cal-day-note-dot{position:absolute;bottom:2px;right:3px;width:5px;height:5px;border-radius:50%;background:var(--neon-blue);box-shadow:0 0 5px rgba(0,212,255,.7);pointer-events:none;}
 
 /* ── Empty state ── */
 .empty-state{text-align:center;padding:32px 16px;color:var(--text-muted);font-family:var(--font-mono);font-size:10px;letter-spacing:2px;border:1px dashed rgba(0,212,255,.1);border-radius:var(--r-md);}
@@ -2472,6 +2474,35 @@ body.metavision-active .skills-detail-bars {
     <span id="calCtxSkipLabel">Skip</span>
     <span class="cal-ctx-icon">⬇️</span>
   </button>
+  <div class="cal-ctx-divider"></div>
+  <button class="cal-ctx-item note-item" id="calCtxNote">
+    <span id="calCtxNoteLabel">Add Note</span>
+    <span class="cal-ctx-icon">📝</span>
+  </button>
+</div>
+
+<!-- Day Note Modal -->
+<div class="confirm-overlay" id="dayNoteOverlay">
+  <div class="confirm-modal" style="width:calc(min(310px,calc(100vw - 40px)) / var(--ui-scale,1));">
+    <div class="confirm-modal-body">
+      <div class="confirm-modal-title" id="dayNoteTitle">Note</div>
+      <div class="confirm-modal-msg" id="dayNoteSub" style="margin-bottom:4px;"></div>
+      <textarea id="dayNoteField" class="edit-field" maxlength="300"
+        style="margin-top:8px;width:100%;resize:none;height:90px;line-height:1.5;font-size:13px;"
+        placeholder="..."></textarea>
+      <div id="dayNoteCharCount" style="text-align:right;font-family:var(--font-mono);font-size:9px;color:var(--text-muted);margin-top:3px;letter-spacing:1px;">0/300</div>
+    </div>
+    <div class="confirm-modal-footer" style="flex-direction:column;padding:0;">
+      <div style="display:flex;border-top:.5px solid rgba(255,255,255,.1);">
+        <button class="confirm-modal-btn cancel" id="dayNoteCancelBtn">Cancel</button>
+        <button class="confirm-modal-btn confirm" id="dayNoteSaveBtn">Save</button>
+      </div>
+      <button class="confirm-modal-btn" id="dayNoteDeleteBtn"
+        style="color:rgba(255,36,66,.8);border-top:.5px solid rgba(255,255,255,.07);display:none;font-size:12px;">
+        🗑 Delete note
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- iOS Confirm Modal (for dangerous actions) -->
@@ -2964,6 +2995,10 @@ const I18N = {
     cal_label:'Completion History',
     cal_ctx_failed:'Failed',
     cal_ctx_skip:'Skip',
+    cal_ctx_note_add:'Add Note',
+    cal_ctx_note_edit:'Edit Note',
+    cal_note_title:'Day Note',
+    cal_note_delete:'🗑 Delete note',
     setting_penalty_mode:'Auto Penalty (-8 pts)',
     setting_penalty_desc:'Each missed active habit deducts 8 pts at midnight',
     settings_liquid_glass:'Liquid Glass',
@@ -3029,6 +3064,10 @@ const I18N = {
     cal_label:'История выполнения',
     cal_ctx_failed:'Не сделал',
     cal_ctx_skip:'Пропустить',
+    cal_ctx_note_add:'Сделать заметку',
+    cal_ctx_note_edit:'Редактировать заметку',
+    cal_note_title:'Заметка дня',
+    cal_note_delete:'🗑 Удалить заметку',
     setting_penalty_mode:'Авто-штраф (-8 очков)',
     setting_penalty_desc:'За каждую пропущенную привычку -8 очков в полночь',
     settings_liquid_glass:'Жидкое стекло',
@@ -3949,6 +3988,7 @@ function addTask(){
     activeDays,       // [0..6] Mon=0..Sun=6, all 7 by default
     hideOnInactive,   // boolean
     subtasks:[],      // [{ id, text, completed }] — independent mini-checklist
+    dayNotes:{},      // { dateStr: noteText } — per-day notes
   };
   state.tasks.unshift(task);
   nameInput.value=''; descInput.value='';
@@ -4208,10 +4248,16 @@ function openCalCtxMenu(dateStr, x, y){
   document.getElementById('calCtxFailedLabel').textContent = t('cal_ctx_failed');
   document.getElementById('calCtxSkipLabel').textContent   = t('cal_ctx_skip');
 
+  // Note button: show "Edit Note" if note exists, "Add Note" otherwise
+  const task = state.tasks.find(t2 => t2.id === editTargetId);
+  const hasNote = !!(task && task.dayNotes && task.dayNotes[dateStr]);
+  document.getElementById('calCtxNoteLabel').textContent =
+    hasNote ? t('cal_ctx_note_edit') : t('cal_ctx_note_add');
+
   // x,y are raw clientX/clientY from the event.
   // position:fixed + translate(-50%,-50%) centres the menu on this point.
   // Clamp so it never escapes the physical viewport.
-  const menuW = 200, menuH = 110;
+  const menuW = 200, menuH = 140;
   const vw = window.innerWidth, vh = window.innerHeight;
   const left = Math.max(menuW/2 + 8, Math.min(x, vw - menuW/2 - 8));
   const top  = Math.max(menuH/2 + 8, Math.min(y, vh - menuH/2 - 8));
@@ -4219,6 +4265,112 @@ function openCalCtxMenu(dateStr, x, y){
   calCtxMenu.style.left = left + 'px';
   calCtxMenu.style.top  = top  + 'px';
   calCtxMenu.classList.add('visible');
+}
+
+// ── Day Note modal ──────────────────────────────────────────────
+let dayNoteTargetDate = null;
+let dayNoteTargetTaskId = null;
+
+function openDayNoteModal(taskId, dateStr){
+  dayNoteTargetDate   = dateStr;
+  dayNoteTargetTaskId = taskId;
+
+  const task = state.tasks.find(t2 => t2.id === taskId);
+  const existingNote = (task && task.dayNotes && task.dayNotes[dateStr]) || '';
+
+  const title   = document.getElementById('dayNoteTitle');
+  const sub     = document.getElementById('dayNoteSub');
+  const field   = document.getElementById('dayNoteField');
+  const delBtn  = document.getElementById('dayNoteDeleteBtn');
+  const counter = document.getElementById('dayNoteCharCount');
+  const saveBtn = document.getElementById('dayNoteSaveBtn');
+  const cancelBtn = document.getElementById('dayNoteCancelBtn');
+
+  if(title)  title.textContent  = t('cal_note_title');
+  if(sub)    sub.textContent    = dateStr;
+  if(field)  { field.value = existingNote; }
+  if(counter) counter.textContent = `${existingNote.length}/300`;
+  if(delBtn) {
+    delBtn.style.display = existingNote ? 'block' : 'none';
+    delBtn.textContent   = t('cal_note_delete');
+  }
+  if(saveBtn)   saveBtn.textContent   = t('edit_save')   || 'Save';
+  if(cancelBtn) cancelBtn.textContent = t('edit_cancel') || 'Cancel';
+
+  const overlay = document.getElementById('dayNoteOverlay');
+  if(overlay) overlay.classList.add('open');
+  // focus textarea after transition
+  setTimeout(() => { if(field) field.focus(); }, 220);
+}
+
+function closeDayNoteModal(){
+  document.getElementById('dayNoteOverlay')?.classList.remove('open');
+  dayNoteTargetDate   = null;
+  dayNoteTargetTaskId = null;
+}
+
+document.getElementById('dayNoteCancelBtn')?.addEventListener('click', () => {
+  closeDayNoteModal();
+});
+
+document.getElementById('dayNoteSaveBtn')?.addEventListener('click', () => {
+  const text = (document.getElementById('dayNoteField')?.value || '').trim();
+  if(dayNoteTargetTaskId && dayNoteTargetDate){
+    const task = state.tasks.find(t2 => t2.id === dayNoteTargetTaskId);
+    if(task){
+      if(!task.dayNotes) task.dayNotes = {};
+      if(text) task.dayNotes[dayNoteTargetDate] = text;
+      else delete task.dayNotes[dayNoteTargetDate];
+      saveState();
+      // refresh note dot on calendar
+      const card = document.querySelector(`.task-item[data-id="${dayNoteTargetTaskId}"]`);
+      if(card) updateCalendarNoteDots(card, task);
+    }
+  }
+  closeDayNoteModal();
+});
+
+document.getElementById('dayNoteDeleteBtn')?.addEventListener('click', () => {
+  if(dayNoteTargetTaskId && dayNoteTargetDate){
+    const task = state.tasks.find(t2 => t2.id === dayNoteTargetTaskId);
+    if(task && task.dayNotes) {
+      delete task.dayNotes[dayNoteTargetDate];
+      saveState();
+      const card = document.querySelector(`.task-item[data-id="${dayNoteTargetTaskId}"]`);
+      if(card) updateCalendarNoteDots(card, task);
+    }
+  }
+  closeDayNoteModal();
+});
+
+// char counter
+document.getElementById('dayNoteField')?.addEventListener('input', e => {
+  const counter = document.getElementById('dayNoteCharCount');
+  if(counter) counter.textContent = `${e.target.value.length}/300`;
+});
+
+// Close on overlay backdrop click
+document.getElementById('dayNoteOverlay')?.addEventListener('click', e => {
+  if(e.target === document.getElementById('dayNoteOverlay')) closeDayNoteModal();
+});
+
+// Helper: refresh note indicator dots on a card's calendar cells
+function updateCalendarNoteDots(card, task){
+  const notes = task.dayNotes || {};
+  card.querySelectorAll('.hc-cal-cell[data-date]').forEach(cell => {
+    const d = cell.dataset.date;
+    const existing = cell.querySelector('.cal-day-note-dot');
+    if(notes[d]){
+      if(!existing){
+        const dot = document.createElement('span');
+        dot.className = 'cal-day-note-dot';
+        cell.style.position = 'relative';
+        cell.appendChild(dot);
+      }
+    } else {
+      existing?.remove();
+    }
+  });
 }
 
 function closeCalCtxMenu(){
@@ -4240,6 +4392,14 @@ document.getElementById('calCtxSkip').addEventListener('click', e => {
   const dateToUse = calCtxDate;        // snapshot before any async nulling
   closeCalCtxMenu();
   if(dateToUse) calSetStatus(dateToUse, 'skip');
+});
+
+document.getElementById('calCtxNote').addEventListener('click', e => {
+  e.stopPropagation();
+  const dateToUse   = calCtxDate;
+  const taskIdToUse = editTargetId;
+  closeCalCtxMenu();
+  if(dateToUse && taskIdToUse) openDayNoteModal(taskIdToUse, dateToUse);
 });
 
 // Close on click outside — use capture:false so menu button clicks fire first
@@ -4474,7 +4634,10 @@ function renderCalendar(){
     const inner = status === 'skip'
       ? `${d}<span style="font-size:8px;position:absolute;bottom:1px;right:3px;opacity:.5;pointer-events:none;">↓</span>`
       : d;
-    html += `<div class="${cls}" style="position:relative" ${attr}>${inner}</div>`;
+    // Note indicator dot
+    const hasNote = !isFuture && task && task.dayNotes && task.dayNotes[dateStr];
+    const noteDot = hasNote ? '<span class="cal-day-note-dot"></span>' : '';
+    html += `<div class="${cls}" style="position:relative" ${attr}>${inner}${noteDot}</div>`;
   }
 
   grid.innerHTML=html;
