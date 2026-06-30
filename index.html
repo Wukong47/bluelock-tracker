@@ -2612,6 +2612,268 @@ body.metavision-active .skills-detail-bars {
 .task-item.cust-fx-pulse{animation:custPulse 3s ease-in-out infinite;}
 @keyframes custPulse{0%,100%{box-shadow:0 0 6px var(--skill-color,var(--neon-blue));}50%{box-shadow:0 0 22px var(--skill-color,var(--neon-blue)),0 0 40px rgba(0,0,0,.2);}}
 .task-item.cust-fx-grain::before{filter:contrast(1.1) brightness(.95);}
+/* ══════════ NOTIFICATIONS PANEL ══════════ */
+.notif-open-btn{
+  width:100%;display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;border-radius:12px;
+  border:1px solid rgba(0,212,255,.2);
+  background:rgba(0,212,255,.05);
+  color:var(--text-primary);font-family:var(--font-body);font-size:14px;font-weight:600;
+  cursor:pointer;transition:all .2s;
+}
+.notif-open-btn:hover{background:rgba(0,212,255,.12);border-color:rgba(0,212,255,.4);}
+.notif-open-arrow{font-size:20px;color:var(--neon-blue);font-weight:300;}
+
+/* Full-screen slide-in panel */
+.notif-overlay{
+  position:fixed;inset:0;z-index:1100;
+  pointer-events:none;
+}
+.notif-panel{
+  position:absolute;inset:0;
+  background:var(--bg-panel,#0a0f1a);
+  display:flex;flex-direction:column;
+  transform:translateX(100%);
+  transition:transform .35s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+}
+.notif-overlay.open{ pointer-events:all; }
+.notif-overlay.open .notif-panel{ transform:translateX(0); }
+
+.notif-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 16px 14px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  flex-shrink:0;
+}
+.notif-back-btn{
+  width:36px;height:36px;border-radius:10px;
+  border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);
+  color:#fff;font-size:22px;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.notif-back-btn:hover{background:rgba(255,255,255,.12);}
+.notif-title{
+  font-family:var(--font-display);font-size:15px;letter-spacing:4px;
+  color:var(--text-primary);
+}
+
+/* Master toggle row */
+.notif-master-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 18px 16px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  flex-shrink:0;position:relative;z-index:2;
+}
+.notif-master-label{font-family:var(--font-body);font-size:16px;font-weight:700;color:var(--text-primary);}
+.notif-master-sub{font-family:var(--font-mono);font-size:9px;letter-spacing:1px;color:var(--text-muted);margin-top:3px;}
+
+/* Disabled cover overlay */
+.notif-disabled-cover{
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.62);
+  z-index:10;
+  display:none;
+  align-items:center;justify-content:center;
+  backdrop-filter:blur(2px);
+  pointer-events:all;
+}
+.notif-disabled-cover.visible{display:flex;}
+.notif-disabled-msg{
+  text-align:center;
+  font-family:var(--font-mono);font-size:13px;letter-spacing:2px;
+  color:rgba(255,255,255,.35);line-height:2;
+}
+
+/* Scrollable content */
+.notif-content{
+  flex:1;overflow-y:auto;padding:0;
+  position:relative;
+}
+.notif-content::-webkit-scrollbar{width:3px;}
+.notif-content::-webkit-scrollbar-thumb{background:rgba(0,212,255,.25);border-radius:2px;}
+
+.notif-section{padding:18px 18px 14px;position:relative;}
+.notif-divider{height:1px;background:rgba(255,255,255,.06);margin:0 18px;}
+
+.notif-section-header{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  cursor:pointer;
+}
+.notif-section-title{
+  font-family:var(--font-body);font-size:14px;font-weight:700;
+  color:var(--text-primary);letter-spacing:.5px;
+}
+.notif-section-sub{
+  font-family:var(--font-mono);font-size:9px;letter-spacing:1px;
+  color:var(--neon-blue);margin-top:4px;opacity:.7;
+}
+.notif-section-left{flex:1;}
+
+/* Slots wrap — animated open/close */
+.notif-slots-wrap{
+  overflow:hidden;
+  max-height:0;
+  transition:max-height .35s cubic-bezier(.4,0,.2,1), opacity .25s ease;
+  opacity:0;
+  pointer-events:none;
+}
+.notif-slots-wrap.open{
+  max-height:1000px;
+  opacity:1;
+  pointer-events:all;
+}
+
+.notif-slots-list{
+  display:flex;flex-direction:column;gap:8px;
+  margin-top:14px;
+}
+
+/* Individual time slot */
+.notif-slot{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  padding:10px 12px;
+  animation:slotIn .25s ease;
+}
+@keyframes slotIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+.notif-slot-time{
+  flex:1;
+  font-family:var(--font-display);font-size:22px;letter-spacing:4px;
+  color:var(--text-primary);cursor:pointer;
+}
+.notif-slot-time:hover{color:var(--neon-blue);}
+.notif-slot-label{
+  font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;
+  color:var(--text-muted);
+}
+.notif-slot-del{
+  width:28px;height:28px;border-radius:8px;
+  border:1px solid rgba(255,36,66,.3);
+  background:rgba(255,36,66,.06);
+  color:var(--neon-red);font-size:14px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;flex-shrink:0;
+}
+.notif-slot-del:hover{background:rgba(255,36,66,.18);}
+
+/* Add button */
+.notif-add-btn{
+  display:flex;align-items:center;gap:8px;
+  margin-top:10px;
+  padding:11px 14px;border-radius:12px;
+  border:1.5px dashed rgba(0,212,255,.35);
+  background:rgba(0,212,255,.04);
+  color:var(--neon-blue);
+  font-family:var(--font-mono);font-size:11px;letter-spacing:1.5px;
+  cursor:pointer;width:100%;
+  transition:all .2s;
+}
+.notif-add-btn:hover{background:rgba(0,212,255,.1);border-style:solid;}
+.notif-add-plus{
+  font-size:22px;font-weight:300;line-height:1;
+}
+
+/* Future features */
+.notif-future-grid{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;
+}
+.notif-future-chip{
+  padding:8px 12px;border-radius:10px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+  font-family:var(--font-mono);font-size:10px;letter-spacing:1px;
+  color:rgba(255,255,255,.3);
+}
+
+/* ══════════ TIME PICKER MODAL ══════════ */
+.timepick-overlay{
+  position:fixed;inset:0;z-index:1200;
+  background:rgba(0,0,0,.75);
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s;
+}
+.timepick-overlay.open{opacity:1;pointer-events:all;}
+.timepick-modal{
+  width:100%;max-width:420px;
+  background:var(--bg-panel,#0d1424);
+  border-radius:22px 22px 0 0;
+  border-top:1px solid rgba(255,255,255,.1);
+  padding:20px 20px 32px;
+  transform:translateY(100%);
+  transition:transform .32s cubic-bezier(.34,1.1,.64,1);
+}
+.timepick-overlay.open .timepick-modal{transform:translateY(0);}
+.timepick-title{
+  font-family:var(--font-display);font-size:14px;letter-spacing:4px;
+  color:var(--text-primary);text-align:center;margin-bottom:20px;
+}
+.timepick-wheels{
+  display:flex;align-items:center;justify-content:center;gap:0;
+  height:200px;overflow:hidden;position:relative;
+  border-radius:14px;
+  background:rgba(255,255,255,.03);
+}
+/* Gradient fade top/bottom to suggest scrolling */
+.timepick-wheels::before,.timepick-wheels::after{
+  content:'';position:absolute;left:0;right:0;height:60px;z-index:2;pointer-events:none;
+}
+.timepick-wheels::before{top:0;background:linear-gradient(to bottom,var(--bg-panel,#0d1424),transparent);}
+.timepick-wheels::after{bottom:0;background:linear-gradient(to top,var(--bg-panel,#0d1424),transparent);}
+/* Selection highlight bar */
+.timepick-wheels .timepick-col::after{
+  content:'';position:absolute;left:0;right:0;
+  top:50%;transform:translateY(-50%);
+  height:40px;
+  border-top:1px solid rgba(0,212,255,.35);
+  border-bottom:1px solid rgba(0,212,255,.35);
+  pointer-events:none;z-index:1;
+}
+.timepick-col{
+  flex:1;overflow-y:scroll;scroll-snap-type:y mandatory;
+  -webkit-overflow-scrolling:touch;
+  height:200px;position:relative;
+  scrollbar-width:none;
+}
+.timepick-col::-webkit-scrollbar{display:none;}
+.timepick-item{
+  height:40px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:28px;letter-spacing:3px;
+  color:rgba(255,255,255,.25);
+  scroll-snap-align:center;
+  transition:color .15s,font-size .15s;
+  cursor:pointer;
+}
+.timepick-item.selected{color:var(--text-primary);font-size:32px;}
+.timepick-item.near{color:rgba(255,255,255,.55);}
+/* Padding items so first/last can scroll to center */
+.timepick-item.pad{pointer-events:none;}
+.timepick-sep{
+  font-family:var(--font-display);font-size:30px;color:var(--text-primary);
+  padding:0 6px;flex-shrink:0;align-self:center;
+}
+.timepick-footer{
+  display:flex;gap:12px;margin-top:18px;
+}
+.timepick-btn{
+  flex:1;padding:13px;border-radius:13px;
+  font-family:var(--font-display);font-size:13px;letter-spacing:3px;
+  cursor:pointer;transition:all .2s;border:none;
+}
+.timepick-btn.cancel{
+  background:rgba(255,255,255,.07);color:rgba(255,255,255,.6);
+}
+.timepick-btn.confirm{
+  background:linear-gradient(135deg,rgba(0,212,255,.25),rgba(0,100,200,.3));
+  color:var(--neon-blue);
+  box-shadow:0 0 0 1px rgba(0,212,255,.4) inset;
+}
+.timepick-btn.confirm:hover{box-shadow:0 0 20px rgba(0,212,255,.2),0 0 0 1px rgba(0,212,255,.6) inset;}
 </style>
 </head>
 <body>
@@ -2966,6 +3228,15 @@ body.metavision-active .skills-detail-bars {
       </div>
     </div>
 
+    <!-- NOTIFICATIONS -->
+    <div class="settings-group">
+      <div class="settings-group-label">🔔 УВЕДОМЛЕНИЯ</div>
+      <button class="notif-open-btn" id="openNotifPanel">
+        <span>🔔 Уведомления</span>
+        <span class="notif-open-arrow">›</span>
+      </button>
+    </div>
+
     <!-- DANGER ZONE -->
     <div class="settings-danger-row">
       <button class="btn-danger-full" id="fullResetBtn">
@@ -2976,6 +3247,90 @@ body.metavision-active .skills-detail-bars {
 
     <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:1.5px;text-align:center;margin-top:14px;">
       <span data-i18n="settings_saved">Settings are saved automatically</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ NOTIFICATIONS PANEL ═══ -->
+<div class="notif-overlay" id="notifOverlay">
+  <div class="notif-panel" id="notifPanel">
+
+    <!-- Header -->
+    <div class="notif-header">
+      <button class="notif-back-btn" id="notifBack">‹</button>
+      <span class="notif-title">🔔 УВЕДОМЛЕНИЯ</span>
+      <div style="width:36px;"></div>
+    </div>
+
+    <!-- Master on/off toggle -->
+    <div class="notif-master-row">
+      <div class="notif-master-left">
+        <div class="notif-master-label">Уведомления</div>
+        <div class="notif-master-sub">Включить или отключить все</div>
+      </div>
+      <div class="ios-toggle" id="notifMasterToggle"></div>
+    </div>
+
+    <!-- Dimming overlay when disabled -->
+    <div class="notif-disabled-cover" id="notifDisabledCover">
+      <div class="notif-disabled-msg">🔕<br>Уведомления отключены</div>
+    </div>
+
+    <!-- Content (dimmed when master off) -->
+    <div class="notif-content" id="notifContent">
+
+      <!-- Global time section -->
+      <div class="notif-section">
+        <div class="notif-section-header" id="notifGlobalHeader">
+          <div class="notif-section-left">
+            <div class="notif-section-title">Единое время для всех</div>
+            <div class="notif-section-sub">Нажми на название чтобы настроить →</div>
+          </div>
+          <div class="ios-toggle" id="notifGlobalToggle"></div>
+        </div>
+
+        <!-- Time slots list (shown only when global toggle is ON) -->
+        <div class="notif-slots-wrap" id="notifGlobalSlots">
+          <div class="notif-slots-list" id="notifGlobalSlotsList"></div>
+          <button class="notif-add-btn" id="notifGlobalAddBtn">
+            <span class="notif-add-plus">+</span>
+            <span>Добавить время</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="notif-divider"></div>
+
+      <!-- Future features placeholder -->
+      <div class="notif-section">
+        <div class="notif-section-title" style="opacity:.4;font-size:10px;letter-spacing:2px;">СКОРО</div>
+        <div class="notif-future-grid">
+          <div class="notif-future-chip">📊 Итоги дня</div>
+          <div class="notif-future-chip">🏆 Рекорды</div>
+          <div class="notif-future-chip">💀 Провалы</div>
+          <div class="notif-future-chip">🔥 Стрики</div>
+          <div class="notif-future-chip">📅 Напоминания</div>
+          <div class="notif-future-chip">🌙 Вечерний отчёт</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TIME PICKER MODAL ═══ -->
+<div class="timepick-overlay" id="timepickOverlay">
+  <div class="timepick-modal">
+    <div class="timepick-title" id="timepickTitle">Время уведомления</div>
+    <div class="timepick-wheels">
+      <div class="timepick-col" id="timepickHourCol"></div>
+      <div class="timepick-sep">:</div>
+      <div class="timepick-col" id="timepickMinCol"></div>
+    </div>
+    <div class="timepick-footer">
+      <button class="timepick-btn cancel" id="timepickCancel">Отмена</button>
+      <button class="timepick-btn confirm" id="timepickConfirm">Готово</button>
     </div>
   </div>
 </div>
@@ -4282,6 +4637,302 @@ function updateTotals(){
       ?Math.round(state.completedCount/(state.completedCount+state.deletedCount)*100)+'%':'0%';
   document.getElementById('taskCount').textContent=`${pending} ${t('filter_active')}`;
 }
+
+
+// ════════════════════════════════════════════════════════════════
+// NOTIFICATIONS PANEL
+// ════════════════════════════════════════════════════════════════
+let notifState = {
+  enabled: false,
+  globalEnabled: false,
+  globalSlots: []            // [{id, hour, minute}]
+};
+
+function loadNotifState(){
+  try{
+    const raw = localStorage.getItem('habitNotifState');
+    if(raw) notifState = Object.assign(notifState, JSON.parse(raw));
+  }catch(e){}
+}
+function saveNotifState(){
+  try{ localStorage.setItem('habitNotifState', JSON.stringify(notifState)); }catch(e){}
+}
+loadNotifState();
+
+// ── Open / Close ───────────────────────────────────────────────
+const notifOverlay = document.getElementById('notifOverlay');
+document.getElementById('openNotifPanel').addEventListener('click', openNotifPanel);
+document.getElementById('notifBack').addEventListener('click', closeNotifPanel);
+
+function openNotifPanel(){
+  // Close settings first
+  document.getElementById('settingsOverlay')?.classList.remove('open');
+  renderNotifPanel();
+  notifOverlay.classList.add('open');
+}
+function closeNotifPanel(){
+  notifOverlay.classList.remove('open');
+  // Re-open settings
+  document.getElementById('settingsOverlay')?.classList.add('open');
+}
+
+// ── Render full panel state ────────────────────────────────────
+function renderNotifPanel(){
+  // Master toggle
+  const masterToggle = document.getElementById('notifMasterToggle');
+  masterToggle.className = 'ios-toggle' + (notifState.enabled ? ' on' : '');
+
+  // Disabled cover
+  const cover = document.getElementById('notifDisabledCover');
+  cover.classList.toggle('visible', !notifState.enabled);
+
+  // Global toggle
+  const globalToggle = document.getElementById('notifGlobalToggle');
+  globalToggle.className = 'ios-toggle' + (notifState.globalEnabled ? ' on' : '');
+
+  // Slots
+  renderGlobalSlots();
+
+  // Slots wrap visible/hidden
+  const wrap = document.getElementById('notifGlobalSlots');
+  wrap.classList.toggle('open', notifState.globalEnabled);
+}
+
+// ── Master toggle ──────────────────────────────────────────────
+document.getElementById('notifMasterToggle').addEventListener('click', async ()=>{
+  if(!notifState.enabled){
+    // Request permission first
+    const perm = await requestNotifPermission();
+    if(!perm) return;
+  }
+  notifState.enabled = !notifState.enabled;
+  saveNotifState();
+  renderNotifPanel();
+  scheduleAllAlarms();
+});
+
+async function requestNotifPermission(){
+  if(!('Notification' in window)) return true; // not supported, continue
+  if(Notification.permission === 'granted') return true;
+  if(Notification.permission === 'denied'){
+    showToast('⚠ Разрешите уведомления в настройках браузера', 'error');
+    return false;
+  }
+  const result = await Notification.requestPermission();
+  if(result !== 'granted'){
+    showToast('⚠ Уведомления не разрешены', 'error');
+    return false;
+  }
+  return true;
+}
+
+// ── Global toggle ──────────────────────────────────────────────
+// Click on title → open time slots; click on toggle → toggle feature
+document.getElementById('notifGlobalHeader').addEventListener('click', e=>{
+  // If click is directly on the ios-toggle, toggle the state
+  if(e.target.closest('#notifGlobalToggle')){
+    notifState.globalEnabled = !notifState.globalEnabled;
+    saveNotifState();
+    renderNotifPanel();
+    scheduleAllAlarms();
+    return;
+  }
+  // Otherwise open/close the slots list (even if feature is off, to show UI)
+  const wrap = document.getElementById('notifGlobalSlots');
+  wrap.classList.toggle('open');
+});
+
+// ── Add time slot ──────────────────────────────────────────────
+document.getElementById('notifGlobalAddBtn').addEventListener('click', ()=>{
+  openTimePicker(null, (h, m) => {
+    notifState.globalSlots.push({ id: Date.now(), hour: h, minute: m });
+    saveNotifState();
+    renderGlobalSlots();
+    scheduleAllAlarms();
+  });
+});
+
+// ── Render slots list ──────────────────────────────────────────
+function renderGlobalSlots(){
+  const list = document.getElementById('notifGlobalSlotsList');
+  list.innerHTML = '';
+  if(!notifState.globalSlots.length){
+    list.innerHTML = `<div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:1px;padding:4px 0;">
+      Нет времени — нажми «+» чтобы добавить</div>`;
+    return;
+  }
+  // Sort by time
+  const sorted = [...notifState.globalSlots].sort((a,b)=> a.hour*60+a.minute - (b.hour*60+b.minute));
+  sorted.forEach(slot=>{
+    const hh = String(slot.hour).padStart(2,'0');
+    const mm = String(slot.minute).padStart(2,'0');
+    const el = document.createElement('div');
+    el.className = 'notif-slot';
+    el.innerHTML = `
+      <div class="notif-slot-left" style="flex:1;">
+        <div class="notif-slot-time" data-id="${slot.id}">${hh}:${mm}</div>
+        <div class="notif-slot-label">Ежедневно · Все привычки</div>
+      </div>
+      <button class="notif-slot-del" data-id="${slot.id}" title="Удалить">✕</button>`;
+    // Edit on click time
+    el.querySelector('.notif-slot-time').addEventListener('click', ()=>{
+      openTimePicker({hour:slot.hour, minute:slot.minute}, (h,m)=>{
+        const idx = notifState.globalSlots.findIndex(s=>s.id===slot.id);
+        if(idx!==-1){ notifState.globalSlots[idx].hour=h; notifState.globalSlots[idx].minute=m; }
+        saveNotifState();
+        renderGlobalSlots();
+        scheduleAllAlarms();
+      });
+    });
+    // Delete
+    el.querySelector('.notif-slot-del').addEventListener('click', ()=>{
+      notifState.globalSlots = notifState.globalSlots.filter(s=>s.id!==slot.id);
+      saveNotifState();
+      renderGlobalSlots();
+      scheduleAllAlarms();
+    });
+    list.appendChild(el);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+// TIME PICKER (scroll-wheel)
+// ════════════════════════════════════════════════════════════════
+let _timepickCallback = null;
+let _timepickHour = 9;
+let _timepickMin  = 0;
+
+function openTimePicker(initial, callback){
+  _timepickCallback = callback;
+  _timepickHour = initial ? initial.hour : 9;
+  _timepickMin  = initial ? initial.minute : 0;
+
+  buildTimeWheel('timepickHourCol', 24, _timepickHour, v=>{ _timepickHour=v; });
+  buildTimeWheel('timepickMinCol', 60, _timepickMin,   v=>{ _timepickMin=v; });
+
+  document.getElementById('timepickTitle').textContent =
+    initial ? 'Изменить время' : 'Новое время';
+  document.getElementById('timepickOverlay').classList.add('open');
+}
+
+function buildTimeWheel(colId, count, selected, onChange){
+  const col = document.getElementById(colId);
+  col.innerHTML = '';
+
+  // 2 padding items top + bottom so selected can scroll to center
+  const PAD = 2;
+  for(let p=0;p<PAD;p++){
+    const pad = document.createElement('div');
+    pad.className='timepick-item pad';
+    col.appendChild(pad);
+  }
+  for(let i=0;i<count;i++){
+    const item = document.createElement('div');
+    item.className='timepick-item';
+    item.textContent = String(i).padStart(2,'0');
+    item.dataset.val = i;
+    col.appendChild(item);
+  }
+  for(let p=0;p<PAD;p++){
+    const pad = document.createElement('div');
+    pad.className='timepick-item pad';
+    col.appendChild(pad);
+  }
+
+  // Scroll to selected
+  const ITEM_H = 40;
+  col.scrollTop = selected * ITEM_H;
+
+  // Highlight on scroll
+  function updateHighlight(){
+    const idx = Math.round(col.scrollTop / ITEM_H);
+    const val = Math.max(0, Math.min(count-1, idx));
+    onChange(val);
+    col.querySelectorAll('.timepick-item:not(.pad)').forEach((el,i)=>{
+      el.classList.toggle('selected', i===val);
+      el.classList.toggle('near', Math.abs(i-val)===1);
+    });
+  }
+  col.addEventListener('scroll', updateHighlight, {passive:true});
+  // Snap on touch end
+  col.addEventListener('scrollend', ()=>{
+    const idx = Math.round(col.scrollTop / ITEM_H);
+    col.scrollTo({top:idx*ITEM_H, behavior:'smooth'});
+  });
+  // Click to select
+  col.querySelectorAll('.timepick-item:not(.pad)').forEach((el,i)=>{
+    el.addEventListener('click',()=>{
+      col.scrollTo({top:i*ITEM_H, behavior:'smooth'});
+    });
+  });
+  updateHighlight();
+}
+
+document.getElementById('timepickConfirm').addEventListener('click',()=>{
+  document.getElementById('timepickOverlay').classList.remove('open');
+  if(_timepickCallback) _timepickCallback(_timepickHour, _timepickMin);
+  _timepickCallback = null;
+});
+document.getElementById('timepickCancel').addEventListener('click',()=>{
+  document.getElementById('timepickOverlay').classList.remove('open');
+  _timepickCallback = null;
+});
+document.getElementById('timepickOverlay').addEventListener('click', e=>{
+  if(e.target===document.getElementById('timepickOverlay')){
+    document.getElementById('timepickOverlay').classList.remove('open');
+    _timepickCallback=null;
+  }
+});
+
+// ════════════════════════════════════════════════════════════════
+// ALARM SCHEDULING (Web Notification via setTimeout / Service Worker)
+// ════════════════════════════════════════════════════════════════
+const _alarmTimers = [];
+
+function scheduleAllAlarms(){
+  // Clear existing timers
+  _alarmTimers.forEach(t=>clearTimeout(t));
+  _alarmTimers.length=0;
+
+  if(!notifState.enabled) return;
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+
+  const now = new Date();
+
+  function scheduleSlot(hour, minute, label){
+    const next = new Date();
+    next.setHours(hour, minute, 0, 0);
+    if(next <= now) next.setDate(next.getDate()+1); // tomorrow if already past
+    const delay = next - now;
+
+    const t = setTimeout(()=>{
+      fireNotification(label || '🔥 Время для привычек!');
+      // Reschedule for next day
+      scheduleSlot(hour, minute, label);
+    }, delay);
+    _alarmTimers.push(t);
+  }
+
+  if(notifState.globalEnabled){
+    notifState.globalSlots.forEach(slot=>{
+      scheduleSlot(slot.hour, slot.minute, '🔥 Время выполнить привычки!');
+    });
+  }
+}
+
+function fireNotification(body){
+  try{
+    new Notification('Журнал тренировок', {
+      body,
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><text y="28" font-size="28">🔥</text></svg>',
+      badge:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><text y="28" font-size="28">🔔</text></svg>',
+      silent:false,
+    });
+  }catch(e){ console.warn('Notification failed:', e); }
+}
+
+// Start alarms on load if already enabled
+scheduleAllAlarms();
 
 function renderAll(){
   renderSkillSelect();
