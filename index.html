@@ -2400,62 +2400,41 @@ body.metavision-active .skills-detail-bars {
 }
 .customize-overlay.open .customize-modal{transform:translateY(0);}
 
-/* Live preview */
-.cust-preview{
-  position:relative;
-  height:120px;flex-shrink:0;
-  overflow:hidden;
-  background:var(--bg-card);
-  display:flex;align-items:center;
-  padding:16px;gap:12px;
-}
-.cust-preview-bg{
-  position:absolute;inset:0;
-  background-size:cover;background-position:center;
-  transition:all .3s;
-}
-.cust-preview-overlay{
-  position:absolute;inset:0;
-  background:rgba(0,0,0,.45);
-  transition:background .3s;
-}
-.cust-preview-content{
-  position:relative;z-index:2;
-  display:flex;align-items:center;gap:12px;
-}
-.cust-preview-icon{
-  font-size:32px;
-  width:52px;height:52px;
-  display:flex;align-items:center;justify-content:center;
-  border-radius:14px;
-  background:rgba(0,0,0,.3);
-  border:2px solid rgba(255,255,255,.2);
+/* Live preview — full card */
+.cust-preview-wrap{
   flex-shrink:0;
-  transition:all .3s;
+  background:rgba(0,0,0,.3);
+  padding:10px 14px 12px;
+  border-bottom:1px solid rgba(255,255,255,.07);
 }
-.cust-preview-name{
-  font-family:var(--font-display);font-size:18px;letter-spacing:3px;
-  color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.8);
+.cust-preview-header-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;
 }
-.cust-preview-skill{
-  font-family:var(--font-mono);font-size:9px;letter-spacing:2px;
-  color:rgba(255,255,255,.6);margin-top:2px;
+.cust-preview-label-top{
+  font-family:var(--font-mono);font-size:8px;letter-spacing:2.5px;
+  color:rgba(255,255,255,.3);text-transform:uppercase;
 }
 .cust-close-btn{
-  position:absolute;top:10px;right:10px;z-index:3;
   width:28px;height:28px;border-radius:50%;
-  border:none;background:rgba(255,255,255,.15);
+  border:none;background:rgba(255,255,255,.12);
   color:#fff;font-size:12px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  backdrop-filter:blur(4px);
-  transition:background .2s;
+  transition:background .2s;flex-shrink:0;
 }
 .cust-close-btn:hover{background:rgba(255,255,255,.28);}
-.cust-preview-label{
-  position:absolute;bottom:6px;right:10px;z-index:3;
-  font-family:var(--font-mono);font-size:7px;letter-spacing:2px;
-  color:rgba(255,255,255,.3);
+
+/* Host that holds the cloned card — constrain size, no pointer events on interactive bits */
+.cust-card-preview-host{
+  border-radius:var(--r-lg);
+  overflow:hidden;
+  pointer-events:none;
+  position:relative;
 }
+/* Inside preview: hide the history grid to keep height compact */
+.cust-card-preview-host .hc-history{ display:none; }
+/* Keep subtask list hidden too */
+.cust-card-preview-host .hc-subtask-list{ display:none; }
 
 /* Scrollable body */
 .cust-body{
@@ -2732,19 +2711,14 @@ body.metavision-active .skills-detail-bars {
 <div class="customize-overlay" id="customizeOverlay">
   <div class="customize-modal" id="customizeModal">
 
-    <!-- Live preview header -->
-    <div class="cust-preview" id="custPreview">
-      <div class="cust-preview-bg" id="custPreviewBg"></div>
-      <div class="cust-preview-overlay" id="custPreviewOverlay"></div>
-      <div class="cust-preview-content">
-        <div class="cust-preview-icon" id="custPreviewIcon">⬡</div>
-        <div>
-          <div class="cust-preview-name" id="custPreviewName">Название</div>
-          <div class="cust-preview-skill" id="custPreviewSkill">Skill</div>
-        </div>
+    <!-- Live preview — full card replica -->
+    <div class="cust-preview-wrap">
+      <div class="cust-preview-header-row">
+        <span class="cust-preview-label-top">ПРЕДПРОСМОТР</span>
+        <button class="cust-close-btn" id="customizeClose">✕</button>
       </div>
-      <button class="cust-close-btn" id="customizeClose">✕</button>
-      <div class="cust-preview-label">ПРЕДПРОСМОТР</div>
+      <!-- This div gets rebuilt by JS to mirror a real .task-item card -->
+      <div class="cust-card-preview-host" id="custCardPreviewHost"></div>
     </div>
 
     <!-- Scrollable options -->
@@ -5011,12 +4985,7 @@ function openCustomizeModal(taskId){
   // Clone saved style or use defaults
   custState = task.custStyle ? JSON.parse(JSON.stringify(task.custStyle)) : defaultCustState();
 
-  // Fill preview header
-  const cfg = SKILLS[task.skill] || SKILLS.surpassing;
-  document.getElementById('custPreviewName').textContent  = task.name;
-  document.getElementById('custPreviewSkill').textContent = cfg.label;
-  document.getElementById('custPreviewIcon').textContent  = custState.icon || cfg.icon || '⬡';
-
+  // Build UI and draw preview
   buildCustUI();
   applyCustPreview();
   custOverlay.classList.add('open');
@@ -5059,7 +5028,7 @@ function buildCustUI(){
       custState.icon = el.dataset.emoji;
       eg.querySelectorAll('.cust-emoji-chip').forEach(c=>c.classList.remove('active'));
       el.classList.add('active');
-      document.getElementById('custPreviewIcon').textContent = custState.icon;
+      applyCustPreview();
     });
   });
 
@@ -5128,7 +5097,7 @@ function buildCustUI(){
   // Custom emoji apply
   document.getElementById('custEmojiApply').onclick = ()=>{
     const v = document.getElementById('custCustomEmoji').value.trim();
-    if(v){ custState.icon=v; document.getElementById('custPreviewIcon').textContent=v; }
+    if(v){ custState.icon=v; applyCustPreview(); }
   };
 
   // File input
@@ -5161,30 +5130,68 @@ function buildCustUI(){
 }
 
 function applyCustPreview(){
-  const bgEl  = document.getElementById('custPreviewBg');
-  const ovEl  = document.getElementById('custPreviewOverlay');
-  const iconEl = document.getElementById('custPreviewIcon');
+  const task = custTargetId ? state.tasks.find(t=>t.id===custTargetId) : null;
+  if(!task) return;
+  const cfg = SKILLS[task.skill] || SKILLS.surpassing;
+  const host = document.getElementById('custCardPreviewHost');
+  if(!host) return;
+
+  const accentColor = custState.accentColor || cfg.color || 'var(--neon-blue)';
+  const icon        = custState.icon || cfg.icon || '⬡';
+  const skillLabel  = cfg.label || task.skill;
+
+  // Build a fake card HTML matching the real card structure
+  host.innerHTML = `
+    <div class="task-item" style="--skill-color:${accentColor};margin:0;cursor:default;contain:none;">
+      <div class="hc-top">
+        <div class="hc-icon" style="--skill-color:${accentColor}">${icon}</div>
+        <div class="hc-body">
+          <div class="hc-name">${escapeHtml(task.name)}</div>
+          <div class="hc-desc"><span style="opacity:.35">${escapeHtml(skillLabel)}</span></div>
+          <div class="hc-meta">
+            <span class="hc-skill-tag" style="--skill-color:${accentColor}">${escapeHtml(skillLabel)}</span>
+          </div>
+        </div>
+        <div class="hc-controls">
+          <div class="hc-check" style="pointer-events:none">✓</div>
+          <div class="hc-counters">
+            <span class="hc-counter trophy"><span class="ico">🏆</span>${task.bestStreak||0}</span>
+            <span class="hc-counter streak"><span class="ico">🔥</span>0</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  // Apply the custom style to the fake card
+  const fakeCard = host.querySelector('.task-item');
+  if(!fakeCard) return;
 
   // Background
   if(custState.bgType === 'image' && custState.bg){
-    bgEl.style.backgroundImage = `url(${custState.bg})`;
-    bgEl.style.background = '';
+    fakeCard.style.backgroundImage = `url(${custState.bg})`;
+    fakeCard.style.backgroundSize  = 'cover';
+    fakeCard.style.backgroundPosition = 'center';
   } else if(custState.bgType === 'gradient' && custState.gradient !== null){
-    bgEl.style.backgroundImage = '';
-    bgEl.style.background = CUST_GRADIENTS[custState.gradient].css;
-  } else {
-    bgEl.style.backgroundImage = '';
-    bgEl.style.background = 'var(--bg-card)';
+    fakeCard.style.background = CUST_GRADIENTS[custState.gradient].css;
   }
 
-  // Overlay dim
+  // Overlay dim layer
   const dim = (custState.dimPct ?? 45) / 100;
-  ovEl.style.background = `rgba(0,0,0,${dim})`;
+  if(custState.bgType !== 'none'){
+    const ov = document.createElement('div');
+    ov.className = 'cust-card-overlay';
+    ov.style.background = `rgba(0,0,0,${dim})`;
+    fakeCard.insertBefore(ov, fakeCard.firstChild);
+  }
 
-  // Accent color on icon border
-  const acc = custState.accentColor || 'var(--neon-blue)';
-  iconEl.style.borderColor = acc;
-  iconEl.style.boxShadow   = `0 0 12px ${acc}88`;
+  // Border style
+  fakeCard.classList.remove('cust-border-glow','cust-border-thick','cust-border-none','cust-border-double');
+  if(custState.border && custState.border !== 'default')
+    fakeCard.classList.add(`cust-border-${custState.border}`);
+
+  // Effects
+  fakeCard.classList.remove('cust-fx-scan','cust-fx-pulse','cust-fx-grain');
+  (custState.effects||[]).forEach(fx=>fakeCard.classList.add(`cust-fx-${fx}`));
 }
 
 function applyCustomStyleToCard(card, task){
