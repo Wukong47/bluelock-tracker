@@ -2578,7 +2578,15 @@ body.metavision-active .skills-detail-bars {
 }
 .cust-save-btn:hover{background:linear-gradient(135deg,rgba(0,212,255,.35),rgba(0,100,200,.4));box-shadow:0 0 20px rgba(0,212,255,.2),0 0 0 1px rgba(0,212,255,.5) inset;}
 
-/* ── Card customisation applied styles ── */
+/* ── Video background inside task card ── */
+.task-item .cust-card-video{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  border-radius:inherit;
+  pointer-events:none;
+  z-index:0;
+}
 .task-item.has-custom-bg{
   background-size:cover !important;
   background-position:center !important;
@@ -2729,8 +2737,8 @@ body.metavision-active .skills-detail-bars {
         <div class="cust-section-title">🖼 Фоновое фото</div>
         <div class="cust-bg-row">
           <label class="cust-file-btn" id="custBgFileLabel">
-            <input type="file" id="custBgFileInput" accept="image/*" style="display:none">
-            ⬆ Загрузить фото
+            <input type="file" id="custBgFileInput" accept="image/*,video/*" style="display:none">
+            ⬆ Фото или видео
           </label>
           <button class="cust-clear-btn" id="custBgClear" style="display:none">✕ Убрать</button>
         </div>
@@ -4925,8 +4933,86 @@ function closeEditModal(){
 }
 
 // ════════════════════════════════════════════════════════════════
-// CUSTOMIZE MODAL
+// VIDEO STORAGE — IndexedDB (no size limit, handles 1-min clips)
 // ════════════════════════════════════════════════════════════════
+const VIDEO_DB_NAME  = 'habitVideoDB';
+const VIDEO_DB_VER   = 1;
+const VIDEO_STORE    = 'videos';
+let _videoDB = null;
+
+// In-memory object URL cache so we don't re-create on every render
+const _videoUrlCache = {}; // taskId → objectURL
+
+function openVideoDB(){
+  return new Promise((res, rej) => {
+    if(_videoDB){ res(_videoDB); return; }
+    const req = indexedDB.open(VIDEO_DB_NAME, VIDEO_DB_VER);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(VIDEO_STORE);
+    req.onsuccess  = e => { _videoDB = e.target.result; res(_videoDB); };
+    req.onerror    = e => rej(e.target.error);
+  });
+}
+
+function saveVideoBlob(taskId, blob){
+  return openVideoDB().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(VIDEO_STORE, 'readwrite');
+    tx.objectStore(VIDEO_STORE).put(blob, String(taskId));
+    tx.oncomplete = () => res();
+    tx.onerror    = e => rej(e.target.error);
+  }));
+}
+
+function deleteVideoBlob(taskId){
+  return openVideoDB().then(db => new Promise((res) => {
+    const tx = db.transaction(VIDEO_STORE, 'readwrite');
+    tx.objectStore(VIDEO_STORE).delete(String(taskId));
+    tx.oncomplete = () => {
+      if(_videoUrlCache[taskId]){ URL.revokeObjectURL(_videoUrlCache[taskId]); delete _videoUrlCache[taskId]; }
+      res();
+    };
+  })).catch(()=>{});
+}
+
+function getVideoUrl(taskId){
+  if(_videoUrlCache[taskId]) return Promise.resolve(_videoUrlCache[taskId]);
+  return openVideoDB().then(db => new Promise((res, rej) => {
+    const req = db.transaction(VIDEO_STORE,'readonly').objectStore(VIDEO_STORE).get(String(taskId));
+    req.onsuccess = e => {
+      const blob = e.target.result;
+      if(!blob){ res(null); return; }
+      const url = URL.createObjectURL(blob);
+      _videoUrlCache[taskId] = url;
+      res(url);
+    };
+    req.onerror = () => res(null);
+  })).catch(() => null);
+}
+
+// Helper: mount a video element on a card using cached object URL
+function mountVideoOnCard(card, taskId){
+  // Remove stale video
+  card.querySelector('.cust-card-video')?.remove();
+  getVideoUrl(taskId).then(url => {
+    if(!url) return;
+    // Card may have been removed from DOM by then
+    if(!card.isConnected) return;
+    const vid = _makeVidEl(url);
+    card.insertBefore(vid, card.firstChild);
+  });
+}
+
+function _makeVidEl(src){
+  const vid = document.createElement('video');
+  vid.className   = 'cust-card-video';
+  vid.src         = src;
+  vid.autoplay    = true;
+  vid.loop        = true;
+  vid.muted       = true;
+  vid.playsInline = true;
+  vid.setAttribute('playsinline','');
+  return vid;
+}
+
 const CUST_GRADIENTS = [
   {label:'Синий океан',  css:'linear-gradient(135deg,#0a1628,#003366,#0077aa)'},
   {label:'Ночной лес',  css:'linear-gradient(135deg,#0a1a0a,#003300,#005500)'},
@@ -5104,17 +5190,38 @@ function buildCustUI(){
   document.getElementById('custBgFileInput').onchange = e=>{
     const file = e.target.files && e.target.files[0];
     if(!file) return;
-    const reader = new FileReader();
-    reader.onload = ev=>{
-      custBgDataUrl = ev.target.result;
-      custState.bgType = 'image';
-      custState.bg     = custBgDataUrl;
+    const isVideo = file.type.startsWith('video/');
+
+    if(isVideo){
+      // Store blob in IndexedDB — no size limit
+      const tempUrl = URL.createObjectURL(file);
+      custBgDataUrl = null; // not used for video
+      custState.bgType   = 'video';
+      custState.bg       = null; // actual data lives in IndexedDB, keyed by taskId
+      custState.bgMime   = file.type;
+      custState._pendingVideoBlob = file; // hold the File object until Save
+      custState._pendingVideoUrl  = tempUrl; // object URL for preview
       custState.gradient = null;
-      document.getElementById('custBgClear').style.display='inline-flex';
+      document.getElementById('custBgClear').style.display = 'inline-flex';
       document.getElementById('custGradientGrid').querySelectorAll('.cust-grad-chip').forEach(c=>c.classList.remove('active'));
-      applyCustPreview();
-    };
-    reader.readAsDataURL(file);
+      // Show preview immediately using temp object URL
+      applyCustPreview(tempUrl);
+    } else {
+      const reader = new FileReader();
+      reader.onload = ev=>{
+        custBgDataUrl = ev.target.result;
+        custState.bgType  = 'image';
+        custState.bg      = custBgDataUrl;
+        custState.bgMime  = file.type;
+        custState.gradient = null;
+        custState._pendingVideoBlob = null;
+        custState._pendingVideoUrl  = null;
+        document.getElementById('custBgClear').style.display='inline-flex';
+        document.getElementById('custGradientGrid').querySelectorAll('.cust-grad-chip').forEach(c=>c.classList.remove('active'));
+        applyCustPreview();
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   // Clear bg
@@ -5129,7 +5236,7 @@ function buildCustUI(){
   };
 }
 
-function applyCustPreview(){
+function applyCustPreview(videoUrl){
   const task = custTargetId ? state.tasks.find(t=>t.id===custTargetId) : null;
   if(!task) return;
   const cfg = SKILLS[task.skill] || SKILLS.surpassing;
@@ -5140,7 +5247,6 @@ function applyCustPreview(){
   const icon        = custState.icon || cfg.icon || '⬡';
   const skillLabel  = cfg.label || task.skill;
 
-  // Build a fake card HTML matching the real card structure
   host.innerHTML = `
     <div class="task-item" style="--skill-color:${accentColor};margin:0;cursor:default;contain:none;">
       <div class="hc-top">
@@ -5162,12 +5268,20 @@ function applyCustPreview(){
       </div>
     </div>`;
 
-  // Apply the custom style to the fake card
   const fakeCard = host.querySelector('.task-item');
   if(!fakeCard) return;
 
+  // Remove any old video
+  fakeCard.querySelector('.cust-card-video')?.remove();
+
   // Background
-  if(custState.bgType === 'image' && custState.bg){
+  if(custState.bgType === 'video'){
+    // Use provided temp URL, or try cache
+    const url = videoUrl || custState._pendingVideoUrl || _videoUrlCache[custTargetId] || null;
+    if(url){
+      fakeCard.insertBefore(_makeVidEl(url), fakeCard.firstChild);
+    }
+  } else if(custState.bgType === 'image' && custState.bg){
     fakeCard.style.backgroundImage = `url(${custState.bg})`;
     fakeCard.style.backgroundSize  = 'cover';
     fakeCard.style.backgroundPosition = 'center';
@@ -5198,8 +5312,14 @@ function applyCustomStyleToCard(card, task){
   const cs = task.custStyle;
   if(!cs) return;
 
+  // Remove any old video
+  card.querySelector('.cust-card-video')?.remove();
+
   // Background
-  if(cs.bgType === 'image' && cs.bg){
+  if(cs.bgType === 'video'){
+    card.classList.add('has-custom-bg');
+    mountVideoOnCard(card, task.id);
+  } else if(cs.bgType === 'image' && cs.bg){
     card.style.backgroundImage = `url(${cs.bg})`;
     card.classList.add('has-custom-bg');
   } else if(cs.bgType === 'gradient' && cs.gradient !== null && CUST_GRADIENTS[cs.gradient]){
@@ -5235,23 +5355,52 @@ function applyCustomStyleToCard(card, task){
 }
 
 // Wire up buttons
-document.getElementById('custSave').addEventListener('click',()=>{
+document.getElementById('custSave').addEventListener('click', async ()=>{
   if(!custTargetId) return;
   const task = state.tasks.find(t=>t.id===custTargetId);
   if(!task) return;
 
-  // Save bg as dataURL only if it's an image (can be large — store reference)
-  if(custState.bgType === 'image' && custBgDataUrl){
-    custState.bg = custBgDataUrl;
-  }
+  const saveBtn = document.getElementById('custSave');
+  saveBtn.textContent = '⏳ Сохранение…';
+  saveBtn.disabled = true;
 
-  task.custStyle = JSON.parse(JSON.stringify(custState));
-  saveState();
-  // Apply immediately to card in DOM
-  const card = document.querySelector(`.task-item[data-id="${custTargetId}"]`);
-  if(card) applyCustomStyleToCard(card, task);
-  closeCustomizeModal();
-  showToast('✔ Стиль сохранён', 'success');
+  try {
+    if(custState.bgType === 'video' && custState._pendingVideoBlob){
+      // Store the raw File/Blob in IndexedDB — no size limit
+      await saveVideoBlob(custTargetId, custState._pendingVideoBlob);
+      // Cache the object URL so card renders immediately
+      if(_videoUrlCache[custTargetId]) URL.revokeObjectURL(_videoUrlCache[custTargetId]);
+      _videoUrlCache[custTargetId] = custState._pendingVideoUrl || URL.createObjectURL(custState._pendingVideoBlob);
+    } else if(custState.bgType === 'image' && custBgDataUrl){
+      custState.bg = custBgDataUrl;
+      // If there was a previous video, delete it
+      await deleteVideoBlob(custTargetId);
+    } else if(custState.bgType !== 'video'){
+      // Gradient or none — clear any stored video
+      await deleteVideoBlob(custTargetId);
+    }
+
+    // Don't persist the blob references in localStorage — too large
+    const toSave = JSON.parse(JSON.stringify(custState));
+    delete toSave._pendingVideoBlob;
+    delete toSave._pendingVideoUrl;
+    if(toSave.bgType === 'video') toSave.bg = null; // stored in IndexedDB
+
+    task.custStyle = toSave;
+    saveState();
+
+    const card = document.querySelector(`.task-item[data-id="${custTargetId}"]`);
+    if(card) applyCustomStyleToCard(card, task);
+
+    closeCustomizeModal();
+    showToast('✔ Стиль сохранён', 'success');
+  } catch(err) {
+    console.error('Customize save error:', err);
+    showToast('❌ Ошибка сохранения', 'error');
+  } finally {
+    saveBtn.textContent = '✔ Сохранить';
+    saveBtn.disabled = false;
+  }
 });
 
 document.getElementById('custReset').addEventListener('click',()=>{
@@ -6259,6 +6408,16 @@ applyPenaltyModeToggle();
 applyInterfaceScale(interfaceScale);
 renderFilterBar();
 renderAll();                          // ← карточки рендерятся здесь
+// Pre-warm video cache from IndexedDB for any tasks with video backgrounds
+(async () => {
+  const videoTasks = state.tasks.filter(t => t.custStyle && t.custStyle.bgType === 'video');
+  for(const task of videoTasks){
+    await getVideoUrl(task.id); // populates _videoUrlCache
+    // Re-apply to card if already in DOM
+    const card = document.querySelector(`.task-item[data-id="${task.id}"]`);
+    if(card) mountVideoOnCard(card, task.id);
+  }
+})();
 applyGlass(uiSettings.glass ?? 'on'); // ← теперь классы вешаются на уже существующие элементы
 runDailyPenaltyCheck();
 addLog(t('log_sys_ready'),'success');
