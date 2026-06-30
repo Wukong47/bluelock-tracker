@@ -2366,6 +2366,265 @@ body.metavision-active .skills-detail-bars {
   color: var(--text-muted); text-align: center; margin-top: 6px;
   text-transform: uppercase;
 }
+/* ══════════ CUSTOMIZE MODAL ══════════ */
+.edit-customize-btn{
+  width:100%;padding:10px;border:1.5px solid rgba(255,180,0,.4);border-radius:12px;
+  background:rgba(255,180,0,.07);color:#ffd700;
+  font-family:var(--font-display);font-size:13px;letter-spacing:3px;
+  cursor:pointer;transition:all .2s;text-transform:uppercase;
+}
+.edit-customize-btn:hover{background:rgba(255,180,0,.15);box-shadow:0 0 16px rgba(255,180,0,.2);}
+
+.customize-overlay{
+  position:fixed;inset:0;z-index:850;
+  background:rgba(0,0,0,.88);
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .3s ease;
+}
+.customize-overlay.open{opacity:1;pointer-events:all;}
+
+.customize-modal{
+  width:calc(100% / var(--ui-scale,1));
+  max-width:560px;
+  max-height:92vh;
+  background:var(--bg-panel);
+  border-radius:22px 22px 0 0;
+  border:1px solid rgba(255,255,255,.08);
+  border-bottom:none;
+  display:flex;flex-direction:column;
+  box-shadow:0 -20px 60px rgba(0,0,0,.7);
+  transform:translateY(100%);
+  transition:transform .35s cubic-bezier(.34,1.2,.64,1);
+  overflow:hidden;
+}
+.customize-overlay.open .customize-modal{transform:translateY(0);}
+
+/* Live preview */
+.cust-preview{
+  position:relative;
+  height:120px;flex-shrink:0;
+  overflow:hidden;
+  background:var(--bg-card);
+  display:flex;align-items:center;
+  padding:16px;gap:12px;
+}
+.cust-preview-bg{
+  position:absolute;inset:0;
+  background-size:cover;background-position:center;
+  transition:all .3s;
+}
+.cust-preview-overlay{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,.45);
+  transition:background .3s;
+}
+.cust-preview-content{
+  position:relative;z-index:2;
+  display:flex;align-items:center;gap:12px;
+}
+.cust-preview-icon{
+  font-size:32px;
+  width:52px;height:52px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:14px;
+  background:rgba(0,0,0,.3);
+  border:2px solid rgba(255,255,255,.2);
+  flex-shrink:0;
+  transition:all .3s;
+}
+.cust-preview-name{
+  font-family:var(--font-display);font-size:18px;letter-spacing:3px;
+  color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.8);
+}
+.cust-preview-skill{
+  font-family:var(--font-mono);font-size:9px;letter-spacing:2px;
+  color:rgba(255,255,255,.6);margin-top:2px;
+}
+.cust-close-btn{
+  position:absolute;top:10px;right:10px;z-index:3;
+  width:28px;height:28px;border-radius:50%;
+  border:none;background:rgba(255,255,255,.15);
+  color:#fff;font-size:12px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+  transition:background .2s;
+}
+.cust-close-btn:hover{background:rgba(255,255,255,.28);}
+.cust-preview-label{
+  position:absolute;bottom:6px;right:10px;z-index:3;
+  font-family:var(--font-mono);font-size:7px;letter-spacing:2px;
+  color:rgba(255,255,255,.3);
+}
+
+/* Scrollable body */
+.cust-body{
+  flex:1;overflow-y:auto;padding:14px 16px 8px;
+  display:flex;flex-direction:column;gap:16px;
+}
+.cust-body::-webkit-scrollbar{width:3px;}
+.cust-body::-webkit-scrollbar-thumb{background:rgba(0,212,255,.3);border-radius:2px;}
+
+.cust-section{}
+.cust-section-title{
+  font-family:var(--font-mono);font-size:9px;letter-spacing:2.5px;
+  color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:10px;
+}
+.cust-section-subtitle{
+  font-family:var(--font-mono);font-size:8px;letter-spacing:1.5px;
+  color:rgba(255,255,255,.25);margin:8px 0 6px;
+}
+
+/* Gradients */
+.cust-gradient-grid{display:flex;flex-wrap:wrap;gap:7px;}
+.cust-grad-chip{
+  width:44px;height:44px;border-radius:10px;cursor:pointer;
+  border:2px solid transparent;transition:all .2s;
+  flex-shrink:0;
+}
+.cust-grad-chip.active,.cust-grad-chip:hover{border-color:#fff;transform:scale(1.08);}
+
+/* Emoji grid */
+.cust-emoji-grid{display:flex;flex-wrap:wrap;gap:6px;}
+.cust-emoji-chip{
+  width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;cursor:pointer;
+  background:rgba(255,255,255,.06);border:1.5px solid transparent;
+  transition:all .18s;
+}
+.cust-emoji-chip.active,.cust-emoji-chip:hover{border-color:rgba(0,212,255,.6);background:rgba(0,212,255,.1);}
+
+.cust-apply-btn{
+  padding:8px 14px;border-radius:10px;border:1px solid rgba(0,212,255,.4);
+  background:rgba(0,212,255,.08);color:var(--neon-blue);
+  font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;
+  cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.cust-apply-btn:hover{background:rgba(0,212,255,.18);}
+
+/* Color chips */
+.cust-color-grid{display:flex;flex-wrap:wrap;gap:7px;}
+.cust-color-chip{
+  width:36px;height:36px;border-radius:50%;cursor:pointer;
+  border:2.5px solid transparent;transition:all .2s;
+  flex-shrink:0;
+}
+.cust-color-chip.active,.cust-color-chip:hover{border-color:#fff;transform:scale(1.12);}
+
+/* Dim slider */
+.cust-slider-row{display:flex;align-items:center;gap:8px;}
+.cust-slider-label{font-size:14px;}
+.cust-slider{
+  flex:1;-webkit-appearance:none;appearance:none;
+  height:4px;border-radius:2px;
+  background:rgba(255,255,255,.15);outline:none;cursor:pointer;
+}
+.cust-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--neon-blue);box-shadow:0 0 8px rgba(0,212,255,.6);cursor:pointer;
+}
+.cust-slider-val{
+  font-family:var(--font-mono);font-size:10px;letter-spacing:1px;
+  color:var(--neon-blue);width:32px;text-align:right;
+}
+
+/* Border styles */
+.cust-border-grid{display:flex;gap:8px;flex-wrap:wrap;}
+.cust-border-chip{
+  padding:7px 13px;border-radius:10px;cursor:pointer;
+  font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;
+  color:rgba(255,255,255,.6);
+  border:1.5px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.04);
+  transition:all .18s;
+}
+.cust-border-chip.active,.cust-border-chip:hover{
+  border-color:rgba(0,212,255,.6);color:var(--neon-blue);background:rgba(0,212,255,.08);
+}
+
+/* Effects */
+.cust-fx-grid{display:flex;gap:8px;flex-wrap:wrap;}
+.cust-fx-chip{
+  padding:7px 13px;border-radius:10px;cursor:pointer;
+  font-family:var(--font-mono);font-size:9px;letter-spacing:1px;
+  color:rgba(255,255,255,.6);
+  border:1.5px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04);
+  transition:all .18s;
+  display:flex;align-items:center;gap:5px;
+}
+.cust-fx-chip.active{border-color:rgba(255,215,0,.6);color:#ffd700;background:rgba(255,215,0,.08);}
+.cust-fx-chip:hover{border-color:rgba(255,255,255,.3);}
+
+/* Bg file btn */
+.cust-bg-row{display:flex;gap:8px;align-items:center;margin-bottom:4px;}
+.cust-file-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 14px;border-radius:11px;cursor:pointer;
+  border:1.5px dashed rgba(0,212,255,.4);
+  background:rgba(0,212,255,.05);
+  color:var(--neon-blue);font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;
+  transition:all .2s;
+}
+.cust-file-btn:hover{background:rgba(0,212,255,.12);border-style:solid;}
+.cust-clear-btn{
+  padding:8px 12px;border-radius:10px;border:1px solid rgba(255,36,66,.35);
+  background:rgba(255,36,66,.06);color:var(--neon-red);
+  font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;
+  cursor:pointer;transition:all .2s;
+}
+.cust-clear-btn:hover{background:rgba(255,36,66,.14);}
+
+/* Footer */
+.cust-footer{
+  display:flex;gap:10px;padding:12px 16px 16px;
+  border-top:.5px solid rgba(255,255,255,.08);
+  flex-shrink:0;
+}
+.cust-reset-btn{
+  padding:11px 16px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.15);
+  background:transparent;color:rgba(255,255,255,.5);
+  font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;
+  cursor:pointer;transition:all .2s;
+}
+.cust-reset-btn:hover{background:rgba(255,255,255,.07);}
+.cust-save-btn{
+  flex:1;padding:11px;border-radius:12px;
+  border:none;background:linear-gradient(135deg,rgba(0,212,255,.25),rgba(0,100,200,.3));
+  color:var(--neon-blue);font-family:var(--font-display);font-size:14px;letter-spacing:3px;
+  cursor:pointer;transition:all .2s;
+  box-shadow:0 0 0 1px rgba(0,212,255,.35) inset;
+}
+.cust-save-btn:hover{background:linear-gradient(135deg,rgba(0,212,255,.35),rgba(0,100,200,.4));box-shadow:0 0 20px rgba(0,212,255,.2),0 0 0 1px rgba(0,212,255,.5) inset;}
+
+/* ── Card customisation applied styles ── */
+.task-item.has-custom-bg{
+  background-size:cover !important;
+  background-position:center !important;
+  background-repeat:no-repeat !important;
+}
+.task-item .cust-card-overlay{
+  position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
+}
+.task-item .hc-top,.task-item .hc-history{position:relative;z-index:1;}
+
+/* Border style variants */
+.task-item.cust-border-glow{ box-shadow:0 0 18px var(--skill-color,var(--neon-blue)),0 0 0 1px var(--skill-color,var(--neon-blue)) !important; }
+.task-item.cust-border-thick{ border-width:2px !important; }
+.task-item.cust-border-none{ border-color:transparent !important; }
+.task-item.cust-border-double{ outline:1px solid var(--skill-color,var(--neon-blue));outline-offset:3px; }
+
+/* Effect variants */
+.task-item.cust-fx-scan::after{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(0,0,0,.08) 3px,rgba(0,0,0,.08) 4px);
+  pointer-events:none;z-index:0;border-radius:inherit;
+}
+.task-item.cust-fx-pulse{animation:custPulse 3s ease-in-out infinite;}
+@keyframes custPulse{0%,100%{box-shadow:0 0 6px var(--skill-color,var(--neon-blue));}50%{box-shadow:0 0 22px var(--skill-color,var(--neon-blue)),0 0 40px rgba(0,0,0,.2);}}
+.task-item.cust-fx-grain::before{filter:contrast(1.1) brightness(.95);}
 </style>
 </head>
 <body>
@@ -2456,9 +2715,107 @@ body.metavision-active .skills-detail-bars {
         <div class="cal-grid" id="calGrid"></div>
       </div>
     </div>
-    <div class="edit-modal-footer">
-      <button class="edit-modal-btn cancel" id="editCancel" data-i18n="edit_cancel">Cancel</button>
-      <button class="edit-modal-btn confirm" id="editConfirm" data-i18n="edit_save">Save</button>
+    <div class="edit-modal-footer" style="flex-direction:column;">
+      <div style="padding:10px 16px 6px;">
+        <button class="edit-customize-btn" id="editOpenCustomize">🎨 Модернизировать</button>
+      </div>
+      <div style="display:flex;border-top:.5px solid rgba(255,255,255,.1);">
+        <button class="edit-modal-btn cancel" id="editCancel" data-i18n="edit_cancel">Cancel</button>
+        <button class="edit-modal-btn confirm" id="editConfirm" data-i18n="edit_save">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ CUSTOMIZE MODAL ═══ -->
+<div class="customize-overlay" id="customizeOverlay">
+  <div class="customize-modal" id="customizeModal">
+
+    <!-- Live preview header -->
+    <div class="cust-preview" id="custPreview">
+      <div class="cust-preview-bg" id="custPreviewBg"></div>
+      <div class="cust-preview-overlay" id="custPreviewOverlay"></div>
+      <div class="cust-preview-content">
+        <div class="cust-preview-icon" id="custPreviewIcon">⬡</div>
+        <div>
+          <div class="cust-preview-name" id="custPreviewName">Название</div>
+          <div class="cust-preview-skill" id="custPreviewSkill">Skill</div>
+        </div>
+      </div>
+      <button class="cust-close-btn" id="customizeClose">✕</button>
+      <div class="cust-preview-label">ПРЕДПРОСМОТР</div>
+    </div>
+
+    <!-- Scrollable options -->
+    <div class="cust-body">
+
+      <!-- SECTION: Фоновое фото -->
+      <div class="cust-section">
+        <div class="cust-section-title">🖼 Фоновое фото</div>
+        <div class="cust-bg-row">
+          <label class="cust-file-btn" id="custBgFileLabel">
+            <input type="file" id="custBgFileInput" accept="image/*" style="display:none">
+            ⬆ Загрузить фото
+          </label>
+          <button class="cust-clear-btn" id="custBgClear" style="display:none">✕ Убрать</button>
+        </div>
+        <!-- Preset gradients -->
+        <div class="cust-section-subtitle">Или выбрать градиент</div>
+        <div class="cust-gradient-grid" id="custGradientGrid"></div>
+      </div>
+
+      <!-- SECTION: Иконка -->
+      <div class="cust-section">
+        <div class="cust-section-title">✨ Иконка</div>
+        <div class="cust-emoji-grid" id="custEmojiGrid"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+          <input class="edit-field" id="custCustomEmoji" maxlength="2" placeholder="Свой эмодзи…"
+            style="width:120px;text-align:center;font-size:20px;padding:6px 10px;">
+          <button class="cust-apply-btn" id="custEmojiApply">Применить</button>
+        </div>
+      </div>
+
+      <!-- SECTION: Цвет акцента -->
+      <div class="cust-section">
+        <div class="cust-section-title">🎨 Цвет акцента</div>
+        <div class="cust-color-grid" id="custColorGrid"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+          <input type="color" id="custCustomColor" value="#00d4ff"
+            style="width:44px;height:36px;border:none;border-radius:10px;background:none;cursor:pointer;padding:0;">
+          <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);letter-spacing:1px;">Свой цвет</span>
+        </div>
+      </div>
+
+      <!-- SECTION: Затемнение фона -->
+      <div class="cust-section">
+        <div class="cust-section-title">🌑 Затемнение фона</div>
+        <div class="cust-slider-row">
+          <span class="cust-slider-label">☀</span>
+          <input type="range" id="custDimSlider" min="0" max="90" value="45" class="cust-slider">
+          <span class="cust-slider-label">🌑</span>
+          <span class="cust-slider-val" id="custDimVal">45%</span>
+        </div>
+      </div>
+
+      <!-- SECTION: Стиль рамки -->
+      <div class="cust-section">
+        <div class="cust-section-title">🔲 Стиль рамки</div>
+        <div class="cust-border-grid" id="custBorderGrid"></div>
+      </div>
+
+      <!-- SECTION: Эффекты -->
+      <div class="cust-section">
+        <div class="cust-section-title">⚡ Эффекты</div>
+        <div class="cust-fx-grid" id="custFxGrid"></div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="cust-footer">
+      <button class="cust-reset-btn" id="custReset">↺ Сбросить</button>
+      <button class="cust-save-btn" id="custSave">✔ Сохранить</button>
     </div>
   </div>
 </div>
@@ -3854,6 +4211,9 @@ function renderTasks(){
 
       container.appendChild(card);
 
+      // Apply custom style (background, colors, icon, effects)
+      if(task.custStyle) applyCustomStyleToCard(card, task);
+
       // If this card's subtasks are already expanded (e.g. right after
       // addSubtask() auto-expands it, or after a re-render), set the
       // correct --subtask-h immediately so it's not stuck on the 600px
@@ -4589,6 +4949,319 @@ function closeEditModal(){
   editTargetId=null;
   showDock();                                         // ← restore dock
 }
+
+// ════════════════════════════════════════════════════════════════
+// CUSTOMIZE MODAL
+// ════════════════════════════════════════════════════════════════
+const CUST_GRADIENTS = [
+  {label:'Синий океан',  css:'linear-gradient(135deg,#0a1628,#003366,#0077aa)'},
+  {label:'Ночной лес',  css:'linear-gradient(135deg,#0a1a0a,#003300,#005500)'},
+  {label:'Тёмный огонь',css:'linear-gradient(135deg,#1a0000,#440000,#880000)'},
+  {label:'Кибер',       css:'linear-gradient(135deg,#050c1a,#001a3a,#003366,#00d4ff22)'},
+  {label:'Фиолетовый',  css:'linear-gradient(135deg,#0d0020,#2a0060,#5500cc)'},
+  {label:'Золото',      css:'linear-gradient(135deg,#1a1000,#3a2800,#664400)'},
+  {label:'Розовый',     css:'linear-gradient(135deg,#1a0010,#3a0030,#880044)'},
+  {label:'Сталь',       css:'linear-gradient(135deg,#0a0a14,#14141e,#1e2030)'},
+  {label:'Рассвет',     css:'linear-gradient(135deg,#1a0808,#3a1820,#500030,#00003a)'},
+  {label:'Аврора',      css:'linear-gradient(135deg,#001a14,#003322,#006644,#00aa66)'},
+  {label:'Вулкан',      css:'linear-gradient(135deg,#1a0800,#4a1400,#aa3300,#ff660022)'},
+  {label:'Космос',      css:'linear-gradient(135deg,#000008,#000020,#000840,#001060)'},
+];
+
+const CUST_EMOJIS = ['⚽','🔥','💪','⚡','🧠','👁','🎯','🏆','💀','🌙','⭐','🐉',
+  '🦁','🐺','🦅','🌊','❄️','🌪','☠️','⚔️','🛡','💎','🔮','🎮','🎵','📚','🏋️','🧘'];
+
+const CUST_COLORS = [
+  '#00d4ff','#39ff14','#ff2442','#ffd700','#ff6b00','#a855f7',
+  '#ec4899','#14b8a6','#f97316','#6366f1','#10b981','#ef4444',
+  '#ffffff','#94a3b8','#64748b',
+];
+
+const CUST_BORDERS = [
+  {id:'default', label:'Обычная'},
+  {id:'glow',    label:'Свечение'},
+  {id:'thick',   label:'Жирная'},
+  {id:'none',    label:'Без рамки'},
+  {id:'double',  label:'Двойная'},
+];
+
+const CUST_FX = [
+  {id:'scan',  label:'📺 Сканлайны'},
+  {id:'pulse', label:'💓 Пульс'},
+  {id:'grain', label:'🎞 Зерно'},
+];
+
+let custTargetId   = null;
+let custState      = {};   // working copy of style settings
+let custBgDataUrl  = null; // temp uploaded image
+
+const custOverlay = document.getElementById('customizeOverlay');
+
+function defaultCustState(){
+  return { bg: null, bgType:'none', gradient: null, accentColor: null,
+    icon: null, dimPct: 45, border: 'default', effects: [] };
+}
+
+function openCustomizeModal(taskId){
+  const task = state.tasks.find(t => t.id === taskId);
+  if(!task) return;
+  custTargetId = taskId;
+  custBgDataUrl = null;
+
+  // Clone saved style or use defaults
+  custState = task.custStyle ? JSON.parse(JSON.stringify(task.custStyle)) : defaultCustState();
+
+  // Fill preview header
+  const cfg = SKILLS[task.skill] || SKILLS.surpassing;
+  document.getElementById('custPreviewName').textContent  = task.name;
+  document.getElementById('custPreviewSkill').textContent = cfg.label;
+  document.getElementById('custPreviewIcon').textContent  = custState.icon || cfg.icon || '⬡';
+
+  buildCustUI();
+  applyCustPreview();
+  custOverlay.classList.add('open');
+}
+
+function closeCustomizeModal(){
+  custOverlay.classList.remove('open');
+  custTargetId = null;
+  custBgDataUrl = null;
+}
+
+function buildCustUI(){
+  // Gradients
+  const gg = document.getElementById('custGradientGrid');
+  gg.innerHTML = CUST_GRADIENTS.map((g,i)=>
+    `<div class="cust-grad-chip${custState.bgType==='gradient'&&custState.gradient===i?' active':''}"
+      style="background:${g.css}" data-grad="${i}" title="${g.label}"></div>`
+  ).join('');
+  gg.querySelectorAll('.cust-grad-chip').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const idx = parseInt(el.dataset.grad);
+      custState.bgType  = 'gradient';
+      custState.gradient = idx;
+      custState.bg      = null;
+      custBgDataUrl     = null;
+      document.getElementById('custBgClear').style.display='inline-flex';
+      gg.querySelectorAll('.cust-grad-chip').forEach(c=>c.classList.remove('active'));
+      el.classList.add('active');
+      applyCustPreview();
+    });
+  });
+
+  // Emojis
+  const eg = document.getElementById('custEmojiGrid');
+  eg.innerHTML = CUST_EMOJIS.map(e=>
+    `<div class="cust-emoji-chip${custState.icon===e?' active':''}" data-emoji="${e}">${e}</div>`
+  ).join('');
+  eg.querySelectorAll('.cust-emoji-chip').forEach(el=>{
+    el.addEventListener('click',()=>{
+      custState.icon = el.dataset.emoji;
+      eg.querySelectorAll('.cust-emoji-chip').forEach(c=>c.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('custPreviewIcon').textContent = custState.icon;
+    });
+  });
+
+  // Colors
+  const cg = document.getElementById('custColorGrid');
+  cg.innerHTML = CUST_COLORS.map(c=>
+    `<div class="cust-color-chip${custState.accentColor===c?' active':''}"
+      style="background:${c}" data-color="${c}"></div>`
+  ).join('');
+  cg.querySelectorAll('.cust-color-chip').forEach(el=>{
+    el.addEventListener('click',()=>{
+      custState.accentColor = el.dataset.color;
+      cg.querySelectorAll('.cust-color-chip').forEach(c=>c.classList.remove('active'));
+      el.classList.add('active');
+      applyCustPreview();
+    });
+  });
+
+  // Dim slider
+  const slider = document.getElementById('custDimSlider');
+  slider.value = custState.dimPct ?? 45;
+  document.getElementById('custDimVal').textContent = slider.value + '%';
+  slider.oninput = ()=>{
+    custState.dimPct = parseInt(slider.value);
+    document.getElementById('custDimVal').textContent = slider.value + '%';
+    applyCustPreview();
+  };
+
+  // Border styles
+  const bg = document.getElementById('custBorderGrid');
+  bg.innerHTML = CUST_BORDERS.map(b=>
+    `<div class="cust-border-chip${custState.border===b.id?' active':''}" data-border="${b.id}">${b.label}</div>`
+  ).join('');
+  bg.querySelectorAll('.cust-border-chip').forEach(el=>{
+    el.addEventListener('click',()=>{
+      custState.border = el.dataset.border;
+      bg.querySelectorAll('.cust-border-chip').forEach(c=>c.classList.remove('active'));
+      el.classList.add('active');
+    });
+  });
+
+  // Effects
+  const fg = document.getElementById('custFxGrid');
+  fg.innerHTML = CUST_FX.map(f=>
+    `<div class="cust-fx-chip${(custState.effects||[]).includes(f.id)?' active':''}" data-fx="${f.id}">${f.label}</div>`
+  ).join('');
+  fg.querySelectorAll('.cust-fx-chip').forEach(el=>{
+    el.addEventListener('click',()=>{
+      if(!Array.isArray(custState.effects)) custState.effects=[];
+      const id = el.dataset.fx;
+      if(custState.effects.includes(id)) custState.effects=custState.effects.filter(x=>x!==id);
+      else custState.effects.push(id);
+      el.classList.toggle('active');
+    });
+  });
+
+  // Custom color picker
+  const cc = document.getElementById('custCustomColor');
+  if(custState.accentColor) cc.value = custState.accentColor;
+  cc.oninput = ()=>{
+    custState.accentColor = cc.value;
+    cg.querySelectorAll('.cust-color-chip').forEach(c=>c.classList.remove('active'));
+    applyCustPreview();
+  };
+
+  // Custom emoji apply
+  document.getElementById('custEmojiApply').onclick = ()=>{
+    const v = document.getElementById('custCustomEmoji').value.trim();
+    if(v){ custState.icon=v; document.getElementById('custPreviewIcon').textContent=v; }
+  };
+
+  // File input
+  document.getElementById('custBgFileInput').onchange = e=>{
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      custBgDataUrl = ev.target.result;
+      custState.bgType = 'image';
+      custState.bg     = custBgDataUrl;
+      custState.gradient = null;
+      document.getElementById('custBgClear').style.display='inline-flex';
+      document.getElementById('custGradientGrid').querySelectorAll('.cust-grad-chip').forEach(c=>c.classList.remove('active'));
+      applyCustPreview();
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Clear bg
+  document.getElementById('custBgClear').style.display =
+    (custState.bgType !== 'none') ? 'inline-flex' : 'none';
+  document.getElementById('custBgClear').onclick = ()=>{
+    custState.bgType = 'none'; custState.bg = null; custState.gradient = null;
+    custBgDataUrl = null;
+    document.getElementById('custBgClear').style.display='none';
+    document.getElementById('custGradientGrid').querySelectorAll('.cust-grad-chip').forEach(c=>c.classList.remove('active'));
+    applyCustPreview();
+  };
+}
+
+function applyCustPreview(){
+  const bgEl  = document.getElementById('custPreviewBg');
+  const ovEl  = document.getElementById('custPreviewOverlay');
+  const iconEl = document.getElementById('custPreviewIcon');
+
+  // Background
+  if(custState.bgType === 'image' && custState.bg){
+    bgEl.style.backgroundImage = `url(${custState.bg})`;
+    bgEl.style.background = '';
+  } else if(custState.bgType === 'gradient' && custState.gradient !== null){
+    bgEl.style.backgroundImage = '';
+    bgEl.style.background = CUST_GRADIENTS[custState.gradient].css;
+  } else {
+    bgEl.style.backgroundImage = '';
+    bgEl.style.background = 'var(--bg-card)';
+  }
+
+  // Overlay dim
+  const dim = (custState.dimPct ?? 45) / 100;
+  ovEl.style.background = `rgba(0,0,0,${dim})`;
+
+  // Accent color on icon border
+  const acc = custState.accentColor || 'var(--neon-blue)';
+  iconEl.style.borderColor = acc;
+  iconEl.style.boxShadow   = `0 0 12px ${acc}88`;
+}
+
+function applyCustomStyleToCard(card, task){
+  const cs = task.custStyle;
+  if(!cs) return;
+
+  // Background
+  if(cs.bgType === 'image' && cs.bg){
+    card.style.backgroundImage = `url(${cs.bg})`;
+    card.classList.add('has-custom-bg');
+  } else if(cs.bgType === 'gradient' && cs.gradient !== null && CUST_GRADIENTS[cs.gradient]){
+    card.style.background = CUST_GRADIENTS[cs.gradient].css;
+    card.classList.add('has-custom-bg');
+  }
+
+  // Overlay dim
+  let overlay = card.querySelector('.cust-card-overlay');
+  if(!overlay){ overlay = document.createElement('div'); overlay.className='cust-card-overlay'; card.insertBefore(overlay, card.firstChild); }
+  const dim = (cs.dimPct ?? 45) / 100;
+  overlay.style.background = `rgba(0,0,0,${dim})`;
+  overlay.style.display = (cs.bgType !== 'none') ? 'block' : 'none';
+
+  // Accent color
+  if(cs.accentColor){
+    card.style.setProperty('--skill-color', cs.accentColor);
+  }
+
+  // Icon
+  if(cs.icon){
+    const iconEl = card.querySelector('.hc-icon');
+    if(iconEl) iconEl.textContent = cs.icon;
+  }
+
+  // Border
+  card.classList.remove('cust-border-glow','cust-border-thick','cust-border-none','cust-border-double');
+  if(cs.border && cs.border !== 'default') card.classList.add(`cust-border-${cs.border}`);
+
+  // Effects
+  card.classList.remove('cust-fx-scan','cust-fx-pulse','cust-fx-grain');
+  (cs.effects || []).forEach(fx => card.classList.add(`cust-fx-${fx}`));
+}
+
+// Wire up buttons
+document.getElementById('custSave').addEventListener('click',()=>{
+  if(!custTargetId) return;
+  const task = state.tasks.find(t=>t.id===custTargetId);
+  if(!task) return;
+
+  // Save bg as dataURL only if it's an image (can be large — store reference)
+  if(custState.bgType === 'image' && custBgDataUrl){
+    custState.bg = custBgDataUrl;
+  }
+
+  task.custStyle = JSON.parse(JSON.stringify(custState));
+  saveState();
+  // Apply immediately to card in DOM
+  const card = document.querySelector(`.task-item[data-id="${custTargetId}"]`);
+  if(card) applyCustomStyleToCard(card, task);
+  closeCustomizeModal();
+  showToast('✔ Стиль сохранён', 'success');
+});
+
+document.getElementById('custReset').addEventListener('click',()=>{
+  custState = defaultCustState();
+  custBgDataUrl = null;
+  buildCustUI();
+  applyCustPreview();
+});
+
+document.getElementById('customizeClose').addEventListener('click', closeCustomizeModal);
+custOverlay.addEventListener('click', e=>{ if(e.target===custOverlay) closeCustomizeModal(); });
+
+// Open from edit modal
+document.getElementById('editOpenCustomize').addEventListener('click',()=>{
+  if(!editTargetId) return;
+  openCustomizeModal(editTargetId);
+});
 
 // ── Render calendar ───────────────────────────────────────────
 function renderCalendar(){
