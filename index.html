@@ -2673,12 +2673,14 @@ body.metavision-active .skills-detail-bars {
 .notif-disabled-cover{
   position:absolute;
   top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,.62);
+  background:rgba(0,0,0,.7);
   z-index:10;
   display:none;
-  align-items:center;justify-content:center;
-  backdrop-filter:blur(2px);
+  align-items:flex-start;justify-content:center;
+  padding-top:80px;
+  backdrop-filter:blur(3px);
   pointer-events:all;
+  border-radius:0;
 }
 .notif-disabled-cover.visible{display:flex;}
 .notif-disabled-msg{
@@ -3272,13 +3274,14 @@ body.metavision-active .skills-detail-bars {
       <div class="ios-toggle" id="notifMasterToggle"></div>
     </div>
 
-    <!-- Dimming overlay when disabled -->
-    <div class="notif-disabled-cover" id="notifDisabledCover">
-      <div class="notif-disabled-msg">🔕<br>Уведомления отключены</div>
-    </div>
-
+    <!-- Dimming overlay when disabled — covers only the content below master toggle -->
     <!-- Content (dimmed when master off) -->
     <div class="notif-content" id="notifContent">
+
+      <!-- Disabled cover — inside content so header+master toggle stay clickable -->
+      <div class="notif-disabled-cover" id="notifDisabledCover">
+        <div class="notif-disabled-msg">🔕<br>Уведомления отключены</div>
+      </div>
 
       <!-- Global time section -->
       <div class="notif-section">
