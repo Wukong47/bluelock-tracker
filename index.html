@@ -917,31 +917,18 @@ body.flow-active #bgOverlay {
    the browser computes the track size itself and animates smoothly
    on the compositor, same cheap path as transform/opacity. */
 .hc-subtask-list{
-  /* TRUE COMPOSITOR-ONLY ANIMATION:
-     max-height (even with a precise px value) is still a LAYOUT
-     property — animating it forces the browser to recompute the
-     box model on every single frame, which is reflow, not just
-     repaint. That reflow is what was still causing jank even
-     after switching away from grid-template-rows.
-
-     transform + opacity are the ONLY two CSS properties the browser
-     can animate purely on the GPU compositor thread, with zero
-     layout/paint work per frame. So the OUTER wrapper's height is
-     set ONCE (not animated) right when the class toggles, and the
-     INNER content animates in with translateY + opacity — no
-     scaleY, since scaling a flex column would visibly stretch the
-     subtask text and checkboxes vertically. */
   overflow: hidden;
   height: 0;
+  transition: height .32s cubic-bezier(.4,0,.2,1);
 }
 .hc-subtask-list.expanded{
   height: var(--subtask-h, auto);
 }
 .hc-subtask-list-inner{
-  transform: translateY(-6px);
+  transform: translateY(-8px);
   opacity: 0;
   will-change: transform, opacity;
-  transition: transform .26s cubic-bezier(.4,0,.2,1), opacity .2s ease;
+  transition: transform .28s cubic-bezier(.4,0,.2,1), opacity .22s ease;
 }
 .hc-subtask-list.expanded .hc-subtask-list-inner{
   transform: translateY(0);
@@ -3612,12 +3599,17 @@ function toggleSubtaskExpand(taskId){
       list.classList.add('expanded');
     });
   } else {
+    // Set explicit height before removing .expanded so the browser
+    // can animate FROM the current height TO 0 (not just snap).
+    const currentH = inner ? inner.scrollHeight : 0;
+    list.style.setProperty('--subtask-h', currentH + 'px');
+    list.offsetHeight; // force reflow so transition has a "before" state
     list.classList.remove('expanded');
-    // Collapse the outer wrapper only after the inner fade/slide-out
-    // finishes, so the content doesn't get clipped mid-animation.
+    // Remove the CSS var after both the inner fade-out and height
+    // transition finish (height transition is 320ms, inner is 280ms).
     setTimeout(() => {
       if(!expandedSubtaskIds.has(taskId)) list.style.removeProperty('--subtask-h');
-    }, 260);
+    }, 340);
   }
 }
 
