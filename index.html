@@ -3285,6 +3285,13 @@ body.metavision-active .skills-detail-bars {
 
       <!-- Global time section -->
       <div class="notif-section">
+        <!-- TEST BUTTON -->
+        <button id="notifTestBtn" style="
+          width:100%;padding:13px;border-radius:12px;margin-bottom:16px;
+          border:1.5px solid rgba(255,215,0,.4);background:rgba(255,215,0,.07);
+          color:#ffd700;font-family:var(--font-display);font-size:13px;letter-spacing:3px;
+          cursor:pointer;transition:all .2s;
+        ">⚡ ТЕСТ — отправить сейчас</button>
         <div class="notif-section-header" id="notifGlobalHeader">
           <div class="notif-section-left">
             <div class="notif-section-title">Единое время для всех</div>
@@ -4702,7 +4709,59 @@ function renderNotifPanel(){
 }
 
 // ── Master toggle ──────────────────────────────────────────────
-document.getElementById('notifMasterToggle').addEventListener('click', async ()=>{
+document.getElementById('notifTestBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('notifTestBtn');
+  btn.textContent = '⏳ Проверяем…';
+  btn.disabled = true;
+
+  // 1. Check Notification API exists
+  if (!('Notification' in window)) {
+    showToast('❌ Браузер не поддерживает уведомления', 'error');
+    btn.textContent = '⚡ ТЕСТ — отправить сейчас'; btn.disabled = false; return;
+  }
+
+  // 2. Check / request permission
+  let perm = Notification.permission;
+  if (perm === 'default') {
+    perm = await Notification.requestPermission();
+  }
+  if (perm !== 'granted') {
+    showToast('❌ Разрешение не выдано: ' + perm, 'error');
+    btn.textContent = '⚡ ТЕСТ — отправить сейчас'; btn.disabled = false; return;
+  }
+
+  // 3. Try via Service Worker registration.showNotification (most reliable)
+  if ('serviceWorker' in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.showNotification('🔥 Тест уведомления', {
+        body: 'Если видишь это — уведомления работают!',
+        icon: './icon-192.png',
+        badge: './icon-192.png',
+        vibrate: [200, 100, 200],
+        requireInteraction: false,
+        tag: 'test-' + Date.now(),
+      });
+      showToast('✔ Уведомление отправлено через SW', 'success');
+      btn.textContent = '⚡ ТЕСТ — отправить сейчас'; btn.disabled = false; return;
+    } catch(e) {
+      console.warn('[Test] SW showNotification failed:', e);
+      // fall through to direct Notification
+    }
+  }
+
+  // 4. Fallback: direct new Notification()
+  try {
+    new Notification('🔥 Тест уведомления', {
+      body: 'Если видишь это — уведомления работают!',
+      icon: './icon-192.png',
+    });
+    showToast('✔ Уведомление отправлено (direct)', 'success');
+  } catch(e) {
+    showToast('❌ Ошибка: ' + e.message, 'error');
+  }
+  btn.textContent = '⚡ ТЕСТ — отправить сейчас'; btn.disabled = false;
+});
   if(!notifState.enabled){
     // Request permission first
     const perm = await requestNotifPermission();
