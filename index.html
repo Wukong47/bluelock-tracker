@@ -4708,7 +4708,7 @@ function renderNotifPanel(){
   wrap.classList.toggle('open', notifState.globalEnabled);
 }
 
-// ── Master toggle ──────────────────────────────────────────────
+// ── Test button ────────────────────────────────────────────────
 document.getElementById('notifTestBtn').addEventListener('click', async () => {
   const btn = document.getElementById('notifTestBtn');
   btn.textContent = '⏳ Проверяем…';
@@ -4762,6 +4762,9 @@ document.getElementById('notifTestBtn').addEventListener('click', async () => {
   }
   btn.textContent = '⚡ ТЕСТ — отправить сейчас'; btn.disabled = false;
 });
+
+// ── Master toggle ──────────────────────────────────────────────
+document.getElementById('notifMasterToggle').addEventListener('click', async ()=>{
   if(!notifState.enabled){
     // Request permission first
     const perm = await requestNotifPermission();
