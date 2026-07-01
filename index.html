@@ -4888,54 +4888,100 @@ document.getElementById('timepickOverlay').addEventListener('click', e=>{
 });
 
 // ════════════════════════════════════════════════════════════════
-// ALARM SCHEDULING (Web Notification via setTimeout / Service Worker)
+// ════════════════════════════════════════════════════════════════
+// ALARM SCHEDULING — передаём расписание в Service Worker
+// SW проверяет каждые 30 сек и стреляет уведомлением через
+// registration.showNotification() — работает даже в фоне/PWA
 // ════════════════════════════════════════════════════════════════
 const _alarmTimers = [];
 
-function scheduleAllAlarms(){
-  // Clear existing timers
+async function scheduleAllAlarms(){
+  // Оставляем setTimeout как резервный вариант (работает пока вкладка открыта)
   _alarmTimers.forEach(t=>clearTimeout(t));
   _alarmTimers.length=0;
 
-  if(!notifState.enabled) return;
-  if(!('Notification' in window) || Notification.permission !== 'granted') return;
-
-  const now = new Date();
-
-  function scheduleSlot(hour, minute, label){
-    const next = new Date();
-    next.setHours(hour, minute, 0, 0);
-    if(next <= now) next.setDate(next.getDate()+1); // tomorrow if already past
-    const delay = next - now;
-
-    const t = setTimeout(()=>{
-      fireNotification(label || '🔥 Время для привычек!');
-      // Reschedule for next day
-      scheduleSlot(hour, minute, label);
-    }, delay);
-    _alarmTimers.push(t);
+  if(!notifState.enabled) {
+    sendScheduleToSW([]); // отключить в SW тоже
+    return;
   }
+
+  const slots = [];
 
   if(notifState.globalEnabled){
     notifState.globalSlots.forEach(slot=>{
-      scheduleSlot(slot.hour, slot.minute, '🔥 Время выполнить привычки!');
+      slots.push({
+        hour: slot.hour,
+        minute: slot.minute,
+        label: '🔥 Время выполнить привычки!'
+      });
     });
+  }
+
+  // Передать в Service Worker (фоновые уведомления)
+  sendScheduleToSW(slots);
+
+  // Резервный setTimeout (пока вкладка открыта)
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  const now = new Date();
+  slots.forEach(slot => {
+    const next = new Date();
+    next.setHours(slot.hour, slot.minute, 0, 0);
+    if(next <= now) next.setDate(next.getDate()+1);
+    const delay = next - now;
+    const t = setTimeout(()=>{
+      fireNotificationDirect(slot.label);
+      scheduleAllAlarms();
+    }, delay);
+    _alarmTimers.push(t);
+  });
+}
+
+async function sendScheduleToSW(slots){
+  try{
+    if(!('serviceWorker' in navigator)) return;
+    const reg = await navigator.serviceWorker.ready;
+    if(reg && reg.active){
+      reg.active.postMessage({ type: 'SET_SCHEDULE', slots });
+    }
+  }catch(e){ console.warn('[Notif] SW postMessage failed:', e); }
+}
+
+function fireNotificationDirect(body){
+  // Используем registration.showNotification если есть SW, иначе new Notification
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.ready.then(reg => {
+      reg.showNotification('🔥 Журнал тренировок', {
+        body: body || 'Время выполнить привычки!',
+        icon: './icon-192.png',
+        badge: './icon-192.png',
+        vibrate: [200, 100, 200],
+        requireInteraction: false,
+      });
+    }).catch(()=>{
+      try{ new Notification('🔥 Журнал тренировок', { body }); }catch(e){}
+    });
+  } else {
+    try{ new Notification('🔥 Журнал тренировок', { body }); }catch(e){}
   }
 }
 
-function fireNotification(body){
+// Сообщить SW проверить прямо сейчас (при открытии приложения)
+async function pingSWCheck(){
   try{
-    new Notification('Журнал тренировок', {
-      body,
-      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><text y="28" font-size="28">🔥</text></svg>',
-      badge:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><text y="28" font-size="28">🔔</text></svg>',
-      silent:false,
-    });
-  }catch(e){ console.warn('Notification failed:', e); }
+    if(!('serviceWorker' in navigator)) return;
+    const reg = await navigator.serviceWorker.ready;
+    if(reg && reg.active) reg.active.postMessage({ type: 'CHECK_NOW' });
+  }catch(e){}
 }
 
-// Start alarms on load if already enabled
+// Старт при загрузке
 scheduleAllAlarms();
+setTimeout(pingSWCheck, 2000); // дать SW время активироваться
+
+// Также проверяем при возвращении на вкладку
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible') pingSWCheck();
+});
 
 function renderAll(){
   renderSkillSelect();
