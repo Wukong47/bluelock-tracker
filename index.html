@@ -4714,53 +4714,61 @@ document.getElementById('notifTestBtn').addEventListener('click', async () => {
   btn.textContent = '⏳ Проверяем…';
   btn.disabled = true;
 
-  // 1. Check Notification API exists
-  if (!('Notification' in window)) {
-    showToast('❌ Браузер не поддерживает уведомления', 'error');
-    btn.textContent = '⚡ ТЕСТ — отправить сейчас'; btn.disabled = false; return;
-  }
+  const reset = () => { btn.textContent = '⚡ ТЕСТ — отправить сейчас'; btn.disabled = false; };
 
-  // 2. Check / request permission
-  let perm = Notification.permission;
-  if (perm === 'default') {
-    perm = await Notification.requestPermission();
-  }
-  if (perm !== 'granted') {
-    showToast('❌ Разрешение не выдано: ' + perm, 'error');
-    btn.textContent = '⚡ ТЕСТ — отправить сейчас'; btn.disabled = false; return;
-  }
+  // Автосброс через 5 секунд на случай зависания
+  const safetyTimer = setTimeout(reset, 5000);
 
-  // 3. Try via Service Worker registration.showNotification (most reliable)
-  if ('serviceWorker' in navigator) {
-    try {
-      const reg = await navigator.serviceWorker.ready;
-      await reg.showNotification('🔥 Тест уведомления', {
-        body: 'Если видишь это — уведомления работают!',
-        icon: './icon-192.png',
-        badge: './icon-192.png',
-        vibrate: [200, 100, 200],
-        requireInteraction: false,
-        tag: 'test-' + Date.now(),
-      });
-      showToast('✔ Уведомление отправлено через SW', 'success');
-      btn.textContent = '⚡ ТЕСТ — отправить сейчас'; btn.disabled = false; return;
-    } catch(e) {
-      console.warn('[Test] SW showNotification failed:', e);
-      // fall through to direct Notification
-    }
-  }
-
-  // 4. Fallback: direct new Notification()
   try {
-    new Notification('🔥 Тест уведомления', {
-      body: 'Если видишь это — уведомления работают!',
-      icon: './icon-192.png',
-    });
-    showToast('✔ Уведомление отправлено (direct)', 'success');
+    if (!('Notification' in window)) {
+      showToast('❌ Браузер не поддерживает уведомления', 'error');
+      clearTimeout(safetyTimer); reset(); return;
+    }
+
+    let perm = Notification.permission;
+    if (perm === 'default') perm = await Notification.requestPermission();
+    if (perm !== 'granted') {
+      showToast('❌ Нет разрешения — зайди в настройки браузера', 'error');
+      clearTimeout(safetyTimer); reset(); return;
+    }
+
+    // Пробуем через SW с таймаутом 3 сек
+    let sent = false;
+    if ('serviceWorker' in navigator) {
+      try {
+        const swReady = await Promise.race([
+          navigator.serviceWorker.ready,
+          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 3000))
+        ]);
+        await swReady.showNotification('🔥 Тест уведомления', {
+          body: 'Если видишь это — уведомления работают! ✅',
+          icon: './icon-192.png',
+          vibrate: [200, 100, 200],
+          tag: 'test-' + Date.now(),
+        });
+        sent = true;
+        showToast('✔ Уведомление отправлено!', 'success');
+      } catch(e) {
+        console.warn('[Test] SW failed:', e.message);
+      }
+    }
+
+    // Прямой fallback если SW не сработал
+    if (!sent) {
+      try {
+        new Notification('🔥 Тест уведомления', {
+          body: 'Если видишь это — уведомления работают! ✅',
+        });
+        showToast('✔ Уведомление отправлено!', 'success');
+      } catch(e) {
+        showToast('❌ Ошибка: ' + e.message, 'error');
+      }
+    }
   } catch(e) {
-    showToast('❌ Ошибка: ' + e.message, 'error');
+    showToast('❌ Неожиданная ошибка: ' + e.message, 'error');
   }
-  btn.textContent = '⚡ ТЕСТ — отправить сейчас'; btn.disabled = false;
+
+  clearTimeout(safetyTimer); reset();
 });
 
 // ── Master toggle ──────────────────────────────────────────────
