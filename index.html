@@ -5008,44 +5008,61 @@ document.getElementById('timepickOverlay').addEventListener('click', e=>{
 const _alarmTimers = [];
 
 async function scheduleAllAlarms(){
-  // Оставляем setTimeout как резервный вариант (работает пока вкладка открыта)
   _alarmTimers.forEach(t=>clearTimeout(t));
   _alarmTimers.length=0;
 
-  if(!notifState.enabled) {
-    sendScheduleToSW([]); // отключить в SW тоже
-    return;
+  if(!notifState.enabled){
+    sendScheduleToSW([]); return;
   }
 
   const slots = [];
 
   if(notifState.globalEnabled){
+    // Собираем список активных привычек для отдельных уведомлений
+    const habits = state.tasks
+      .filter(t => !t.completed && !t.archived)
+      .map(t => {
+        const cfg = SKILLS[t.skill] || {};
+        return { id: t.id, name: t.name, icon: cfg.icon || '🔥' };
+      });
+
     notifState.globalSlots.forEach(slot=>{
       slots.push({
         hour: slot.hour,
         minute: slot.minute,
-        label: '🔥 Время выполнить привычки!'
+        habits: habits   // каждый слот знает все привычки
       });
     });
   }
 
-  // Передать в Service Worker (фоновые уведомления)
   sendScheduleToSW(slots);
 
-  // Резервный setTimeout (пока вкладка открыта)
-  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  // Резервный setTimeout пока вкладка открыта
+  if(Notification.permission !== 'granted') return;
   const now = new Date();
   slots.forEach(slot => {
     const next = new Date();
     next.setHours(slot.hour, slot.minute, 0, 0);
     if(next <= now) next.setDate(next.getDate()+1);
-    const delay = next - now;
-    const t = setTimeout(()=>{
-      fireNotificationDirect(slot.label);
-      scheduleAllAlarms();
-    }, delay);
+    const t = setTimeout(()=>{ fireHabitNotifications(slot.habits); scheduleAllAlarms(); }, next - now);
     _alarmTimers.push(t);
   });
+}
+
+function fireHabitNotifications(habits){
+  if(!habits || !habits.length) return;
+  navigator.serviceWorker.ready.then(reg => {
+    habits.forEach((h, i) => {
+      setTimeout(() => {
+        reg.showNotification(h.icon + ' ' + h.name, {
+          body: 'Не забудь выполнить привычку сегодня!',
+          icon: './icon-192.png',
+          vibrate: [150, 80, 150],
+          tag: 'habit-' + h.id + '-' + Date.now(),
+        });
+      }, i * 500); // с задержкой 0.5 сек между каждым
+    });
+  }).catch(()=>{});
 }
 
 async function sendScheduleToSW(slots){
