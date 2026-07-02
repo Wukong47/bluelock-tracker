@@ -28,15 +28,37 @@
 <!-- ── Register Service Worker (required for Chrome's "Install App" prompt) ── -->
 <script>
 if ('serviceWorker' in navigator) {
-  // Skip registration on Claude's preview/test domains — sw.js isn't
-  // served there, so registration would 404 and clutter the console.
   if (window.location.hostname.includes('claudeusercontent.com')) {
     console.log('Тестовая среда Claude: Сервис-воркер пропущен.');
   } else {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js', { scope: './' })
-        .then(reg => console.log('SW зарегистрирован успешно:', reg.scope))
-        .catch(err => console.error('Ошибка регистрации SW:', err));
+      navigator.serviceWorker.register('./sw.js?v=3', {
+        scope: './',
+        updateViaCache: 'none'
+      })
+      .then(reg => {
+        console.log('SW зарегистрирован:', reg.scope);
+        // Если есть ожидающий SW — сразу активировать его
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          if (!newSW) return;
+          newSW.addEventListener('statechange', () => {
+            if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+              newSW.postMessage({ type: 'SKIP_WAITING' });
+            }
+          });
+        });
+      })
+      .catch(err => console.error('Ошибка регистрации SW:', err));
+
+      // Перезагрузить страницу при смене активного SW
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) { refreshing = true; window.location.reload(); }
+      });
     });
   }
 } else {
@@ -3287,11 +3309,17 @@ body.metavision-active .skills-detail-bars {
       <div class="notif-section">
         <!-- TEST BUTTON -->
         <button id="notifTestBtn" style="
-          width:100%;padding:13px;border-radius:12px;margin-bottom:16px;
+          width:100%;padding:13px;border-radius:12px;margin-bottom:8px;
           border:1.5px solid rgba(255,215,0,.4);background:rgba(255,215,0,.07);
           color:#ffd700;font-family:var(--font-display);font-size:13px;letter-spacing:3px;
           cursor:pointer;transition:all .2s;
         ">⚡ ТЕСТ — отправить сейчас</button>
+        <button id="notifSwResetBtn" style="
+          width:100%;padding:10px;border-radius:12px;margin-bottom:16px;
+          border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);
+          color:rgba(255,255,255,.4);font-family:var(--font-mono);font-size:10px;letter-spacing:2px;
+          cursor:pointer;transition:all .2s;
+        ">↺ СБРОСИТЬ SERVICE WORKER</button>
         <div class="notif-section-header" id="notifGlobalHeader">
           <div class="notif-section-left">
             <div class="notif-section-title">Единое время для всех</div>
@@ -4708,51 +4736,81 @@ function renderNotifPanel(){
   wrap.classList.toggle('open', notifState.globalEnabled);
 }
 
+// ── SW Reset button ────────────────────────────────────────────
+document.getElementById('notifSwResetBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('notifSwResetBtn');
+  btn.textContent = '⏳ Сбрасываем…';
+  btn.disabled = true;
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of regs) await reg.unregister();
+      const cacheKeys = await caches.keys();
+      for (const key of cacheKeys) await caches.delete(key);
+      showToast('✔ SW сброшен — перезагружаем…', 'success');
+      setTimeout(() => window.location.reload(), 1200);
+    } else {
+      showToast('❌ SW не поддерживается', 'error');
+    }
+  } catch(e) {
+    showToast('❌ ' + e.message, 'error');
+  }
+  btn.textContent = '↺ СБРОСИТЬ SERVICE WORKER';
+  btn.disabled = false;
+});
+
 // ── Test button ────────────────────────────────────────────────
 document.getElementById('notifTestBtn').addEventListener('click', async () => {
   const btn = document.getElementById('notifTestBtn');
   btn.textContent = '⏳ Проверяем…';
   btn.disabled = true;
   const reset = () => { btn.textContent = '⚡ ТЕСТ — отправить сейчас'; btn.disabled = false; };
-  const safetyTimer = setTimeout(reset, 8000);
 
   try {
-    if (!('Notification' in window) && !('serviceWorker' in navigator)) {
-      showToast('❌ Браузер не поддерживает уведомления', 'error');
-      clearTimeout(safetyTimer); reset(); return;
+    if (!('serviceWorker' in navigator)) {
+      showToast('❌ Браузер не поддерживает SW', 'error');
+      reset(); return;
     }
 
     let perm = Notification.permission;
     if (perm === 'default') perm = await Notification.requestPermission();
     if (perm !== 'granted') {
-      showToast('❌ Нет разрешения — зайди в настройки браузера', 'error');
-      clearTimeout(safetyTimer); reset(); return;
+      showToast('❌ Нет разрешения на уведомления', 'error');
+      reset(); return;
     }
 
-    // В PWA ВСЕГДА используем только SW — new Notification() запрещён
-    if ('serviceWorker' in navigator) {
-      try {
-        const reg = await Promise.race([
-          navigator.serviceWorker.ready,
-          new Promise((_, rej) => setTimeout(() => rej(new Error('SW не отвечает — обнови sw.js на сервере')), 6000))
-        ]);
-        await reg.showNotification('🔥 Журнал тренировок', {
-          body: 'Тест прошёл успешно — уведомления работают! ✅',
-          icon: './icon-192.png',
-          vibrate: [200, 100, 200],
-          tag: 'test-' + Date.now(),
-        });
-        showToast('✅ Уведомление отправлено!', 'success');
-      } catch(e) {
-        showToast('❌ ' + e.message, 'error');
-      }
-    } else {
-      showToast('❌ Service Worker не поддерживается', 'error');
+    // Убедиться что SW зарегистрирован
+    let reg = await navigator.serviceWorker.getRegistration('./');
+    if (!reg) {
+      reg = await navigator.serviceWorker.register('./sw.js?v=3', { scope: './', updateViaCache: 'none' });
     }
+
+    // Ждём пока SW станет активным (max 10 сек)
+    const getActiveSW = () => reg.active || reg.waiting || reg.installing;
+    if (!reg.active) {
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('SW не активировался за 10 сек')), 10000);
+        const check = () => {
+          if (reg.active) { clearTimeout(timeout); resolve(); return; }
+          setTimeout(check, 300);
+        };
+        check();
+      });
+    }
+
+    // Отправить уведомление
+    await reg.showNotification('🔥 Журнал тренировок', {
+      body: 'Тест прошёл — уведомления работают! ✅',
+      icon: './icon-192.png',
+      vibrate: [200, 100, 200],
+      tag: 'test-' + Date.now(),
+    });
+    showToast('✅ Уведомление отправлено!', 'success');
+
   } catch(e) {
     showToast('❌ ' + e.message, 'error');
   }
-  clearTimeout(safetyTimer); reset();
+  reset();
 });
 
 // ── Master toggle ──────────────────────────────────────────────

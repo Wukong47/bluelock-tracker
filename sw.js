@@ -126,6 +126,12 @@ async function loadLastFired(key) {
 self.addEventListener('message', async (event) => {
   if (!event.data) return;
 
+  // Force activate new SW immediately when page asks
+  if (event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+    return;
+  }
+
   if (event.data.type === 'SET_SCHEDULE') {
     await saveSchedule(event.data.slots || []);
     // Immediately check if anything needs to fire right now
