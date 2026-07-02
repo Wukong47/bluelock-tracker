@@ -4713,14 +4713,11 @@ document.getElementById('notifTestBtn').addEventListener('click', async () => {
   const btn = document.getElementById('notifTestBtn');
   btn.textContent = '⏳ Проверяем…';
   btn.disabled = true;
-
   const reset = () => { btn.textContent = '⚡ ТЕСТ — отправить сейчас'; btn.disabled = false; };
-
-  // Автосброс через 5 секунд на случай зависания
-  const safetyTimer = setTimeout(reset, 5000);
+  const safetyTimer = setTimeout(reset, 8000);
 
   try {
-    if (!('Notification' in window)) {
+    if (!('Notification' in window) && !('serviceWorker' in navigator)) {
       showToast('❌ Браузер не поддерживает уведомления', 'error');
       clearTimeout(safetyTimer); reset(); return;
     }
@@ -4732,42 +4729,29 @@ document.getElementById('notifTestBtn').addEventListener('click', async () => {
       clearTimeout(safetyTimer); reset(); return;
     }
 
-    // Пробуем через SW с таймаутом 3 сек
-    let sent = false;
+    // В PWA ВСЕГДА используем только SW — new Notification() запрещён
     if ('serviceWorker' in navigator) {
       try {
-        const swReady = await Promise.race([
+        const reg = await Promise.race([
           navigator.serviceWorker.ready,
-          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 3000))
+          new Promise((_, rej) => setTimeout(() => rej(new Error('SW не отвечает — обнови sw.js на сервере')), 6000))
         ]);
-        await swReady.showNotification('🔥 Тест уведомления', {
-          body: 'Если видишь это — уведомления работают! ✅',
+        await reg.showNotification('🔥 Журнал тренировок', {
+          body: 'Тест прошёл успешно — уведомления работают! ✅',
           icon: './icon-192.png',
           vibrate: [200, 100, 200],
           tag: 'test-' + Date.now(),
         });
-        sent = true;
-        showToast('✔ Уведомление отправлено!', 'success');
+        showToast('✅ Уведомление отправлено!', 'success');
       } catch(e) {
-        console.warn('[Test] SW failed:', e.message);
+        showToast('❌ ' + e.message, 'error');
       }
-    }
-
-    // Прямой fallback если SW не сработал
-    if (!sent) {
-      try {
-        new Notification('🔥 Тест уведомления', {
-          body: 'Если видишь это — уведомления работают! ✅',
-        });
-        showToast('✔ Уведомление отправлено!', 'success');
-      } catch(e) {
-        showToast('❌ Ошибка: ' + e.message, 'error');
-      }
+    } else {
+      showToast('❌ Service Worker не поддерживается', 'error');
     }
   } catch(e) {
-    showToast('❌ Неожиданная ошибка: ' + e.message, 'error');
+    showToast('❌ ' + e.message, 'error');
   }
-
   clearTimeout(safetyTimer); reset();
 });
 
@@ -5017,21 +5001,14 @@ async function sendScheduleToSW(slots){
 }
 
 function fireNotificationDirect(body){
-  // Используем registration.showNotification если есть SW, иначе new Notification
   if('serviceWorker' in navigator){
     navigator.serviceWorker.ready.then(reg => {
       reg.showNotification('🔥 Журнал тренировок', {
         body: body || 'Время выполнить привычки!',
         icon: './icon-192.png',
-        badge: './icon-192.png',
         vibrate: [200, 100, 200],
-        requireInteraction: false,
       });
-    }).catch(()=>{
-      try{ new Notification('🔥 Журнал тренировок', { body }); }catch(e){}
-    });
-  } else {
-    try{ new Notification('🔥 Журнал тренировок', { body }); }catch(e){}
+    }).catch(e => console.warn('[Notif] SW showNotification failed:', e));
   }
 }
 
