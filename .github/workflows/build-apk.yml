@@ -21,7 +21,7 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          java-version: "21"
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Setup Android SDK
@@ -39,7 +39,7 @@ jobs:
       - name: Install Capacitor
         run: |
           npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
 
       - name: Create capacitor.config.json
         run: |
@@ -57,13 +57,28 @@ jobs:
       - name: Add Android platform
         run: npx cap add android
 
+      - name: Fix Kotlin duplicate class conflict
+        run: |
+          cat >> android/build.gradle << 'EOF'
+
+          subprojects {
+            configurations.all {
+              resolutionStrategy {
+                force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.24'
+                force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.24'
+                force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.24'
+              }
+            }
+          }
+          EOF
+
       - name: Sync web files to Android
         run: npx cap sync android
 
-      - name: Add notification permissions to AndroidManifest
+      - name: Add notification permissions
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
-          sed -i 's|<uses-permission android:name="android.permission.INTERNET" />|<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />|' "$MANIFEST"
+          sed -i 's|<uses-permission android:name="android.permission.INTERNET" />|<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />|' "$MANIFEST"
 
       - name: Set app name
         run: |
