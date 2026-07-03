@@ -1,0 +1,109 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Prepare www folder
+        run: |
+          mkdir -p www
+          cp index.html www/
+          cp sw.js www/
+          cp manifest.json www/
+          cp icon-192.png www/
+          cp icon-512.png www/
+
+      - name: Install Capacitor
+        run: |
+          npm init -y
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+
+      - name: Create capacitor.config.json
+        run: |
+          cat > capacitor.config.json << 'EOF'
+          {
+            "appId": "com.wukong47.egoistengine",
+            "appName": "Egoist Engine",
+            "webDir": "www",
+            "server": {
+              "androidScheme": "https"
+            }
+          }
+          EOF
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Sync web files to Android
+        run: npx cap sync android
+
+      - name: Add notification permissions to AndroidManifest
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          sed -i 's|<uses-permission android:name="android.permission.INTERNET" />|<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />|' "$MANIFEST"
+
+      - name: Set app name
+        run: |
+          cat > android/app/src/main/res/values/strings.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="app_name">Egoist Engine</string>
+              <string name="title_activity_main">Egoist Engine</string>
+              <string name="package_name">com.wukong47.egoistengine</string>
+              <string name="custom_url_scheme">com.wukong47.egoistengine</string>
+          </resources>
+          EOF
+
+      - name: Copy icons
+        run: |
+          for dir in xxxhdpi xxhdpi xhdpi hdpi mdpi; do
+            mkdir -p android/app/src/main/res/mipmap-$dir
+          done
+          cp icon-512.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          cp icon-512.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+          cp icon-192.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          cp icon-192.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
+          cp icon-192.png android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+          cp icon-192.png android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
+          cp icon-192.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+          cp icon-192.png android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
+          cp icon-192.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+          cp icon-192.png android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: EgoistEngine-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
