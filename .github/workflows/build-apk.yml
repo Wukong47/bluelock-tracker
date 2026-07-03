@@ -36,10 +36,10 @@ jobs:
           cp icon-192.png www/
           cp icon-512.png www/
 
-      - name: Install Capacitor
+      - name: Install Capacitor + Local Notifications plugin
         run: |
           npm init -y
-          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/local-notifications@6
 
       - name: Create capacitor.config.json
         run: |
@@ -50,9 +50,59 @@ jobs:
             "webDir": "www",
             "server": {
               "androidScheme": "https"
+            },
+            "plugins": {
+              "LocalNotifications": {
+                "smallIcon": "ic_launcher",
+                "iconColor": "#00d4ff"
+              }
             }
           }
           EOF
+
+      - name: Inject Capacitor bridge + Local Notifications into index.html
+        run: |
+          # Insert Capacitor scripts right after <head> tag
+          sed -i 's|<head>|<head>\n<script src="capacitor.js"></script>|' www/index.html
+          
+          # Inject notification bridge before </body>
+          cat >> www/index.html << 'HTMLEOF'
+          <script>
+          // ── Capacitor Local Notifications Bridge ──
+          // Replaces Web Notification API with native Android notifications
+          (async function initCapacitorNotifications() {
+            if (!window.Capacitor) return;
+            const { LocalNotifications } = await import('./plugins/LocalNotifications/index.js').catch(() => ({}));
+            if (!LocalNotifications) {
+              // Try global Capacitor plugins
+              if (!window.Capacitor.Plugins || !window.Capacitor.Plugins.LocalNotifications) return;
+            }
+            const LN = (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) || LocalNotifications;
+            if (!LN) return;
+
+            // Request permission
+            const { display } = await LN.requestPermissions().catch(() => ({ display: 'denied' }));
+            if (display !== 'granted') return;
+
+            // Override the SW-based notification sender
+            window._capacitorSendNotification = async function(title, body, id) {
+              await LN.schedule({
+                notifications: [{
+                  id: id || Math.floor(Math.random() * 100000),
+                  title: title,
+                  body: body,
+                  schedule: { at: new Date(Date.now() + 100) },
+                  sound: null,
+                  smallIcon: 'ic_launcher',
+                  iconColor: '#00d4ff',
+                }]
+              });
+            };
+
+            console.log('[Capacitor] LocalNotifications ready');
+          })();
+          </script>
+          HTMLEOF
 
       - name: Add Android platform
         run: npx cap add android
@@ -78,7 +128,7 @@ jobs:
       - name: Add notification permissions
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
-          sed -i 's|<uses-permission android:name="android.permission.INTERNET" />|<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />|' "$MANIFEST"
+          sed -i 's|<uses-permission android:name="android.permission.INTERNET" />|<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />\n    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />|' "$MANIFEST"
 
       - name: Set app name
         run: |
