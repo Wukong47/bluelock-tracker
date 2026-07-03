@@ -5031,41 +5031,92 @@ async function scheduleAllAlarms(){
   _alarmTimers.length=0;
 
   if(!notifState.enabled){
-    sendScheduleToSW([]); return;
+    sendScheduleToSW([]);
+    cancelCapacitorAlarms();
+    return;
   }
 
-  const slots = [];
-
-  if(notifState.globalEnabled){
-    // Собираем список активных привычек для отдельных уведомлений
-    const habits = state.tasks
-      .filter(t => !t.completed && !t.archived)
-      .map(t => {
-        const cfg = SKILLS[t.skill] || {};
-        return { id: t.id, name: t.name, icon: cfg.icon || '🔥' };
-      });
-
-    notifState.globalSlots.forEach(slot=>{
-      slots.push({
-        hour: slot.hour,
-        minute: slot.minute,
-        habits: habits   // каждый слот знает все привычки
-      });
+  const habits = state.tasks
+    .filter(t => !t.completed && !t.archived)
+    .map(t => {
+      const cfg = SKILLS[t.skill] || {};
+      return { id: t.id, name: t.name, icon: cfg.icon || '🔥' };
     });
+
+  const slots = notifState.globalEnabled ? notifState.globalSlots : [];
+
+  // ── Capacitor APK path — нативный планировщик ──
+  if(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications){
+    await scheduleCapacitorAlarms(slots, habits);
+    return;
   }
 
-  sendScheduleToSW(slots);
+  // ── Browser / PWA path — SW ──
+  const swSlots = slots.map(slot => ({
+    hour: slot.hour, minute: slot.minute, habits
+  }));
+  sendScheduleToSW(swSlots);
 
-  // Резервный setTimeout пока вкладка открыта
   if(Notification.permission !== 'granted') return;
   const now = new Date();
   slots.forEach(slot => {
     const next = new Date();
     next.setHours(slot.hour, slot.minute, 0, 0);
     if(next <= now) next.setDate(next.getDate()+1);
-    const t = setTimeout(()=>{ fireHabitNotifications(slot.habits); scheduleAllAlarms(); }, next - now);
+    const t = setTimeout(()=>{ fireHabitNotifications(habits); scheduleAllAlarms(); }, next - now);
     _alarmTimers.push(t);
   });
+}
+
+async function cancelCapacitorAlarms(){
+  try{
+    const LN = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications;
+    if(!LN) return;
+    // Cancel IDs 10000-10999 (our range)
+    const ids = Array.from({length:1000},(_,i)=>({id:10000+i}));
+    await LN.cancel({ notifications: ids });
+  }catch(e){}
+}
+
+async function scheduleCapacitorAlarms(slots, habits){
+  const LN = window.Capacitor.Plugins.LocalNotifications;
+  try{
+    // Cancel previous alarms
+    await cancelCapacitorAlarms();
+    if(!slots.length || !habits.length) return;
+
+    const notifications = [];
+    let notifId = 10000;
+
+    slots.forEach(slot => {
+      // Schedule for next 7 days so it repeats
+      for(let day = 0; day < 7; day++){
+        habits.forEach(h => {
+          const fireAt = new Date();
+          fireAt.setDate(fireAt.getDate() + day);
+          fireAt.setHours(slot.hour, slot.minute, 0, 0);
+          if(fireAt <= new Date()) fireAt.setDate(fireAt.getDate() + (day === 0 ? 1 : 0));
+          if(fireAt <= new Date()) return; // still in past — skip
+
+          notifications.push({
+            id: notifId++,
+            title: h.icon + ' ' + h.name,
+            body: 'Не забудь выполнить привычку сегодня!',
+            schedule: { at: fireAt, allowWhileIdle: true },
+            smallIcon: 'ic_launcher',
+            iconColor: '#00d4ff',
+          });
+        });
+      }
+    });
+
+    if(notifications.length){
+      await LN.schedule({ notifications });
+      console.log('[Notif] Scheduled', notifications.length, 'native alarms');
+    }
+  }catch(e){
+    console.warn('[Notif] scheduleCapacitorAlarms error:', e);
+  }
 }
 
 function fireHabitNotifications(habits){
@@ -5134,7 +5185,16 @@ async function pingSWCheck(){
 
 // Старт при загрузке
 scheduleAllAlarms();
-setTimeout(pingSWCheck, 2000); // дать SW время активироваться
+setTimeout(pingSWCheck, 2000);
+
+// Для Capacitor APK — ждём готовности и перезапускаем расписание
+document.addEventListener('deviceready', () => scheduleAllAlarms());
+window.addEventListener('load', () => {
+  // Небольшая задержка чтобы Capacitor успел инициализироваться
+  setTimeout(() => {
+    if(window.Capacitor) scheduleAllAlarms();
+  }, 1500);
+});
 
 // Также проверяем при возвращении на вкладку
 document.addEventListener('visibilitychange', ()=>{
