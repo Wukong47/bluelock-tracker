@@ -3,7 +3,7 @@ name: Build Android APK
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:  # можно запустить вручную
+  workflow_dispatch:
 
 jobs:
   build:
@@ -27,14 +27,32 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Capacitor + dependencies
+      - name: Prepare www folder
+        run: |
+          mkdir -p www
+          cp index.html www/
+          cp sw.js www/
+          cp manifest.json www/
+          cp icon-192.png www/
+          cp icon-512.png www/
+
+      - name: Install Capacitor
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
 
-      - name: Init Capacitor project
+      - name: Create capacitor.config.json
         run: |
-          npx cap init "Egoist Engine" "com.wukong47.egoistengine" --web-dir "."
+          cat > capacitor.config.json << 'EOF'
+          {
+            "appId": "com.wukong47.egoistengine",
+            "appName": "Egoist Engine",
+            "webDir": "www",
+            "server": {
+              "androidScheme": "https"
+            }
+          }
+          EOF
 
       - name: Add Android platform
         run: npx cap add android
@@ -42,29 +60,28 @@ jobs:
       - name: Sync web files to Android
         run: npx cap sync android
 
-      - name: Patch AndroidManifest — add notification + internet permissions
+      - name: Add notification permissions to AndroidManifest
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
-          # Add permissions before <application tag
-          sed -i 's|<application|<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />\n    <application|' "$MANIFEST"
+          sed -i 's|<uses-permission android:name="android.permission.INTERNET" />|<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />|' "$MANIFEST"
 
-      - name: Patch strings.xml — app name
+      - name: Set app name
         run: |
-          echo '<?xml version="1.0" encoding="utf-8"?>
+          cat > android/app/src/main/res/values/strings.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <string name="app_name">Egoist Engine</string>
               <string name="title_activity_main">Egoist Engine</string>
               <string name="package_name">com.wukong47.egoistengine</string>
               <string name="custom_url_scheme">com.wukong47.egoistengine</string>
-          </resources>' > android/app/src/main/res/values/strings.xml
+          </resources>
+          EOF
 
-      - name: Copy icon to Android resources
+      - name: Copy icons
         run: |
-          mkdir -p android/app/src/main/res/mipmap-xxxhdpi
-          mkdir -p android/app/src/main/res/mipmap-xxhdpi
-          mkdir -p android/app/src/main/res/mipmap-xhdpi
-          mkdir -p android/app/src/main/res/mipmap-hdpi
-          mkdir -p android/app/src/main/res/mipmap-mdpi
+          for dir in xxxhdpi xxhdpi xhdpi hdpi mdpi; do
+            mkdir -p android/app/src/main/res/mipmap-$dir
+          done
           cp icon-512.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
           cp icon-512.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
           cp icon-192.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
@@ -82,9 +99,9 @@ jobs:
       - name: Build debug APK
         run: |
           cd android
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon
 
-      - name: Upload APK as artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: EgoistEngine-APK
