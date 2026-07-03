@@ -4767,11 +4767,31 @@ document.getElementById('notifTestBtn').addEventListener('click', async () => {
   const reset = () => { btn.textContent = '⚡ ТЕСТ — отправить сейчас'; btn.disabled = false; };
 
   try {
-    if (!('serviceWorker' in navigator)) {
-      showToast('❌ Браузер не поддерживает SW', 'error');
+    if (!('serviceWorker' in navigator) && !window.Capacitor) {
+      showToast('❌ Браузер не поддерживает уведомления', 'error');
       reset(); return;
     }
 
+    // ── Capacitor APK path ──
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
+      try {
+        const LN = window.Capacitor.Plugins.LocalNotifications;
+        const { display } = await LN.requestPermissions();
+        if (display !== 'granted') { showToast('❌ Нет разрешения на уведомления', 'error'); reset(); return; }
+        await LN.schedule({ notifications: [{
+          id: Math.floor(Math.random() * 100000),
+          title: '🔥 Журнал тренировок',
+          body: 'Тест прошёл — уведомления работают! ✅',
+          schedule: { at: new Date(Date.now() + 300) },
+          smallIcon: 'ic_launcher',
+          iconColor: '#00d4ff',
+        }]});
+        showToast('✅ Уведомление отправлено!', 'success');
+      } catch(e) { showToast('❌ ' + e.message, 'error'); }
+      reset(); return;
+    }
+
+    // ── Browser / PWA path ──
     let perm = Notification.permission;
     if (perm === 'default') perm = await Notification.requestPermission();
     if (perm !== 'granted') {
@@ -4786,7 +4806,6 @@ document.getElementById('notifTestBtn').addEventListener('click', async () => {
     }
 
     // Ждём пока SW станет активным (max 10 сек)
-    const getActiveSW = () => reg.active || reg.waiting || reg.installing;
     if (!reg.active) {
       await new Promise((resolve, reject) => {
         const timeout = setTimeout(() => reject(new Error('SW не активировался за 10 сек')), 10000);
@@ -5051,6 +5070,23 @@ async function scheduleAllAlarms(){
 
 function fireHabitNotifications(habits){
   if(!habits || !habits.length) return;
+
+  // ── Capacitor APK path ──
+  if(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications){
+    const LN = window.Capacitor.Plugins.LocalNotifications;
+    const notifications = habits.map((h, i) => ({
+      id: Math.floor(Math.random() * 100000) + i,
+      title: h.icon + ' ' + h.name,
+      body: 'Не забудь выполнить привычку сегодня!',
+      schedule: { at: new Date(Date.now() + 300 + i * 500) },
+      smallIcon: 'ic_launcher',
+      iconColor: '#00d4ff',
+    }));
+    LN.schedule({ notifications }).catch(e => console.warn('[Notif]', e));
+    return;
+  }
+
+  // ── Browser / PWA path ──
   navigator.serviceWorker.ready.then(reg => {
     habits.forEach((h, i) => {
       setTimeout(() => {
@@ -5060,7 +5096,7 @@ function fireHabitNotifications(habits){
           vibrate: [150, 80, 150],
           tag: 'habit-' + h.id + '-' + Date.now(),
         });
-      }, i * 500); // с задержкой 0.5 сек между каждым
+      }, i * 500);
     });
   }).catch(()=>{});
 }
