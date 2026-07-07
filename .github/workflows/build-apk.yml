@@ -175,13 +175,22 @@ jobs:
           })();
           JSEOF
 
-      # ── 8. Capacitor init ──
-      - name: Capacitor add android
+      # ── 8. Capacitor init + add android ──
+      - name: Capacitor init & add android
         run: |
-          npx cap add android 2>/dev/null || true
+          # Создаём конфиг с appId, если его нет
+          if [ ! -f capacitor.config.json ] && [ ! -f capacitor.config.ts ]; then
+            cat > capacitor.config.json << 'CFGEOF'
+          {
+            "appId": "com.egoist.engine",
+            "appName": "Egoist Engine",
+            "webDir": "www"
+          }
+          CFGEOF
+          fi
+          npx cap add android
           npx cap copy android
           npx cap sync android
-
       # ── 9. Patch AndroidManifest.xml ──
       - name: Patch AndroidManifest.xml
         run: |
