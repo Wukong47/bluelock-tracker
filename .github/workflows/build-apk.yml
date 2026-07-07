@@ -198,14 +198,7 @@ jobs:
           MANIFEST="android/app/src/main/AndroidManifest.xml"
           grep -q "POST_NOTIFICATIONS" $MANIFEST || \
           sed -i 's|<uses-permission android:name="android.permission.INTERNET"|<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>\n    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>\n    <uses-permission android:name="android.permission.VIBRATE"/>\n    <uses-permission android:name="android.permission.WAKE_LOCK"/>\n    <uses-permission android:name="android.permission.INTERNET"|' $MANIFEST
-
-      # ── 10. Patch build.gradle target SDK 34 ──
-      - name: Patch build.gradle target SDK
-        run: |
-          GRADLE="android/app/build.gradle"
-          sed -i 's/targetSdkVersion [0-9]*/targetSdkVersion 34/' $GRADLE || true
-          sed -i 's/compileSdkVersion [0-9]*/compileSdkVersion 34/' $GRADLE || true
-
+          
       # ── 11. Install Local Notifications plugin (v6 под core 6) ──
       - name: Install @capacitor/local-notifications
         run: |
