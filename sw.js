@@ -1,9 +1,13 @@
 /* ══════════════════════════════════════════════════════════
-   EGOIST ENGINE — Service Worker v5
+   EGOIST ENGINE — Service Worker v6
+   Fixes:
+   1. Removed setInterval — Android kills SW in background
+   2. Added 'sync' event (Background Sync API) — reliable wake-up
+   3. Periodic check via message from app (most reliable on Android)
 ══════════════════════════════════════════════════════════ */
 
-const CACHE_NAME  = 'egoist-engine-v5';
-const NOTIF_CACHE = 'egoist-notif-v2';
+const CACHE_NAME  = 'egoist-engine-v6';
+const NOTIF_CACHE = 'egoist-notif-v3';
 const PRECACHE    = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 /* ── INSTALL ── */
@@ -26,11 +30,6 @@ self.addEventListener('activate', event => {
       ))
       .then(() => self.clients.claim())
   );
-  startPeriodicCheck();
-  // Register periodic background sync if supported
-  self.registration.periodicSync && self.registration.periodicSync
-    .register('habit-check', { minInterval: 60 * 1000 })
-    .catch(() => {});
 });
 
 /* ── FETCH ── */
@@ -52,7 +51,14 @@ self.addEventListener('fetch', event => {
   );
 });
 
-/* ── PERIODIC SYNC (Android background wake-up) ── */
+/* ── BACKGROUND SYNC (надёжнее чем periodicSync в Capacitor WebView) ── */
+self.addEventListener('sync', event => {
+  if (event.tag === 'habit-alarm-check') {
+    event.waitUntil(checkAndFireAlarms());
+  }
+});
+
+/* ── PERIODIC SYNC (браузер, если поддерживается) ── */
 self.addEventListener('periodicsync', event => {
   if (event.tag === 'habit-check') {
     event.waitUntil(checkAndFireAlarms());
@@ -91,7 +97,7 @@ async function setFiredKey(key) {
 }
 
 /* ══════════════════════════════════════════════════════════
-   ALARM CHECK — отдельное уведомление на каждую привычку
+   ALARM CHECK
 ══════════════════════════════════════════════════════════ */
 async function checkAndFireAlarms() {
   const slots = await loadSchedule();
@@ -104,22 +110,21 @@ async function checkAndFireAlarms() {
   for (const slot of slots) {
     const slotMin = slot.hour * 60 + slot.minute;
     const diff    = Math.abs(slotMin - nowMin);
-    if (diff > 1) continue; // срабатываем в окне ±1 минута
+    if (diff > 2) continue; // окно ±2 минуты
 
     const firedKey  = slot.hour + ':' + slot.minute + ':' + todayStr;
     const lastFired = await getFiredKey(firedKey);
-    const cooldown  = 55 * 60 * 1000; // не повторять чаще 55 минут
-    if (lastFired && (Date.now() - lastFired) < cooldown) continue;
+    if (lastFired && (Date.now() - lastFired) < 55 * 60 * 1000) continue;
 
     await setFiredKey(firedKey);
 
     const habits = slot.habits || [];
 
     if (!habits.length) {
-      // нет привычек — одно общее уведомление
-      await self.registration.showNotification('🔥 Журнал тренировок', {
+      await self.registration.showNotification('🔥 Egoist Engine', {
         body: 'Время выполнить привычки!',
         icon: './icon-192.png',
+        badge: './icon-192.png',
         vibrate: [200, 100, 200],
         tag: 'habits-' + firedKey,
         data: { url: self.registration.scope }
@@ -127,11 +132,10 @@ async function checkAndFireAlarms() {
       continue;
     }
 
-    // Отдельное уведомление на каждую привычку с задержкой 400мс
     for (let i = 0; i < habits.length; i++) {
       const h = habits[i];
-      await new Promise(res => setTimeout(res, i * 400));
-      await self.registration.showNotification(h.icon + ' ' + h.name, {
+      if (i > 0) await new Promise(res => setTimeout(res, 400));
+      await self.registration.showNotification((h.icon || '⚡') + ' ' + h.name, {
         body: 'Не забудь выполнить привычку сегодня!',
         icon: './icon-192.png',
         badge: './icon-192.png',
@@ -143,12 +147,20 @@ async function checkAndFireAlarms() {
   }
 }
 
-/* ── MESSAGES ── */
+/* ── MESSAGES от приложения ── */
 self.addEventListener('message', async event => {
   if (!event.data) return;
-  if (event.data.type === 'SKIP_WAITING')  { self.skipWaiting(); return; }
-  if (event.data.type === 'SET_SCHEDULE')  { await saveSchedule(event.data.slots || []); }
-  if (event.data.type === 'CHECK_NOW')     { await checkAndFireAlarms(); }
+  const { type } = event.data;
+
+  if (type === 'SKIP_WAITING')  { self.skipWaiting(); return; }
+  if (type === 'SET_SCHEDULE')  { await saveSchedule(event.data.slots || []); return; }
+  if (type === 'CHECK_NOW')     { await checkAndFireAlarms(); return; }
+
+  // Ответ на ping — подтверждаем что SW жив
+  if (type === 'PING') {
+    event.source && event.source.postMessage({ type: 'PONG' });
+    return;
+  }
 });
 
 /* ── NOTIFICATION CLICK ── */
@@ -162,11 +174,3 @@ self.addEventListener('notificationclick', event => {
     })
   );
 });
-
-/* ── PERIODIC CHECK every 30 sec (while SW alive) ── */
-let _interval = null;
-function startPeriodicCheck() {
-  if (_interval) return;
-  _interval = setInterval(() => checkAndFireAlarms(), 30 * 1000);
-}
-startPeriodicCheck();
