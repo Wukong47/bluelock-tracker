@@ -191,6 +191,7 @@ jobs:
           npx cap add android
           npx cap copy android
           npx cap sync android
+          
       # ── 9. Patch AndroidManifest.xml ──
       - name: Patch AndroidManifest.xml
         run: |
@@ -205,12 +206,12 @@ jobs:
           sed -i 's/targetSdkVersion [0-9]*/targetSdkVersion 34/' $GRADLE || true
           sed -i 's/compileSdkVersion [0-9]*/compileSdkVersion 34/' $GRADLE || true
 
-      # ── 11. Install Local Notifications plugin ──
+      # ── 11. Install Local Notifications plugin (v6 под core 6) ──
       - name: Install @capacitor/local-notifications
         run: |
-          npm install @capacitor/local-notifications
+          npm install @capacitor/local-notifications@6
           npx cap sync android
-
+          
       # ── 12. Build APK ──
       - name: Build debug APK
         run: |
