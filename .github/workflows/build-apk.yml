@@ -200,9 +200,9 @@ jobs:
           sed -i 's|<uses-permission android:name="android.permission.INTERNET"|<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>\n    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>\n    <uses-permission android:name="android.permission.VIBRATE"/>\n    <uses-permission android:name="android.permission.WAKE_LOCK"/>\n    <uses-permission android:name="android.permission.INTERNET"|' $MANIFEST
           
       # ── 11. Install Local Notifications plugin (v6 под core 6) ──
-      - name: Install @capacitor/local-notifications
+      - name: Install Capacitor plugins
         run: |
-          npm install @capacitor/local-notifications@6
+          npm install @capacitor/local-notifications@6 @capacitor/filesystem@6 @capacitor/share@6
           npx cap sync android
           
       # ── 12. Build APK ──
