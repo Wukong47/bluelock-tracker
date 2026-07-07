@@ -1,8 +1,8 @@
-name: Build Android APK
+name: Build APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -10,165 +10,239 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # ── 1. Checkout ──────────────────────────────────────────────
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # ── 2. Node + Java ──────────────────────────────────────────
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Setup Java
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          distribution: temurin
+          java-version: '17'
 
+      # ── 3. Android SDK ──────────────────────────────────────────
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Prepare www folder
+      # ── 4. NPM deps ─────────────────────────────────────────────
+      - name: Install dependencies
+        run: npm ci
+
+      # ── 5. Build www ────────────────────────────────────────────
+      - name: Copy web assets to www/
         run: |
           mkdir -p www
-          cp index.html www/
-          cp sw.js www/
-          cp manifest.json www/
-          cp icon-192.png www/
-          cp icon-512.png www/
+          cp index.html www/index.html
+          cp sw.js      www/sw.js
+          cp manifest.json www/manifest.json
+          cp icon-192.png  www/icon-192.png || true
+          cp icon-512.png  www/icon-512.png || true
+          cp bg.jpg        www/bg.jpg        || true
 
-      - name: Install Capacitor + Local Notifications plugin
+      # ── 6. INJECT Capacitor properly (INSIDE <head>, not after </html>) ──
+      - name: Patch www/index.html — inject Capacitor inside <head>
         run: |
-          npm init -y
-          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/local-notifications@6
+          # Insert the capacitor.js script as the FIRST tag inside <head>
+          # so the bridge is ready before any app code runs.
+          # We also inject the notification-manager module here.
+          sed -i 's|<head>|<head>\n<script src="capacitor.js"></script>\n<script src="notif-manager.js"></script>|' www/index.html
 
-      - name: Create capacitor.config.json
+      # ── 7. Write notif-manager.js into www/ ─────────────────────
+      - name: Write notif-manager.js
         run: |
-          cat > capacitor.config.json << 'EOF'
-          {
-            "appId": "com.wukong47.egoistengine",
-            "appName": "Egoist Engine",
-            "webDir": "www",
-            "server": {
-              "androidScheme": "https"
-            },
-            "plugins": {
-              "LocalNotifications": {
-                "smallIcon": "ic_launcher",
-                "iconColor": "#00d4ff"
+          cat > www/notif-manager.js << 'JSEOF'
+          (function() {
+            // Capacitor Local Notifications + reliable Android alarm bridge
+            var _alarms = [];
+            var _swReg  = null;
+
+            /* Request permission (Capacitor path first, fallback to Web API) */
+            async function requestPermission() {
+              try {
+                var cap = window.Capacitor;
+                if (cap && cap.Plugins && cap.Plugins.LocalNotifications) {
+                  var r = await cap.Plugins.LocalNotifications.requestPermissions();
+                  return r.display === 'granted';
+                }
+              } catch(e) {}
+              if ('Notification' in window) {
+                var p = await Notification.requestPermission();
+                return p === 'granted';
+              }
+              return false;
+            }
+
+            /* Schedule via Capacitor LocalNotifications (most reliable on Android) */
+            async function scheduleViaCapacitor(slots) {
+              try {
+                var LN = window.Capacitor && window.Capacitor.Plugins.LocalNotifications;
+                if (!LN) return false;
+                // Cancel previous
+                var pending = await LN.getPending();
+                if (pending.notifications.length) {
+                  await LN.cancel({ notifications: pending.notifications });
+                }
+                var notifs = [];
+                var id = 1000;
+                slots.forEach(function(slot) {
+                  var now  = new Date();
+                  var fire = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
+                                     slot.hour, slot.minute, 0, 0);
+                  if (fire <= now) fire.setDate(fire.getDate() + 1);
+
+                  var habits = slot.habits || [];
+                  if (!habits.length) {
+                    notifs.push({
+                      id: id++,
+                      title: '🔥 Egoist Engine',
+                      body:  'Время выполнить привычки!',
+                      schedule: {
+                        at: fire,
+                        repeats: true,
+                        every: 'day',
+                        on: { hour: slot.hour, minute: slot.minute }
+                      },
+                      smallIcon: 'ic_stat_icon_config_sample',
+                      iconColor: '#00d4ff',
+                      sound: 'default'
+                    });
+                  } else {
+                    habits.forEach(function(h, i) {
+                      var t = new Date(fire.getTime() + i * 500);
+                      notifs.push({
+                        id: id++,
+                        title: (h.icon || '⚡') + ' ' + h.name,
+                        body:  'Не забудь выполнить привычку!',
+                        schedule: {
+                          at: t,
+                          repeats: true,
+                          every: 'day',
+                          on: { hour: slot.hour, minute: slot.minute }
+                        },
+                        smallIcon: 'ic_stat_icon_config_sample',
+                        iconColor: '#00d4ff',
+                        sound: 'default'
+                      });
+                    });
+                  }
+                });
+                if (notifs.length) await LN.schedule({ notifications: notifs });
+                return true;
+              } catch(e) {
+                console.warn('[notif] Capacitor schedule failed:', e);
+                return false;
               }
             }
-          }
-          EOF
 
-      - name: Inject Capacitor bridge + Local Notifications into index.html
-        run: |
-          # Insert Capacitor scripts right after <head> tag
-          sed -i 's|<head>|<head>\n<script src="capacitor.js"></script>|' www/index.html
-          
-          # Inject notification bridge before </body>
-          cat >> www/index.html << 'HTMLEOF'
-          <script>
-          // ── Capacitor Local Notifications Bridge ──
-          // Replaces Web Notification API with native Android notifications
-          (async function initCapacitorNotifications() {
-            if (!window.Capacitor) return;
-            const { LocalNotifications } = await import('./plugins/LocalNotifications/index.js').catch(() => ({}));
-            if (!LocalNotifications) {
-              // Try global Capacitor plugins
-              if (!window.Capacitor.Plugins || !window.Capacitor.Plugins.LocalNotifications) return;
+            /* SW fallback — send schedule to service worker */
+            async function scheduleViaSW(slots) {
+              try {
+                if (!_swReg) {
+                  _swReg = await navigator.serviceWorker.ready;
+                }
+                _swReg.active && _swReg.active.postMessage({ type: 'SET_SCHEDULE', slots: slots });
+                /* Register background sync so SW wakes up even when tab is closed */
+                if (_swReg.sync) {
+                  await _swReg.sync.register('habit-alarm-check');
+                }
+              } catch(e) {
+                console.warn('[notif] SW schedule failed:', e);
+              }
             }
-            const LN = (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) || LocalNotifications;
-            if (!LN) return;
 
-            // Request permission
-            const { display } = await LN.requestPermissions().catch(() => ({ display: 'denied' }));
-            if (display !== 'granted') return;
+            /* Main API — called from app code */
+            window.EgoistNotif = {
+              requestPermission: requestPermission,
 
-            // Override the SW-based notification sender
-            window._capacitorSendNotification = async function(title, body, id) {
-              await LN.schedule({
-                notifications: [{
-                  id: id || Math.floor(Math.random() * 100000),
-                  title: title,
-                  body: body,
-                  schedule: { at: new Date(Date.now() + 100) },
-                  sound: null,
-                  smallIcon: 'ic_launcher',
-                  iconColor: '#00d4ff',
-                }]
-              });
+              schedule: async function(slots) {
+                _alarms = slots;
+                var granted = await requestPermission();
+                if (!granted) { console.warn('[notif] Permission denied'); return; }
+                var ok = await scheduleViaCapacitor(slots);
+                if (!ok) await scheduleViaSW(slots);
+              },
+
+              cancelAll: async function() {
+                try {
+                  var LN = window.Capacitor && window.Capacitor.Plugins.LocalNotifications;
+                  if (LN) {
+                    var p = await LN.getPending();
+                    if (p.notifications.length) await LN.cancel({ notifications: p.notifications });
+                  }
+                  if (_swReg && _swReg.active) {
+                    _swReg.active.postMessage({ type: 'SET_SCHEDULE', slots: [] });
+                  }
+                } catch(e) {}
+              },
+
+              fireNow: async function(title, body) {
+                var granted = await requestPermission();
+                if (!granted) return;
+                try {
+                  var LN = window.Capacitor && window.Capacitor.Plugins.LocalNotifications;
+                  if (LN) {
+                    await LN.schedule({ notifications: [{
+                      id: 9999, title: title, body: body, schedule: { at: new Date(Date.now() + 1000) }
+                    }]});
+                    return;
+                  }
+                } catch(e) {}
+                if (Notification.permission === 'granted') new Notification(title, { body: body });
+              }
             };
 
-            console.log('[Capacitor] LocalNotifications ready');
+            /* Auto-init on page ready */
+            document.addEventListener('DOMContentLoaded', function() {
+              requestPermission();
+            });
           })();
-          </script>
-          HTMLEOF
+          JSEOF
 
-      - name: Add Android platform
-        run: npx cap add android
-
-      - name: Fix Kotlin duplicate class conflict
+      # ── 8. Capacitor init ────────────────────────────────────────
+      - name: Capacitor add android
         run: |
-          cat >> android/build.gradle << 'EOF'
+          npx cap add android 2>/dev/null || true
+          npx cap copy android
+          npx cap sync android
 
-          subprojects {
-            configurations.all {
-              resolutionStrategy {
-                force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.24'
-                force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.24'
-                force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.24'
-              }
-            }
-          }
-          EOF
-
-      - name: Sync web files to Android
-        run: npx cap sync android
-
-      - name: Add notification permissions
+      # ── 9. Patch AndroidManifest.xml — add notification permissions ──
+      - name: Patch AndroidManifest.xml
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
-          sed -i 's|<uses-permission android:name="android.permission.INTERNET" />|<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />\n    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />|' "$MANIFEST"
+          # POST_NOTIFICATIONS (Android 13+)
+          grep -q "POST_NOTIFICATIONS" $MANIFEST || \
+            sed -i 's|<uses-permission android:name="android.permission.INTERNET"|<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>\n    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>\n    <uses-permission android:name="android.permission.VIBRATE"/>\n    <uses-permission android:name="android.permission.WAKE_LOCK"/>\n    <uses-permission android:name="android.permission.INTERNET"|' $MANIFEST
 
-      - name: Set app name
+      # ── 10. Patch build.gradle — targetSdk 34 (required for USE_EXACT_ALARM) ──
+      - name: Patch build.gradle target SDK
         run: |
-          cat > android/app/src/main/res/values/strings.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <string name="app_name">Egoist Engine</string>
-              <string name="title_activity_main">Egoist Engine</string>
-              <string name="package_name">com.wukong47.egoistengine</string>
-              <string name="custom_url_scheme">com.wukong47.egoistengine</string>
-          </resources>
-          EOF
+          GRADLE="android/app/build.gradle"
+          sed -i 's/targetSdkVersion [0-9]*/targetSdkVersion 34/' $GRADLE || true
+          sed -i 's/compileSdkVersion [0-9]*/compileSdkVersion 34/' $GRADLE || true
 
-      - name: Copy icons
+      # ── 11. Install Capacitor Local Notifications plugin ─────────
+      - name: Install @capacitor/local-notifications
         run: |
-          for dir in xxxhdpi xxhdpi xhdpi hdpi mdpi; do
-            mkdir -p android/app/src/main/res/mipmap-$dir
-          done
-          cp icon-512.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-          cp icon-512.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
-          cp icon-192.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-          cp icon-192.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
-          cp icon-192.png android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-          cp icon-192.png android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
-          cp icon-192.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png
-          cp icon-192.png android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
-          cp icon-192.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png
-          cp icon-192.png android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
+          npm install @capacitor/local-notifications
+          npx cap sync android
 
-      - name: Make gradlew executable
-        run: chmod +x android/gradlew
-
+      # ── 12. Build APK ────────────────────────────────────────────
       - name: Build debug APK
         run: |
           cd android
-          ./gradlew assembleDebug --no-daemon
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Upload APK
+      # ── 13. Upload APK ───────────────────────────────────────────
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: EgoistEngine-APK
+          name: egoist-engine-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
