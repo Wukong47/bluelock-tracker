@@ -22,9 +22,9 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      # ── 3. Android SDK ──
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      # ── 3. Android SDK licenses (SDK предустановлен на раннере) ──
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses || true
 
       # ── 4. NPM deps (FIX: npm ci → npm install) ──
       - name: Install dependencies
