@@ -5081,7 +5081,6 @@ async function cancelCapacitorAlarms(){
 async function scheduleCapacitorAlarms(slots, habits){
   const LN = window.Capacitor.Plugins.LocalNotifications;
   try{
-    // Cancel previous alarms
     await cancelCapacitorAlarms();
     if(!slots.length || !habits.length) return;
 
@@ -5089,30 +5088,35 @@ async function scheduleCapacitorAlarms(slots, habits){
     let notifId = 10000;
 
     slots.forEach(slot => {
-      // Schedule for next 7 days so it repeats
-      for(let day = 0; day < 7; day++){
-        habits.forEach(h => {
-          const fireAt = new Date();
-          fireAt.setDate(fireAt.getDate() + day);
-          fireAt.setHours(slot.hour, slot.minute, 0, 0);
-          if(fireAt <= new Date()) fireAt.setDate(fireAt.getDate() + (day === 0 ? 1 : 0));
-          if(fireAt <= new Date()) return; // still in past — skip
+      habits.forEach(h => {
+        // Schedule for the next occurrence of this time today/tomorrow
+        const fireAt = new Date();
+        fireAt.setSeconds(0, 0);
+        fireAt.setHours(slot.hour, slot.minute, 0, 0);
+        // If time already passed today — move to tomorrow
+        if(fireAt <= new Date()) fireAt.setDate(fireAt.getDate() + 1);
 
-          notifications.push({
-            id: notifId++,
-            title: h.icon + ' ' + h.name,
-            body: 'Не забудь выполнить привычку сегодня!',
-            schedule: { at: fireAt, allowWhileIdle: true },
-            smallIcon: 'ic_launcher',
-            iconColor: '#00d4ff',
-          });
+        notifications.push({
+          id: notifId++,
+          title: (h.icon || '⚡') + ' ' + h.name,
+          body: 'Не забудь выполнить привычку сегодня!',
+          schedule: {
+            at: fireAt,
+            repeats: true,          // ← повторять каждый день
+            every: 'day',           // ← ежедневно в это же время
+            allowWhileIdle: true,   // ← работает в Doze-режиме Android
+          },
+          smallIcon: 'ic_stat_icon_config_sample',
+          iconColor: '#00d4ff',
+          sound: 'default',
+          channelId: 'egoist-habits', // ← важно для Android 8+
         });
-      }
+      });
     });
 
     if(notifications.length){
       await LN.schedule({ notifications });
-      console.log('[Notif] Scheduled', notifications.length, 'native alarms');
+      console.log('[Notif] Scheduled', notifications.length, 'daily repeating alarms');
     }
   }catch(e){
     console.warn('[Notif] scheduleCapacitorAlarms error:', e);
@@ -5183,21 +5187,61 @@ async function pingSWCheck(){
   }catch(e){}
 }
 
-// Старт при загрузке
+// ════════════════════════════════════════════════════════════════
+// NOTIFICATION STARTUP — надёжная инициализация для APK + браузер
+// ════════════════════════════════════════════════════════════════
+
+async function createAndroidNotifChannel(){
+  try{
+    const LN = window.Capacitor?.Plugins?.LocalNotifications;
+    if(!LN) return;
+    // Android 8+ ТРЕБУЕТ канал — без него уведомления молча игнорируются
+    await LN.createChannel({
+      id:          'egoist-habits',
+      name:        'Привычки',
+      description: 'Ежедневные напоминания о привычках Egoist Engine',
+      importance:  5,          // IMPORTANCE_HIGH — показывает heads-up баннер
+      visibility:  1,          // VISIBILITY_PUBLIC — на экране блокировки
+      sound:       'default',
+      vibration:   true,
+      lights:      true,
+      lightColor:  '#00d4ff',
+    });
+    console.log('[Notif] Android channel created');
+  }catch(e){
+    console.warn('[Notif] createChannel:', e);
+  }
+}
+
+async function fullNotifInit(){
+  // 1. Создаём канал (нужно ДО первого schedule)
+  await createAndroidNotifChannel();
+  // 2. Запрашиваем разрешение и планируем будильники
+  await scheduleAllAlarms();
+  console.log('[Notif] fullNotifInit complete');
+}
+
+// ── Браузер (PWA) ─────────────────────────────────────────────
 scheduleAllAlarms();
 setTimeout(pingSWCheck, 2000);
 
-// Для Capacitor APK — ждём готовности и перезапускаем расписание
-document.addEventListener('deviceready', () => scheduleAllAlarms());
+// ── Capacitor APK: deviceready — самый ранний надёжный момент ─
+document.addEventListener('deviceready', async () => {
+  console.log('[Capacitor] deviceready');
+  await fullNotifInit();
+}, { once: true });
+
+// ── Capacitor APK: запасной путь если deviceready уже прошёл ─
 window.addEventListener('load', () => {
-  // Небольшая задержка чтобы Capacitor успел инициализироваться
-  setTimeout(() => {
-    if(window.Capacitor) scheduleAllAlarms();
-  }, 1500);
+  setTimeout(async () => {
+    if(window.Capacitor?.isNativePlatform?.()){
+      await fullNotifInit();
+    }
+  }, 800); // небольшая пауза чтобы Capacitor bridge успел встать
 });
 
-// Также проверяем при возвращении на вкладку
-document.addEventListener('visibilitychange', ()=>{
+// ── Возврат на вкладку — проверяем SW ────────────────────────
+document.addEventListener('visibilitychange', () => {
   if(document.visibilityState === 'visible') pingSWCheck();
 });
 
