@@ -2721,6 +2721,14 @@ body.metavision-active .skills-detail-bars {
 
 .notif-section{padding:18px 18px 14px;position:relative;}
 .notif-divider{height:1px;background:rgba(255,255,255,.06);margin:0 18px;}
+.notif-habit-row{border:1px solid rgba(0,212,255,.1);border-radius:12px;padding:8px 10px;margin-bottom:6px;background:rgba(0,212,255,.03);}
+.notif-habit-main{display:flex;align-items:center;gap:8px;cursor:pointer;}
+.notif-habit-name{flex:1;font-size:12px;letter-spacing:1px;color:var(--text-primary);}
+.notif-habit-plus{font-size:9px;letter-spacing:1px;color:var(--neon-blue);opacity:.8;text-transform:uppercase;}
+.notif-habit-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.notif-habit-chips:empty{display:none;}
+.notif-habit-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.25);font-family:var(--font-mono);font-size:10px;color:var(--neon-blue);cursor:pointer;}
+.notif-habit-chip b{color:var(--neon-red);font-size:9px;}
 
 .notif-section-header{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
@@ -3335,6 +3343,21 @@ body.metavision-active .skills-detail-bars {
             <span class="notif-add-plus">+</span>
             <span>Добавить время</span>
           </button>
+        </div>
+      </div>
+
+      <div class="notif-section">
+        <div class="notif-section-header" id="notifHabitHeader">
+          <div class="notif-section-left">
+            <div class="notif-section-title">Отдельное время для привычки</div>
+            <div class="notif-section-sub">Нажми на название чтобы настроить →</div>
+          </div>
+          <div class="ios-toggle" id="notifHabitToggle"></div>
+        </div>
+
+        <!-- Per-habit time list (shown only when habit toggle is ON) -->
+        <div class="notif-slots-wrap" id="notifHabitSlots">
+          <div class="notif-habits-list" id="notifHabitList"></div>
         </div>
       </div>
 
@@ -4683,7 +4706,9 @@ function updateTotals(){
 let notifState = {
   enabled: false,
   globalEnabled: false,
-  globalSlots: []            // [{id, hour, minute}]
+  globalSlots: [],           // [{id, hour, minute}]
+  habitEnabled: false,
+  habitSlots: []              // [{id, habitId, hour, minute}]
 };
 
 function loadNotifState(){
@@ -4734,6 +4759,13 @@ function renderNotifPanel(){
   // Slots wrap visible/hidden
   const wrap = document.getElementById('notifGlobalSlots');
   wrap.classList.toggle('open', notifState.globalEnabled);
+
+  // Habit (per-habit) toggle
+  const habitToggle = document.getElementById('notifHabitToggle');
+  habitToggle.className = 'ios-toggle' + (notifState.habitEnabled ? ' on' : '');
+  const habitWrap = document.getElementById('notifHabitSlots');
+  habitWrap.classList.toggle('open', notifState.habitEnabled);
+  renderHabitNotifList();
 }
 
 // ── SW Reset button ────────────────────────────────────────────
@@ -4929,6 +4961,84 @@ function renderGlobalSlots(){
   });
 }
 
+// ── Per-habit toggle ────────────────────────────────────────────
+document.getElementById('notifHabitHeader').addEventListener('click', e=>{
+  if(e.target.closest('#notifHabitToggle')){
+    notifState.habitEnabled = !notifState.habitEnabled;
+    saveNotifState();
+    renderNotifPanel();
+    scheduleAllAlarms();
+    return;
+  }
+  const wrap = document.getElementById('notifHabitSlots');
+  wrap.classList.toggle('open');
+  renderHabitNotifList();
+});
+
+// ── Render per-habit time list ─────────────────────────────────
+function renderHabitNotifList(){
+  const list = document.getElementById('notifHabitList');
+  if(!list) return;
+  if(!Array.isArray(notifState.habitSlots)) notifState.habitSlots = [];
+
+  const habits = state.tasks.filter(t => !t.completed && !t.archived);
+  if(!habits.length){
+    list.innerHTML = '<div style="opacity:.4;font-size:11px;padding:10px;text-align:center;">Сначала создай привычку</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  habits.forEach(t => {
+    const cfg = SKILLS[t.skill] || {};
+    const icon = cfg.icon || '🔥';
+    const mySlots = notifState.habitSlots
+      .filter(s => s.habitId === t.id)
+      .sort((a,b)=> a.hour*60+a.minute - (b.hour*60+b.minute));
+
+    const chips = mySlots.map(s => {
+      const hh = String(s.hour).padStart(2,'0');
+      const mm = String(s.minute).padStart(2,'0');
+      return `<span class="notif-habit-chip" data-slot="${s.id}">${hh}:${mm} <b data-del="${s.id}">✕</b></span>`;
+    }).join('');
+
+    const row = document.createElement('div');
+    row.className = 'notif-habit-row';
+    row.innerHTML = `
+      <div class="notif-habit-main">
+        <span class="notif-habit-icon">${icon}</span>
+        <span class="notif-habit-name">${t.name}</span>
+        <span class="notif-habit-plus">+ время</span>
+      </div>
+      <div class="notif-habit-chips">${chips}</div>`;
+
+    row.querySelector('.notif-habit-main').addEventListener('click', ()=>{
+      openTimePicker(null, (h,m)=>{
+        notifState.habitSlots.push({ id: Date.now(), habitId: t.id, hour: h, minute: m });
+        saveNotifState(); renderHabitNotifList(); scheduleAllAlarms();
+      });
+    });
+
+    row.querySelectorAll('.notif-habit-chip').forEach(chip => {
+      const sid = +chip.dataset.slot;
+      chip.addEventListener('click', (e)=>{
+        if(e.target.dataset.del){
+          notifState.habitSlots = notifState.habitSlots.filter(s => s.id !== sid);
+          saveNotifState(); renderHabitNotifList(); scheduleAllAlarms();
+          return;
+        }
+        const slot = notifState.habitSlots.find(s => s.id === sid);
+        if(!slot) return;
+        openTimePicker({hour:slot.hour, minute:slot.minute}, (h,m)=>{
+          slot.hour = h; slot.minute = m;
+          saveNotifState(); renderHabitNotifList(); scheduleAllAlarms();
+        });
+      });
+    });
+
+    list.appendChild(row);
+  });
+}
+
 // ════════════════════════════════════════════════════════════════
 // TIME PICKER (scroll-wheel)
 // ════════════════════════════════════════════════════════════════
@@ -5030,40 +5140,63 @@ async function scheduleAllAlarms(){
   _alarmTimers.forEach(t=>clearTimeout(t));
   _alarmTimers.length=0;
 
+  // дефолты для персональных времён
+  if(typeof notifState.habitEnabled === 'undefined') notifState.habitEnabled = false;
+  if(!Array.isArray(notifState.habitSlots)) notifState.habitSlots = [];
+
   if(!notifState.enabled){
     sendScheduleToSW([]);
     cancelCapacitorAlarms();
     return;
   }
 
-  const habits = state.tasks
+  // все активные привычки (для глобальных слотов)
+  const allHabits = state.tasks
     .filter(t => !t.completed && !t.archived)
     .map(t => {
       const cfg = SKILLS[t.skill] || {};
       return { id: t.id, name: t.name, icon: cfg.icon || '🔥' };
     });
 
-  const slots = notifState.globalEnabled ? notifState.globalSlots : [];
+  // единый список слотов — каждый несёт СВОИ привычки
+  const combinedSlots = [];
+
+  // 1) глобальные слоты → ВСЕ привычки
+  if(notifState.globalEnabled){
+    (notifState.globalSlots || []).forEach(s => {
+      combinedSlots.push({ hour: s.hour, minute: s.minute, habits: allHabits });
+    });
+  }
+
+  // 2) персональные слоты → ОДНА привычка
+  if(notifState.habitEnabled){
+    (notifState.habitSlots || []).forEach(s => {
+      const t = state.tasks.find(x => x.id === s.habitId && !x.completed && !x.archived);
+      if(!t) return;
+      const cfg = SKILLS[t.skill] || {};
+      combinedSlots.push({
+        hour: s.hour, minute: s.minute,
+        habits: [{ id: t.id, name: t.name, icon: cfg.icon || '🔥' }]
+      });
+    });
+  }
 
   // ── Capacitor APK path — нативный планировщик ──
   if(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications){
-    await scheduleCapacitorAlarms(slots, habits);
+    await scheduleCapacitorAlarms(combinedSlots);
     return;
   }
 
-  // ── Browser / PWA path — SW ──
-  const swSlots = slots.map(slot => ({
-    hour: slot.hour, minute: slot.minute, habits
-  }));
-  sendScheduleToSW(swSlots);
+  // ── Browser / PWA path — SW (каждый слот уже со своими привычками) ──
+  sendScheduleToSW(combinedSlots);
 
   if(Notification.permission !== 'granted') return;
   const now = new Date();
-  slots.forEach(slot => {
+  combinedSlots.forEach(slot => {
     const next = new Date();
     next.setHours(slot.hour, slot.minute, 0, 0);
     if(next <= now) next.setDate(next.getDate()+1);
-    const t = setTimeout(()=>{ fireHabitNotifications(habits); scheduleAllAlarms(); }, next - now);
+    const t = setTimeout(()=>{ fireHabitNotifications(slot.habits); scheduleAllAlarms(); }, next - now);
     _alarmTimers.push(t);
   });
 }
@@ -5078,17 +5211,17 @@ async function cancelCapacitorAlarms(){
   }catch(e){}
 }
 
-async function scheduleCapacitorAlarms(slots, habits){
+async function scheduleCapacitorAlarms(slots){
   const LN = window.Capacitor.Plugins.LocalNotifications;
   try{
     await cancelCapacitorAlarms();
-    if(!slots.length || !habits.length) return;
+    if(!slots.length) return;
 
     const notifications = [];
     let notifId = 10000;
 
     slots.forEach(slot => {
-      habits.forEach(h => {
+      (slot.habits || []).forEach(h => {
         // Schedule for the next occurrence of this time today/tomorrow
         const fireAt = new Date();
         fireAt.setSeconds(0, 0);
@@ -7005,54 +7138,14 @@ document.getElementById('exportBtn')?.addEventListener('click', ()=>{
     blFlowMode:      localStorage.getItem('blFlowMode'),
     blSoundEnabled:  localStorage.getItem('blSoundEnabled'),
   };
-  const jsonStr = JSON.stringify(payload, null, 2);
-const fileName = 'bluelock_tracker_backup.json';
-
-(async () => {
-  const cap = window.Capacitor;
-  const FS = cap && cap.Plugins && cap.Plugins.Filesystem;
-  const Share = cap && cap.Plugins && cap.Plugins.Share;
-
-  // В приложении (Capacitor) — пишем файл и открываем меню "Поделиться/Сохранить"
-  if (cap && cap.isNativePlatform && cap.isNativePlatform() && FS) {
-    try {
-      const res = await FS.writeFile({
-        path: fileName,
-        data: jsonStr,
-        directory: 'CACHE',
-        encoding: 'utf8'
-      });
-      if (Share) {
-        await Share.share({
-          title: 'Egoist Engine Backup',
-          url: res.uri,
-          dialogTitle: 'Сохранить бэкап'
-        });
-      }
-      showToast('✓ BACKUP EXPORTED', 'success');
-      playTone('click');
-    } catch (e) {
-      console.error('[export] native failed:', e);
-      showToast('✕ Ошибка экспорта', 'error');
-    }
-    return;
-  }
-
-  // Браузер / PWA — старый способ через download
-  try {
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = fileName;
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a); URL.revokeObjectURL(url);
-    showToast('✓ BACKUP EXPORTED', 'success');
-    playTone('click');
-  } catch (e) {
-    console.error('[export] browser failed:', e);
-    showToast('✕ Ошибка экспорта', 'error');
-  }
-})();
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'bluelock_tracker_backup.json';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  showToast('✓ BACKUP EXPORTED', 'success');
+  playTone('click');
 });
 
 document.getElementById('importFileInput')?.addEventListener('change', e=>{
