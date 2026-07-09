@@ -1360,6 +1360,28 @@ body.flow-active #bgOverlay {
 .confirm-modal-btn.destructive{color:#ff453a;font-weight:600;}
 .confirm-modal-btn.confirm{color:var(--neon-blue);font-weight:600;}
 
+/* ══════════ UNDO FAB ══════════ */
+#undoFab{
+  position: fixed;
+  left: 16px;
+  bottom: 90px;
+  z-index: 500;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  border: 1px solid var(--neon-blue);
+  background: rgba(0,212,255,0.12);
+  color: var(--neon-blue);
+  font-size: 22px;
+  cursor: pointer;
+  display: none;
+  align-items: center; justify-content: center;
+  box-shadow: 0 0 18px rgba(0,212,255,0.35);
+  transition: transform .2s, opacity .2s;
+  opacity: 0;
+}
+#undoFab.visible{ display: flex; opacity: 1; }
+#undoFab:active{ transform: scale(0.9); }
+
 /* ══════════ TOAST ══════════ */
 .toast-container{position:fixed;top:80px;right:20px;z-index:9000;display:flex;flex-direction:column;gap:6px;}
 .toast{font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;padding:8px 14px;border-left:3px solid var(--neon-blue);background:rgba(5,12,20,.99);animation:toastIn .3s ease,toastOut .3s ease 2.7s forwards;max-width:280px;box-shadow:0 4px 20px rgba(0,0,0,.5),0 0 20px rgba(0,212,255,.1);border-radius:var(--r-md);}
@@ -4011,6 +4033,49 @@ function loadState(){
 }
 function saveState(){ try{ localStorage.setItem('blueLockState',JSON.stringify(state)); }catch(e){} }
 
+// ── Snapshot / Undo система ──
+let _undoSnapshot = null;
+let _undoTimer = null;
+
+function pushUndo(){
+  _undoSnapshot = JSON.parse(JSON.stringify(state));
+  showUndoButton();
+}
+
+function doUndo(){
+  if(!_undoSnapshot) return;
+  state = _undoSnapshot;
+  _undoSnapshot = null;
+  saveState();
+  renderAll();
+  hideUndoButton();
+  showToast('↩ Отменено', 'info');
+}
+
+function showUndoButton(){
+  let btn = document.getElementById('undoFab');
+  if(!btn){
+    btn = document.createElement('button');
+    btn.id = 'undoFab';
+    btn.innerHTML = '↩';
+    btn.title = 'Отменить';
+    btn.addEventListener('click', doUndo);
+    document.body.appendChild(btn);
+  }
+  btn.classList.add('visible');
+  clearTimeout(_undoTimer);
+  _undoTimer = setTimeout(hideUndoButton, 8000);
+}
+
+function hideUndoButton(){
+  const btn = document.getElementById('undoFab');
+  if(btn) btn.classList.remove('visible');
+}
+
+function confirmAction(message, onYes){
+  openConfirmModal('Подтвердите действие', message, 'Да', onYes);
+}
+
 // ── date helpers ──
 function todayStr(){ return localDateStr(new Date()); }
 function localDateStr(d){
@@ -5473,11 +5538,15 @@ function deleteTask(id){
 }
 
 function resetTaskProgress(id){
-  const task=state.tasks.find(t=>t.id===id); if(!task) return;
-  task.dayMap={}; task.totalDone=0; task.completed=false; delete task.history;
-  addLog(t('log_reset_progress',{name:task.name}),'warn');
-  showToast('↺ PROGRESS RESET','info');
-  saveState(); renderAll();
+  const task=state.tasks.find(t=>t.id===id);
+  if(!task) return;
+  confirmAction('Вы точно хотите сбросить прогресс "' + task.name + '"?', ()=>{
+    pushUndo(); // снапшот ДО изменений
+    task.dayMap={}; task.totalDone=0; task.completed=false; delete task.history;
+    addLog(t('log_reset_progress',{name:task.name}),'warn');
+    showToast('↺ PROGRESS RESET','info');
+    saveState(); renderAll();
+  });
 }
 
 function editTask(id, newName, newDesc, newSkill, newActiveDays, newHideOnInactive){
