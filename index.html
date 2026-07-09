@@ -7207,14 +7207,54 @@ document.getElementById('exportBtn')?.addEventListener('click', ()=>{
     blFlowMode:      localStorage.getItem('blFlowMode'),
     blSoundEnabled:  localStorage.getItem('blSoundEnabled'),
   };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = 'bluelock_tracker_backup.json';
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a); URL.revokeObjectURL(url);
-  showToast('✓ BACKUP EXPORTED', 'success');
-  playTone('click');
+  const jsonStr = JSON.stringify(payload, null, 2);
+    const fileName = 'bluelock_tracker_backup.json';
+
+    (async () => {
+      const cap = window.Capacitor;
+      const FS = cap && cap.Plugins && cap.Plugins.Filesystem;
+      const Share = cap && cap.Plugins && cap.Plugins.Share;
+
+      // APK (Capacitor) — пишем файл и открываем "Поделиться/Сохранить"
+      if (cap && cap.isNativePlatform && cap.isNativePlatform() && FS) {
+        try {
+          const res = await FS.writeFile({
+            path: fileName,
+            data: jsonStr,
+            directory: 'CACHE',
+            encoding: 'utf8'
+          });
+          if (Share) {
+            await Share.share({
+              title: 'Egoist Engine Backup',
+              url: res.uri,
+              dialogTitle: 'Сохранить бэкап'
+            });
+          }
+          showToast('✓ BACKUP EXPORTED', 'success');
+          playTone('click');
+        } catch (e) {
+          console.error('[export] native failed:', e);
+          showToast('✕ Ошибка экспорта', 'error');
+        }
+        return;
+      }
+
+      // Браузер / PWA — старый способ
+      try {
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = fileName;
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a); URL.revokeObjectURL(url);
+        showToast('✓ BACKUP EXPORTED', 'success');
+        playTone('click');
+      } catch (e) {
+        console.error('[export] browser failed:', e);
+        showToast('✕ Ошибка экспорта', 'error');
+      }
+    })();
 });
 
 document.getElementById('importFileInput')?.addEventListener('change', e=>{
