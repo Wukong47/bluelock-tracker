@@ -7385,11 +7385,17 @@ document.getElementById('exportBtn')?.addEventListener('click', ()=>{
   const payload = {
     version: '0.9',
     exportedAt: new Date().toISOString(),
-    blueLockState:   JSON.parse(localStorage.getItem('blueLockState') || 'null'),
-    blueLockUI:      JSON.parse(localStorage.getItem('blueLockUI')    || 'null'),
-    blAchievements:  JSON.parse(localStorage.getItem('blAchievements')|| 'null'),
-    blFlowMode:      localStorage.getItem('blFlowMode'),
-    blSoundEnabled:  localStorage.getItem('blSoundEnabled'),
+    blueLockState:       JSON.parse(localStorage.getItem('blueLockState') || 'null'),
+    blueLockUI:          JSON.parse(localStorage.getItem('blueLockUI')    || 'null'),
+    blAchievements:      JSON.parse(localStorage.getItem('blAchievements')|| 'null'),
+    blFlowMode:          localStorage.getItem('blFlowMode'),
+    blSoundEnabled:      localStorage.getItem('blSoundEnabled'),
+    blPenaltyMode:       localStorage.getItem('blPenaltyMode'),
+    blInterfaceScale:    localStorage.getItem('blInterfaceScale'),
+    habitNotifState:     JSON.parse(localStorage.getItem('habitNotifState') || 'null'),
+    blAutoPenaltyCount:  localStorage.getItem('blAutoPenaltyCount'),
+    app_custom_bg:       localStorage.getItem('app_custom_bg'),
+    app_custom_bg_name:  localStorage.getItem('app_custom_bg_name')
   };
   const jsonStr = JSON.stringify(payload, null, 2);
     const fileName = 'bluelock_tracker_backup.json';
@@ -7448,12 +7454,18 @@ document.getElementById('importFileInput')?.addEventListener('change', e=>{
     try{
       const data = JSON.parse(ev.target.result);
       if(!data.blueLockState) throw new Error('Invalid format');
-      if(data.blueLockState)  localStorage.setItem('blueLockState',  JSON.stringify(data.blueLockState));
-      if(data.blueLockUI)     localStorage.setItem('blueLockUI',     JSON.stringify(data.blueLockUI));
-      if(data.blAchievements) localStorage.setItem('blAchievements', JSON.stringify(data.blAchievements));
-      if(data.blFlowMode)     localStorage.setItem('blFlowMode',     data.blFlowMode);
-      if(data.blSoundEnabled) localStorage.setItem('blSoundEnabled', data.blSoundEnabled);
-      showToast('✓ IMPORT COMPLETE — RELOADING…', 'success');
+              if(data.blueLockState)  localStorage.setItem('blueLockState',  JSON.stringify(data.blueLockState));
+              if(data.blueLockUI)     localStorage.setItem('blueLockUI',     JSON.stringify(data.blueLockUI));
+              if(data.blAchievements) localStorage.setItem('blAchievements', JSON.stringify(data.blAchievements));
+              if(data.blFlowMode !== undefined && data.blFlowMode !== null) localStorage.setItem('blFlowMode', data.blFlowMode);
+              if(data.blSoundEnabled !== undefined && data.blSoundEnabled !== null) localStorage.setItem('blSoundEnabled', data.blSoundEnabled);
+              if(data.blPenaltyMode !== undefined && data.blPenaltyMode !== null) localStorage.setItem('blPenaltyMode', data.blPenaltyMode);
+              if(data.blInterfaceScale !== undefined && data.blInterfaceScale !== null) localStorage.setItem('blInterfaceScale', data.blInterfaceScale);
+              if(data.habitNotifState) localStorage.setItem('habitNotifState', JSON.stringify(data.habitNotifState));
+              if(data.blAutoPenaltyCount !== undefined && data.blAutoPenaltyCount !== null) localStorage.setItem('blAutoPenaltyCount', data.blAutoPenaltyCount);
+              if(data.app_custom_bg) localStorage.setItem('app_custom_bg', data.app_custom_bg);
+              if(data.app_custom_bg_name) localStorage.setItem('app_custom_bg_name', data.app_custom_bg_name);
+              showToast('✓ IMPORT COMPLETE — RELOADING…', 'success');
       setTimeout(()=>location.reload(), 800);
     } catch(err){
       showToast('✗ INVALID BACKUP FILE', 'penalty');
