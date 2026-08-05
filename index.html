@@ -281,6 +281,16 @@ body::after {
 /* Allow disabling scanlines entirely on low-end devices via a settings toggle (optional, see JS) */
 body.scanlines-off #bgScanlines { display: none; }
 
+/* ── "Дополнительные функции" → декоративные эффекты (сетка/сканлайны/уголки) ──
+   By default these are OFF (clean background). Toggling the setting on adds
+   class "fx-decor-on" to <body>, which brings the grid/scanlines/corners back. */
+body::after { display: none; }
+#bgScanlines { display: none; }
+.corner-deco { display: none; }
+body.fx-decor-on::after { display: block; }
+body.fx-decor-on #bgScanlines { display: block; }
+body.fx-decor-on .corner-deco { display: block; }
+
 /* ── FLOW MODE: background image pulses, overlay darkens ── */
 body.flow-active::before {
   filter: saturate(1.1) brightness(0.48);
@@ -3326,6 +3336,18 @@ body.metavision-active .skills-detail-bars {
       </div>
     </div>
 
+    <!-- ADDITIONAL FEATURES -->
+    <div class="settings-group">
+      <div class="settings-group-label" data-i18n="settings_extra_group">ADDITIONAL FEATURES</div>
+      <div class="settings-check-row">
+        <span class="settings-check-label" data-i18n="setting_fx_decor">Decorative FX (grid / scanlines / corners)</span>
+        <div class="ios-toggle" id="fxDecorToggle"></div>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);letter-spacing:1px;margin-top:6px;line-height:1.5;" data-i18n="setting_fx_decor_desc">
+        Off by default for a clean background. Turn on to restore the grid, CRT scanlines and corner brackets.
+      </div>
+    </div>
+
     <!-- DATA MANAGEMENT -->
     <div class="settings-group settings-data-row">
       <div class="settings-data-label">Data Management</div>
@@ -3787,6 +3809,8 @@ const I18N = {
     theme_standard:'Standard', theme_black:'Pure Black',
     settings_language_group:'LANGUAGE', settings_language:'Interface Language',
     settings_saved:'Settings are saved automatically',
+    settings_extra_group:'ADDITIONAL FEATURES', setting_fx_decor:'Decorative FX (grid / scanlines / corners)',
+    setting_fx_decor_desc:'Off by default for a clean background. Turn on to restore the grid, CRT scanlines and corner brackets.',
     btn_full_reset:'Reset All Data',
     confirm_full_reset:'⚠ FULL RESET\n\nThis will permanently delete ALL habits, erase ALL skill progress, and reset ALL streaks and trophies to zero.\n\nThis cannot be undone. Proceed?',
     section_training:'TRAINING LOG', section_grid:'ATTRIBUTE GRID', section_skills:'SKILL LEVELS', section_log:'SYSTEM LOG',
@@ -3857,6 +3881,8 @@ const I18N = {
     theme_standard:'Стандарт', theme_black:'Чёрный',
     settings_language_group:'ЯЗЫК', settings_language:'Язык интерфейса',
     settings_saved:'Настройки сохраняются автоматически',
+    settings_extra_group:'ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ', setting_fx_decor:'Декор. эффекты (сетка / сканлайны / уголки)',
+    setting_fx_decor_desc:'По умолчанию выключено — чистый фон. Включи, чтобы вернуть сетку, CRT-полосы и угловые элементы.',
     btn_full_reset:'Сбросить все данные',
     confirm_full_reset:'⚠ ПОЛНЫЙ СБРОС\n\nБудут безвозвратно удалены ВСЕ привычки, обнулён ВСЕ прогресс навыков, сброшены ВСЕ серии и трофеи.\n\nОтменить невозможно. Продолжить?',
     section_training:'ЖУРНАЛ ТРЕНИРОВОК', section_grid:'СЕТКА АТРИБУТОВ', section_skills:'УРОВНИ НАВЫКОВ', section_log:'СИСТЕМНЫЙ ЛОГ',
@@ -7683,6 +7709,40 @@ document.getElementById('penaltyModeToggle')?.addEventListener('click', function
   );
   try { playTone('click'); } catch(e){}
 });
+
+// ════════════════════════════════════════════════════════════════
+// ADDITIONAL FEATURES → decorative FX (grid / scanlines / corners)
+// Off by default; toggle adds/removes body.fx-decor-on.
+// ════════════════════════════════════════════════════════════════
+
+let fxDecorEnabled = false;
+
+function loadFxDecor(){
+  try { fxDecorEnabled = localStorage.getItem('blFxDecor') === 'true'; } catch(e){}
+}
+function saveFxDecor(){
+  try { localStorage.setItem('blFxDecor', String(fxDecorEnabled)); } catch(e){}
+}
+function applyFxDecor(){
+  document.body.classList.toggle('fx-decor-on', fxDecorEnabled);
+  document.getElementById('fxDecorToggle')?.classList.toggle('on', fxDecorEnabled);
+}
+
+document.getElementById('fxDecorToggle')?.addEventListener('click', function(){
+  fxDecorEnabled = !fxDecorEnabled;
+  applyFxDecor();
+  saveFxDecor();
+  showToast(
+    fxDecorEnabled
+      ? (uiSettings.lang==='ru' ? '✓ ЭФФЕКТЫ ВКЛЮЧЕНЫ' : '✓ FX ENABLED')
+      : (uiSettings.lang==='ru' ? 'Эффекты выключены' : 'FX disabled'),
+    'info'
+  );
+  try { playTone('click'); } catch(e){}
+});
+
+loadFxDecor();
+applyFxDecor();
 
 // ── Run at page load: penalise missed habits from yesterday ──────
 function runDailyPenaltyCheck(){
