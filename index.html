@@ -1651,163 +1651,6 @@ body.liquid-glass-enabled:not(.lg-no-blur) .profile-skills-section {
 }
 
 /* ══════════════════════════════════════════════
-   GENESIS — ПРОЦЕДУРНАЯ СУЩНОСТЬ
-══════════════════════════════════════════════ */
-.genesis-screen {
-  display: none;
-  position: relative;
-  z-index: 10;
-  min-height: 100vh;
-  padding: 16px 16px 96px;
-  max-width: 680px;
-  margin: 0 auto;
-}
-.genesis-screen.visible { display: block; }
-
-.genesis-canvas-wrap {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1;
-  max-width: 600px;
-  margin: 0 auto;
-  border-radius: var(--r-xl);
-  overflow: hidden;
-  border: 1px solid rgba(0,212,255,0.15);
-  background: #000;
-  box-shadow: 0 0 60px rgba(0,212,255,0.08), inset 0 0 80px rgba(0,0,0,0.8);
-}
-
-#genesisCanvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-.genesis-ui-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 16px;
-}
-
-.genesis-title {
-  font-family: var(--font-display);
-  font-size: 14px;
-  letter-spacing: 4px;
-  color: rgba(255,255,255,0.6);
-  text-align: center;
-  text-shadow: 0 0 10px rgba(0,212,255,0.3);
-}
-
-.genesis-synergy-panel {
-  pointer-events: auto;
-  background: rgba(0,0,0,0.6);
-  border: 1px solid rgba(0,212,255,0.2);
-  border-radius: var(--r-lg);
-  padding: 10px 12px;
-  backdrop-filter: blur(4px);
-}
-
-.genesis-synergy-title {
-  font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: 2px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  margin-bottom: 6px;
-  text-align: center;
-}
-
-.genesis-synergy-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-family: var(--font-body);
-  font-size: 10px;
-  font-weight: 600;
-  margin: 2px;
-  border: 1px solid;
-  background: rgba(0,0,0,0.4);
-}
-
-.genesis-awakening-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9000;
-  background: #000;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  opacity: 0;
-  transition: opacity 1.2s ease;
-}
-.genesis-awakening-overlay.active {
-  display: flex;
-  opacity: 1;
-}
-
-.genesis-awakening-text {
-  font-family: var(--font-display);
-  font-size: 28px;
-  letter-spacing: 6px;
-  color: #fff;
-  text-shadow: 0 0 30px var(--neon-blue), 0 0 60px var(--neon-cyan);
-  animation: awakeningPulse 2s ease-in-out infinite;
-  margin-top: 20px;
-}
-
-@keyframes awakeningPulse {
-  0%,100% { opacity: 0.8; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.05); }
-}
-
-.genesis-zone-indicator {
-  position: fixed;
-  top: 60px;
-  right: 16px;
-  z-index: 300;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--neon-gold);
-  background: rgba(255,215,0,0.1);
-  color: var(--neon-gold);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  box-shadow: 0 0 12px rgba(255,215,0,0.3);
-  display: none;
-  animation: zoneFloat 3s ease-in-out infinite;
-}
-.genesis-zone-indicator.visible { display: block; }
-
-@keyframes zoneFloat {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-.genesis-entity-name {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: var(--font-display);
-  font-size: 18px;
-  letter-spacing: 5px;
-  color: rgba(255,255,255,0.9);
-  text-shadow: 0 0 20px rgba(0,212,255,0.5);
-  opacity: 0;
-  transition: opacity 1s ease;
-}
-.genesis-entity-name.visible { opacity: 1; }
-
-/* ══════════════════════════════════════════════
    BOTTOM NAV CONTAINER  (dock + add button)
    — single fixed element, always centered
 ══════════════════════════════════════════════ */
@@ -3148,6 +2991,346 @@ body.metavision-active .skills-detail-bars {
   box-shadow:0 0 0 1px rgba(0,212,255,.4) inset;
 }
 .timepick-btn.confirm:hover{box-shadow:0 0 20px rgba(0,212,255,.2),0 0 0 1px rgba(0,212,255,.6) inset;}
+
+
+/* ════════════════════════════════════════════════════════════════
+   ELIMINATION MODE — True Blue Lock
+════════════════════════════════════════════════════════════════ */
+.task-item.eliminated {
+  position: relative;
+  background: #0a0a0a !important;
+  border-color: #ff2442 !important;
+  opacity: 0.85;
+  overflow: hidden;
+}
+.task-item.eliminated::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,36,66,0.08) 10px, rgba(255,36,66,0.08) 11px),
+    repeating-linear-gradient(-45deg, transparent, transparent 15px, rgba(0,0,0,0.2) 15px, rgba(0,0,0,0.2) 16px);
+  pointer-events: none;
+  z-index: 2;
+  border-radius: inherit;
+}
+.task-item.eliminated .hc-name,
+.task-item.eliminated .hc-desc,
+.task-item.eliminated .hc-skill-tag {
+  color: #555 !important;
+  text-shadow: none;
+}
+.task-item.eliminated .hc-icon {
+  filter: grayscale(100%) brightness(0.4);
+  border-color: #333 !important;
+}
+.task-item.eliminated .hc-check {
+  display: none !important;
+}
+.eliminated-badge {
+  font-family: var(--font-display);
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--neon-red);
+  background: rgba(255,36,66,0.12);
+  border: 1px solid rgba(255,36,66,0.4);
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  animation: eliminatedPulse 2s ease-in-out infinite;
+}
+@keyframes eliminatedPulse {
+  0%,100% { opacity: 0.7; box-shadow: 0 0 6px rgba(255,36,66,0.2); }
+  50% { opacity: 1; box-shadow: 0 0 14px rgba(255,36,66,0.5); }
+}
+.revival-btn {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 2px;
+  padding: 5px 10px;
+  border: 1px solid var(--neon-blue);
+  background: rgba(0,212,255,0.1);
+  color: var(--neon-blue);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.revival-btn:hover {
+  background: rgba(0,212,255,0.2);
+  box-shadow: 0 0 12px rgba(0,212,255,0.3);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CURSE DECAY — Visual degradation on missed days
+════════════════════════════════════════════════════════════════ */
+.task-item.curse-lvl-1 {
+  filter: contrast(0.92) brightness(0.92);
+}
+.task-item.curse-lvl-1::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,36,66,0.04) 2px, rgba(255,36,66,0.04) 3px);
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+}
+.task-item.curse-lvl-2 {
+  filter: contrast(0.82) brightness(0.78) grayscale(0.3);
+}
+.task-item.curse-lvl-2::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,36,66,0.07) 2px, rgba(255,36,66,0.07) 3px),
+    repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.15) 3px, rgba(0,0,0,0.15) 4px);
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+}
+.task-item.curse-lvl-3 {
+  filter: contrast(0.7) brightness(0.6) grayscale(0.55);
+  border-color: rgba(255,36,66,0.35) !important;
+}
+.task-item.curse-lvl-3::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,36,66,0.1) 8px, rgba(255,36,66,0.1) 9px),
+    repeating-linear-gradient(-30deg, transparent, transparent 12px, rgba(0,0,0,0.25) 12px, rgba(0,0,0,0.25) 13px);
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+}
+.curse-indicator {
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 1px;
+  color: var(--neon-red);
+  opacity: 0.8;
+  margin-left: 4px;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   RIVAL GHOST — Past self radar line
+════════════════════════════════════════════════════════════════ */
+.ghost-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+.ghost-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+.ghost-legend-line {
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+}
+.ghost-legend-line.current {
+  background: var(--neon-blue);
+  box-shadow: 0 0 6px var(--neon-blue);
+}
+.ghost-legend-line.past {
+  background: rgba(255,255,255,0.25);
+  border: 1px dashed rgba(255,255,255,0.3);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SCOUT REPORT — Weekly auto-generated report
+════════════════════════════════════════════════════════════════ */
+.scout-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.88);
+  z-index: 1300;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.scout-overlay.open { opacity: 1; pointer-events: all; }
+.scout-modal {
+  width: calc(min(420px, 100vw - 24px) / var(--ui-scale,1));
+  max-height: 92vh;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-glow);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(0,212,255,0.08);
+  transform: scale(0.92) translateY(20px);
+  transform-origin: center center;
+  transition: transform 0.35s cubic-bezier(.34,1.56,.64,1);
+}
+.scout-overlay.open .scout-modal { transform: scale(var(--ui-scale,1)) translateY(0); }
+.scout-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid rgba(0,212,255,0.1);
+  flex-shrink: 0;
+}
+.scout-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 4px;
+  color: var(--text-primary);
+}
+.scout-close {
+  width: 30px; height: 30px;
+  border: 1px solid rgba(255,36,66,0.4);
+  background: rgba(255,36,66,0.06);
+  color: var(--neon-red); border-radius: var(--r-sm);
+  cursor: pointer; font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+.scout-close:hover { background: rgba(255,36,66,0.18); }
+.scout-body {
+  padding: 14px 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+.scout-card {
+  background: rgba(0,212,255,0.04);
+  border: 1px solid rgba(0,212,255,0.12);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.scout-card-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--neon-blue);
+  margin-bottom: 8px;
+}
+.scout-card-text {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.scout-card-text b {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.scout-card-text .scout-highlight {
+  color: var(--neon-gold);
+  font-weight: 700;
+}
+.scout-card-text .scout-weak {
+  color: var(--neon-red);
+  font-weight: 700;
+}
+.scout-footer {
+  display: flex; gap: 8px;
+  padding: 12px 16px 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+.scout-btn {
+  flex: 1; padding: 11px;
+  border-radius: 12px; border: none;
+  font-family: var(--font-display);
+  font-size: 12px; letter-spacing: 2px;
+  cursor: pointer; transition: all 0.2s;
+}
+.scout-btn.save {
+  background: linear-gradient(135deg, rgba(0,212,255,0.25), rgba(0,100,200,0.3));
+  color: var(--neon-blue);
+  box-shadow: 0 0 0 1px rgba(0,212,255,0.4) inset;
+}
+.scout-btn.save:hover {
+  box-shadow: 0 0 20px rgba(0,212,255,0.2), 0 0 0 1px rgba(0,212,255,0.6) inset;
+}
+.scout-btn.close {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.6);
+}
+.scout-btn.close:hover { background: rgba(255,255,255,0.1); }
+
+/* ════════════════════════════════════════════════════════════════
+   REVIVAL MATCH MODAL
+════════════════════════════════════════════════════════════════ */
+.revival-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 1400;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.revival-overlay.open { opacity: 1; pointer-events: all; }
+.revival-modal {
+  width: calc(min(340px, calc(100vw - 40px)) / var(--ui-scale,1));
+  background: var(--bg-card);
+  border: 1px solid var(--neon-red);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(255,36,66,0.15), 0 20px 60px rgba(0,0,0,0.6);
+  text-align: center;
+  padding: 22px 18px 18px;
+  transform: scale(0.9);
+  transform-origin: center center;
+  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+}
+.revival-overlay.open .revival-modal { transform: scale(var(--ui-scale,1)); }
+.revival-icon { font-size: 36px; margin-bottom: 10px; }
+.revival-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: 4px;
+  color: var(--neon-red);
+  margin-bottom: 6px;
+}
+.revival-sub {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+.revival-task-name {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+.revival-btns {
+  display: flex; gap: 8px;
+}
+.revival-btn-confirm {
+  flex: 1; padding: 11px;
+  border-radius: 10px; border: none;
+  background: linear-gradient(135deg, rgba(255,36,66,0.2), rgba(180,20,40,0.3));
+  color: #ff6b6b;
+  font-family: var(--font-display);
+  font-size: 13px; letter-spacing: 2px;
+  cursor: pointer; transition: all 0.2s;
+}
+.revival-btn-confirm:hover {
+  box-shadow: 0 0 16px rgba(255,36,66,0.3);
+}
+.revival-btn-cancel {
+  flex: 1; padding: 11px;
+  border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+  color: rgba(255,255,255,0.5);
+  font-family: var(--font-display);
+  font-size: 13px; letter-spacing: 2px;
+  cursor: pointer; transition: all 0.2s;
+}
+.revival-btn-cancel:hover { background: rgba(255,255,255,0.06); }
+
 </style>
 </head>
 <body>
@@ -3525,7 +3708,41 @@ body.metavision-active .skills-detail-bars {
       </button>
     </div>
 
-    <!-- DANGER ZONE -->
+    
+    <!-- BLUE LOCK FEATURES -->
+    <div class="settings-group">
+      <div class="settings-group-label" data-i18n="settings_bl_features">BLUE LOCK FEATURES</div>
+      <div class="settings-check-row">
+        <span class="settings-check-label" data-i18n="setting_elimination">Elimination Mode (true Blue Lock)</span>
+        <div class="ios-toggle on" id="eliminationToggle"></div>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);letter-spacing:1px;margin-top:4px;margin-bottom:10px;line-height:1.5;" data-i18n="setting_elimination_desc">
+        Miss a habit N days in a row and the card "dies" — cracks, blacks out, locks for 24h. Revive only through a hard "revival match".
+      </div>
+      <div class="settings-check-row">
+        <span class="settings-check-label" data-i18n="setting_rival_ghost">Rival Ghost (past self)</span>
+        <div class="ios-toggle on" id="rivalGhostToggle"></div>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);letter-spacing:1px;margin-top:4px;margin-bottom:10px;line-height:1.5;" data-i18n="setting_rival_ghost_desc">
+        A second line on the radar shows your 30-day average form. Beat your yesterday's self.
+      </div>
+      <div class="settings-check-row">
+        <span class="settings-check-label" data-i18n="setting_scout_report">Scout Report (weekly)</span>
+        <div class="ios-toggle on" id="scoutReportToggle"></div>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);letter-spacing:1px;margin-top:4px;margin-bottom:10px;line-height:1.5;" data-i18n="setting_scout_report_desc">
+        Auto-generates a weekly football-scout-style report with strengths, weaknesses and clutch stats. Save as image.
+      </div>
+      <div class="settings-check-row">
+        <span class="settings-check-label" data-i18n="setting_curse_decay">Curse Decay (visual degradation)</span>
+        <div class="ios-toggle on" id="curseDecayToggle"></div>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);letter-spacing:1px;margin-top:4px;line-height:1.5;" data-i18n="setting_curse_decay_desc">
+        Cards slowly crack and darken when you skip habits. Reversible if you catch up. More visceral than dry point penalties.
+      </div>
+    </div>
+
+<!-- DANGER ZONE -->
     <div class="settings-danger-row">
       <button class="btn-danger-full" id="fullResetBtn">
         <span>⚠</span>
@@ -3660,9 +3877,9 @@ body.metavision-active .skills-detail-bars {
       <span class="dock-label" data-i18n="dock_home">Home</span>
     </div>
     <div class="dock-separator"></div>
-    <div class="dock-item" id="dockGenesis">
-      <span class="dock-icon">✦</span>
-      <span class="dock-label" data-i18n="dock_genesis">Genesis</span>
+    <div class="dock-item" id="dockNone">
+      <span class="dock-icon">◈</span>
+      <span class="dock-label" data-i18n="dock_none">None</span>
     </div>
     <div class="dock-separator"></div>
     <div class="dock-item" id="dockProfile">
@@ -3814,55 +4031,6 @@ body.metavision-active .skills-detail-bars {
 </div><!-- end main-grid -->
 
 <!-- ═══════════════════════════════════════════════
-     GENESIS SCREEN
-═══════════════════════════════════════════════ -->
-<div class="genesis-screen" id="genesisScreen">
-  <div class="section-header" style="margin-bottom:12px;">
-    <div class="section-icon">✦</div>
-    <span class="section-title" data-i18n="section_genesis">GENESIS</span>
-    <span class="section-badge" id="genesisBadge">FORMING</span>
-  </div>
-
-  <div class="genesis-canvas-wrap">
-    <canvas id="genesisCanvas" width="600" height="600"></canvas>
-    <div class="genesis-ui-overlay">
-      <div class="genesis-title" data-i18n="genesis_title">YOUR EGO FORMING</div>
-      <div class="genesis-synergy-panel" id="genesisSynergyPanel">
-        <div class="genesis-synergy-title" data-i18n="genesis_synergies">SYNERGIES</div>
-        <div id="genesisSynergyList"></div>
-      </div>
-      <div class="genesis-entity-name" id="genesisEntityName"></div>
-    </div>
-  </div>
-
-  <div class="cyber-divider" style="margin:16px 0;"><span class="cyber-divider-text">// ENTITY LOG //</span></div>
-
-  <div class="profile-data-strip" style="margin-bottom:16px;">
-    <div class="data-strip-item">
-      <div class="data-strip-val" id="gSpirits">0</div>
-      <div class="data-strip-label">Spirits Awakened</div>
-    </div>
-    <div class="data-strip-item">
-      <div class="data-strip-val" id="gSynergies">0</div>
-      <div class="data-strip-label">Active Synergies</div>
-    </div>
-    <div class="data-strip-item">
-      <div class="data-strip-val" id="gZone">OFF</div>
-      <div class="data-strip-label">Deep Vision</div>
-    </div>
-  </div>
-</div>
-
-<!-- Awakening Overlay -->
-<div class="genesis-awakening-overlay" id="genesisAwakeningOverlay">
-  <canvas id="awakeningCanvas" style="position:absolute;inset:0;"></canvas>
-  <div class="genesis-awakening-text" id="genesisAwakeningText">AWAKENING</div>
-</div>
-
-<!-- Zone Indicator -->
-<div class="genesis-zone-indicator" id="genesisZoneIndicator">✦ DEEP VISION</div>
-
-<!-- ═══════════════════════════════════════════════
      PROFILE SCREEN
 ═══════════════════════════════════════════════ -->
 <div class="profile-screen" id="profileScreen">
@@ -3986,6 +4154,35 @@ body.metavision-active .skills-detail-bars {
 </div><!-- end profile-screen -->
 </div><!-- end app-content-wrapper -->
 
+
+<!-- ═══ SCOUT REPORT MODAL ═══ -->
+<div class="scout-overlay" id="scoutOverlay">
+  <div class="scout-modal">
+    <div class="scout-header">
+      <span class="scout-title">📋 SCOUT REPORT</span>
+      <button class="scout-close" id="scoutClose">✕</button>
+    </div>
+    <div class="scout-body" id="scoutBody"></div>
+    <div class="scout-footer">
+      <button class="scout-btn close" id="scoutCloseBtn">CLOSE</button>
+      <button class="scout-btn save" id="scoutSaveBtn">💾 SAVE PNG</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ REVIVAL MATCH MODAL ═══ -->
+<div class="revival-overlay" id="revivalOverlay">
+  <div class="revival-modal">
+    <div class="revival-icon">💀</div>
+    <div class="revival-title" data-i18n="revival_title">ELIMINATED</div>
+    <div class="revival-sub" id="revivalSub"></div>
+    <div class="revival-btns">
+      <button class="revival-btn-cancel" id="revivalCancel" data-i18n="revival_cancel">RETREAT</button>
+      <button class="revival-btn-confirm" id="revivalConfirm" data-i18n="revival_fight">REVIVAL MATCH</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ════════════════════════════════════════════════════════════════
 // 1. SKILL CONFIG  ←  edit labels here freely
@@ -4077,10 +4274,6 @@ const I18N = {
     bg_clear:'✕ CLEAR',
     toast_bg_updated:'✔ Background updated',
     toast_bg_cleared:'Background cleared',
-    section_genesis:'GENESIS', genesis_title:'YOUR EGO FORMING',
-    genesis_synergies:'SYNERGIES', genesis_awakening:'AWAKENING',
-    genesis_entity_prefix:'ENTITY', genesis_zone_on:'DEEP VISION ACTIVE',
-    dock_genesis:'Genesis',
     toast_bg_too_large:'Image applied (too large to save)',
   },
   ru: {
@@ -4153,10 +4346,6 @@ const I18N = {
     bg_clear:'✕ СБРОСИТЬ',
     toast_bg_updated:'✔ Фон обновлён',
     toast_bg_cleared:'Фон сброшен',
-    section_genesis:'ГЕНЕЗИС', genesis_title:'ТВОЁ ЭГО ФОРМИРУЕТСЯ',
-    genesis_synergies:'СИНЕРГИИ', genesis_awakening:'ПРОБУЖДЕНИЕ',
-    genesis_entity_prefix:'СУЩНОСТЬ', genesis_zone_on:'ГЛУБИННОЕ ВИДЕНИЕ',
-    dock_genesis:'Генезис',
     toast_bg_too_large:'Фон применён (файл слишком большой для сохранения)',
   }
 };
@@ -7231,25 +7420,15 @@ skillsOverlay.addEventListener('click', e=>{ if(e.target===skillsOverlay) closeS
     if(view === 'Profile'){
       mainGrid?.classList.add('hidden');
       profScreen?.classList.add('visible');
-      document.getElementById('genesisScreen')?.classList.remove('visible');
-      exitGenesisView();
       renderProfile();
-    } else if(view === 'Genesis'){
-      mainGrid?.classList.add('hidden');
-      profScreen?.classList.remove('visible');
-      document.getElementById('genesisScreen')?.classList.add('visible');
-      enterGenesisView();
     } else {
       mainGrid?.classList.remove('hidden');
       profScreen?.classList.remove('visible');
-      document.getElementById('genesisScreen')?.classList.remove('visible');
-      exitGenesisView();
     }
   }
 
   document.getElementById('dockHome')?.addEventListener('click',    ()=>showView('Home'));
   document.getElementById('dockNone')?.addEventListener('click',    ()=>showView('None'));
-  document.getElementById('dockGenesis')?.addEventListener('click', ()=>showView('Genesis'));
   document.getElementById('dockProfile')?.addEventListener('click', ()=>showView('Profile'));
 })();
 
@@ -7767,7 +7946,6 @@ renderAll = function(){
   _baseRenderAll();
   try { checkAchievements(); } catch(e) { console.warn('checkAchievements error', e); }
   try { if(isMetavision) updateMetavisionText(); } catch(e) {}
-  try { updateGenesis(); } catch(e) {}
 };
 
 // ─── Hook syncBestStreak to play achievement sound on record ─────
@@ -8092,327 +8270,583 @@ document.getElementById('interfaceScale')?.addEventListener('input', (e) => {
   saveInterfaceScale();
 });
 
+
 // ════════════════════════════════════════════════════════════════
-// GENESIS — ПРОЦЕДУРНАЯ СУЩНОСТЬ
+// BLUE LOCK ADVANCED FEATURES
+// Elimination Mode | Rival Ghost | Scout Report | Curse Decay
 // ════════════════════════════════════════════════════════════════
 
-const SYNERGIES = [
-  { skills: ['metavision','thinking'], name: 'Tactical Flash', nameRu: 'Тактическая Вспышка', color: '#00ffff' },
-  { skills: ['sport','surpassing'],   name: 'Beast Instinct', nameRu: 'Звериный Инстинкт', color: '#ffaa00' },
-  { skills: ['adaptability','metavision'], name: 'Chameleon Vision', nameRu: 'Хамелеон', color: '#00ff88' },
-  { skills: ['thinking','surpassing'], name: 'Lightning Mind', nameRu: 'Молниеносный Разум', color: '#ff00ff' },
-  { skills: ['sport','adaptability'], name: 'Fluid Body', nameRu: 'Текучее Тело', color: '#ff4444' },
-  { skills: ['metavision','sport'],   name: 'Predator Eye', nameRu: 'Глаз Хищника', color: '#ffff00' },
-];
+// ── Settings state ─────────────────────────────────────────────
+let blFeatures = {
+  elimination: true,
+  rivalGhost: true,
+  scoutReport: true,
+  curseDecay: true,
+};
+const ELIMINATION_DAYS = 3;
+const DECAY_WINDOW = 7;
 
-let genesisState = { awakened: [], zoneActive: false, zoneStreak: 0, lastCheck: null, entityName: '' };
-let genesisLoopId = null;
-let genesisCanvas, gCtx;
-let awakeningCanvas, aCtx;
-
-function loadGenesisState(){
+function loadBLFeatures(){
   try{
-    const raw = localStorage.getItem('blueLockGenesis');
-    if(raw) genesisState = {...genesisState, ...JSON.parse(raw)};
+    const raw = localStorage.getItem('blFeatures');
+    if(raw) blFeatures = Object.assign(blFeatures, JSON.parse(raw));
   }catch(e){}
 }
-function saveGenesisState(){
-  try{ localStorage.setItem('blueLockGenesis', JSON.stringify(genesisState)); }catch(e){}
+function saveBLFeatures(){
+  try{ localStorage.setItem('blFeatures', JSON.stringify(blFeatures)); }catch(e){}
+}
+function applyBLToggles(){
+  document.getElementById('eliminationToggle')?.classList.toggle('on', blFeatures.elimination);
+  document.getElementById('rivalGhostToggle')?.classList.toggle('on', blFeatures.rivalGhost);
+  document.getElementById('scoutReportToggle')?.classList.toggle('on', blFeatures.scoutReport);
+  document.getElementById('curseDecayToggle')?.classList.toggle('on', blFeatures.curseDecay);
 }
 
-function initGenesis(){
-  genesisCanvas = document.getElementById('genesisCanvas');
-  if(genesisCanvas) gCtx = genesisCanvas.getContext('2d');
-  awakeningCanvas = document.getElementById('awakeningCanvas');
-  if(awakeningCanvas){
-    aCtx = awakeningCanvas.getContext('2d');
-    awakeningCanvas.width = window.innerWidth;
-    awakeningCanvas.height = window.innerHeight;
-  }
-  updateGenesis();
-  checkZone();
-}
+// Wire toggles
+document.getElementById('eliminationToggle')?.addEventListener('click', ()=>{
+  blFeatures.elimination = !blFeatures.elimination;
+  applyBLToggles(); saveBLFeatures();
+  renderAll();
+  showToast(blFeatures.elimination ? '💀 Elimination ON' : 'Elimination OFF', 'info');
+});
+document.getElementById('rivalGhostToggle')?.addEventListener('click', ()=>{
+  blFeatures.rivalGhost = !blFeatures.rivalGhost;
+  applyBLToggles(); saveBLFeatures();
+  updateChart();
+  showToast(blFeatures.rivalGhost ? '👁 Rival Ghost ON' : 'Rival Ghost OFF', 'info');
+});
+document.getElementById('scoutReportToggle')?.addEventListener('click', ()=>{
+  blFeatures.scoutReport = !blFeatures.scoutReport;
+  applyBLToggles(); saveBLFeatures();
+  showToast(blFeatures.scoutReport ? '📋 Scout Report ON' : 'Scout Report OFF', 'info');
+});
+document.getElementById('curseDecayToggle')?.addEventListener('click', ()=>{
+  blFeatures.curseDecay = !blFeatures.curseDecay;
+  applyBLToggles(); saveBLFeatures();
+  renderAll();
+  showToast(blFeatures.curseDecay ? '🔥 Curse Decay ON' : 'Curse Decay OFF', 'info');
+});
 
-function getSpiralPoints(centerX, centerY, skillKey, value, index, total){
-  const points = [];
-  const maxLen = Math.max(20, value * 2.8);
-  const angleOffset = (index * (Math.PI * 2 / total));
-  const color = SKILLS[skillKey]?.color || '#00d4ff';
-  for(let t = 0; t < maxLen; t += 0.5){
-    const angle = 0.15 * t + angleOffset;
-    const radius = 15 + 1.4 * t;
-    const x = centerX + radius * Math.cos(angle);
-    const y = centerY + radius * Math.sin(angle);
-    points.push({x, y, t, radius, angle});
-  }
-  return {points, color, value, key: skillKey, label: SKILLS[skillKey]?.label || skillKey};
-}
-
-function drawGenesisFrame(){
-  if(!gCtx || !genesisCanvas) return;
-  const w = genesisCanvas.width;
-  const h = genesisCanvas.height;
-  const cx = w / 2;
-  const cy = h / 2;
-  const time = Date.now() * 0.001;
-
-  gCtx.fillStyle = '#000000';
-  gCtx.fillRect(0, 0, w, h);
-
-  const zoneMult = genesisState.zoneActive ? 0.3 : 1.0;
-  gCtx.fillStyle = 'rgba(255,255,255,0.4)';
-  for(let i = 0; i < 40; i++){
-    const px = (Math.sin(i * 12.3 + time * 0.1 * zoneMult) * 0.5 + 0.5) * w;
-    const py = (Math.cos(i * 8.7 + time * 0.08 * zoneMult) * 0.5 + 0.5) * h;
-    const size = 1 + Math.sin(i + time) * 0.5;
-    gCtx.globalAlpha = 0.3 + Math.sin(i * 3 + time) * 0.2;
-    gCtx.beginPath();
-    gCtx.arc(px, py, Math.max(0.5, size), 0, Math.PI * 2);
-    gCtx.fill();
-  }
-  gCtx.globalAlpha = 1;
-
-  const spirals = SKILL_KEYS.map((key, i) => getSpiralPoints(cx, cy, key, state.stats[key], i, SKILL_KEYS.length));
-
-  const activeSyns = checkSynergies();
-  activeSyns.forEach(syn => {
-    const s1 = spirals.find(s => s.key === syn.skills[0]);
-    const s2 = spirals.find(s => s.key === syn.skills[1]);
-    if(!s1 || !s2 || s1.points.length < 10 || s2.points.length < 10) return;
-    const p1 = s1.points[Math.floor(s1.points.length * 0.7)];
-    const p2 = s2.points[Math.floor(s2.points.length * 0.7)];
-    gCtx.beginPath();
-    gCtx.moveTo(p1.x, p1.y);
-    const cpX = cx + (Math.cos(time * 0.5) * 30);
-    const cpY = cy + (Math.sin(time * 0.5) * 30);
-    gCtx.quadraticCurveTo(cpX, cpY, p2.x, p2.y);
-    gCtx.strokeStyle = syn.color;
-    gCtx.lineWidth = 2;
-    gCtx.shadowBlur = 15;
-    gCtx.shadowColor = syn.color;
-    gCtx.globalAlpha = 0.6 + Math.sin(time * 2) * 0.2;
-    gCtx.stroke();
-    gCtx.globalAlpha = 1;
-    gCtx.shadowBlur = 0;
-  });
-
-  const tips = spirals.filter(s => s.value > 15).map(s => {
-    const pt = s.points[s.points.length - 1];
-    return {x: pt.x, y: pt.y, color: s.color};
-  });
-  if(tips.length >= 3){
-    gCtx.beginPath();
-    tips.sort((a,b) => Math.atan2(a.y-cy, a.x-cx) - Math.atan2(b.y-cy, b.x-cx));
-    gCtx.moveTo(tips[0].x, tips[0].y);
-    for(let i = 1; i < tips.length; i++) gCtx.lineTo(tips[i].x, tips[i].y);
-    gCtx.closePath();
-    gCtx.fillStyle = 'rgba(0,212,255,0.03)';
-    gCtx.fill();
-    gCtx.strokeStyle = 'rgba(0,212,255,0.12)';
-    gCtx.lineWidth = 1;
-    gCtx.stroke();
-  }
-
-  spirals.forEach(spiral => {
-    if(spiral.points.length < 2) return;
-    gCtx.beginPath();
-    gCtx.moveTo(spiral.points[0].x, spiral.points[0].y);
-    for(let i = 1; i < spiral.points.length; i++) gCtx.lineTo(spiral.points[i].x, spiral.points[i].y);
-    const lineWidth = 1.5 + spiral.value / 25;
-    gCtx.strokeStyle = spiral.color;
-    gCtx.lineWidth = lineWidth;
-    gCtx.lineCap = 'round';
-    gCtx.lineJoin = 'round';
-    gCtx.shadowBlur = spiral.value / 3;
-    gCtx.shadowColor = spiral.color;
-    gCtx.stroke();
-    gCtx.shadowBlur = 0;
-    const tip = spiral.points[spiral.points.length - 1];
-    const glowSize = 3 + spiral.value / 10;
-    const gradient = gCtx.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, glowSize);
-    gradient.addColorStop(0, spiral.color);
-    gradient.addColorStop(1, 'transparent');
-    gCtx.fillStyle = gradient;
-    gCtx.beginPath();
-    gCtx.arc(tip.x, tip.y, glowSize, 0, Math.PI * 2);
-    gCtx.fill();
-  });
-
-  const coreSize = 3 + SKILL_KEYS.reduce((a,k) => a + state.stats[k], 0) / 80;
-  const coreGrad = gCtx.createRadialGradient(cx, cy, 0, cx, cy, coreSize * 3);
-  coreGrad.addColorStop(0, 'rgba(255,255,255,0.9)');
-  coreGrad.addColorStop(0.3, 'rgba(0,212,255,0.4)');
-  coreGrad.addColorStop(1, 'transparent');
-  gCtx.fillStyle = coreGrad;
-  gCtx.beginPath();
-  gCtx.arc(cx, cy, coreSize * 3, 0, Math.PI * 2);
-  gCtx.fill();
-
-  if(genesisState.zoneActive){
-    gCtx.fillStyle = `rgba(255,215,0,${0.03 + Math.sin(time * 2) * 0.01})`;
-    gCtx.fillRect(0,0,w,h);
-  }
-
-  genesisLoopId = requestAnimationFrame(drawGenesisFrame);
-}
-
-function stopGenesisLoop(){
-  if(genesisLoopId){ cancelAnimationFrame(genesisLoopId); genesisLoopId = null; }
-}
-
-function checkSynergies(){
-  const active = [];
-  SYNERGIES.forEach(syn => {
-    const v1 = state.stats[syn.skills[0]] || 0;
-    const v2 = state.stats[syn.skills[1]] || 0;
-    if(v1 >= 60 && v2 >= 60) active.push(syn);
-  });
-  return active;
-}
-
-function checkZone(){
-  const habits = state.tasks.filter(t => !t.archived);
-  if(habits.length === 0) return;
-  let streak = 0;
-  for(let i = 0; i < 30; i++){
-    const d = new Date();
-    d.setDate(d.getDate() - i);
+// ════════════════════════════════════════════════════════════════
+// ELIMINATION MODE
+// ════════════════════════════════════════════════════════════════
+function getConsecutiveMisses(task){
+  const dm = getDayMap(task);
+  const activeDays = task.activeDays || [0,1,2,3,4,5,6];
+  let misses = 0;
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  for(let i = 0; i < 90; i++){
     const ds = localDateStr(d);
-    const allDone = habits.every(t => getDayMap(t)[ds] === 'done');
-    if(allDone) streak++; else break;
-  }
-  const wasActive = genesisState.zoneActive;
-  genesisState.zoneActive = streak >= 3;
-  genesisState.zoneStreak = streak;
-  if(genesisState.zoneActive && !wasActive){
-    showToast(uiSettings.lang === 'ru' ? '✦ ГЛУБИННОЕ ВИДЕНИЕ АКТИВИРОВАНО' : '✦ DEEP VISION ACTIVATED', 'success');
-    playTone('epic');
-    addLog('DEEP VISION ACTIVATED — 3 day consistency', 'success');
-  }
-  const zoneEl = document.getElementById('genesisZoneIndicator');
-  if(zoneEl) zoneEl.classList.toggle('visible', genesisState.zoneActive);
-  saveGenesisState();
-}
-
-function getEntityName(){
-  const total = SKILL_KEYS.reduce((a,k) => a + state.stats[k], 0);
-  if(total < 50) return '';
-  const maxSkill = SKILL_KEYS.reduce((a,b) => state.stats[a] > state.stats[b] ? a : b);
-  const names = {
-    metavision:   ['Seer','Oracle','All-Seeing','Провидец','Оракул'],
-    sport:        ['Titan','Beast','Unstoppable','Титан','Зверь'],
-    adaptability: ['Shifter','Flux','Protean','Сдвиг','Протей'],
-    surpassing:   ['Ascendant','Zenith','Transcendent','Восходящий','Зенит'],
-    thinking:     ['Architect','Mind','Strategist','Архитектор','Стратег'],
-  };
-  const pool = names[maxSkill] || ['Egoist','Эгоист'];
-  const idx = Math.floor(total / 50) % pool.length;
-  const prefix = uiSettings.lang === 'ru' ? 'СУЩНОСТЬ' : 'ENTITY';
-  return `${prefix}: ${pool[idx]}`;
-}
-
-function updateGenesis(){
-  const list = document.getElementById('genesisSynergyList');
-  const panel = document.getElementById('genesisSynergyPanel');
-  if(list){
-    const syns = checkSynergies();
-    if(syns.length === 0){
-      list.innerHTML = `<span style="opacity:0.4;font-size:10px;">${uiSettings.lang==='ru'?'Нет активных синергий':'No active synergies'}</span>`;
-    } else {
-      list.innerHTML = syns.map(s => {
-        const name = uiSettings.lang === 'ru' ? s.nameRu : s.name;
-        return `<span class="genesis-synergy-chip" style="border-color:${s.color};color:${s.color};box-shadow:0 0 6px ${s.color}33;">${name}</span>`;
-      }).join('');
+    const dow = (d.getDay() + 6) % 7;
+    if(activeDays.includes(dow)){
+      if(dm[ds] === 'done') break;
+      misses++;
     }
-    if(panel) panel.style.display = syns.length ? 'block' : 'none';
+    d.setDate(d.getDate() - 1);
   }
-  const gSpirits = document.getElementById('gSpirits');
-  const gSyns = document.getElementById('gSynergies');
-  const gZone = document.getElementById('gZone');
-  if(gSpirits) gSpirits.textContent = genesisState.awakened.length;
-  if(gSyns) gSyns.textContent = checkSynergies().length;
-  if(gZone) gZone.textContent = genesisState.zoneActive ? 'ON' : 'OFF';
-  const entName = document.getElementById('genesisEntityName');
-  if(entName){
-    const name = getEntityName();
-    entName.textContent = name;
-    entName.classList.toggle('visible', name !== '');
+  return misses;
+}
+
+function checkElimination(task){
+  if(!blFeatures.elimination) return;
+  if(task.eliminated){
+    if(task.eliminatedUntil && Date.now() > task.eliminatedUntil){
+      task.eliminated = false;
+      task.eliminatedUntil = null;
+    }
+    return;
   }
-  const badge = document.getElementById('genesisBadge');
-  if(badge){
-    const total = SKILL_KEYS.reduce((a,k) => a + state.stats[k], 0);
-    let status = 'FORMING';
-    if(total > 300) status = 'AWAKENING';
-    if(total > 500) status = 'TRANSCENDENT';
-    if(genesisState.zoneActive) status = 'DEEP VISION';
-    badge.textContent = status;
+  const misses = getConsecutiveMisses(task);
+  if(misses >= ELIMINATION_DAYS){
+    task.eliminated = true;
+    task.eliminatedUntil = Date.now() + 24 * 60 * 60 * 1000;
+    task.revivalMatchNeeded = true;
+    triggerFlash('penalty');
+    showToast(`💀 "${task.name}" ELIMINATED!`, 'penalty');
+    addLog(`ELIMINATION: "${task.name}" locked for 24h after ${misses} missed days`, 'penalty');
+    saveState();
   }
-  SKILL_KEYS.forEach(key => {
-    if(state.stats[key] >= 100 && !genesisState.awakened.includes(key)){
-      genesisState.awakened.push(key);
-      saveGenesisState();
-      triggerAwakening(key);
+}
+
+function reviveTask(task){
+  task.eliminated = false;
+  task.eliminatedUntil = null;
+  task.revivalMatchNeeded = false;
+  showToast(`⚡ "${task.name}" REVIVED!`, 'success');
+  addLog(`REVIVAL: "${task.name}" brought back through revival match`, 'success');
+  playTone('epic');
+  saveState();
+  renderAll();
+}
+
+let revivalTargetId = null;
+const revivalOverlay = document.getElementById('revivalOverlay');
+function openRevivalModal(task){
+  revivalTargetId = task.id;
+  const lang = uiSettings.lang;
+  const sub = document.getElementById('revivalSub');
+  if(sub){
+    sub.innerHTML = lang==='ru'
+      ? `Привычка <span class="revival-task-name">«${task.name}»</span> была уничтожена после ${ELIMINATION_DAYS} пропущенных дней.<br><br>Чтобы вернуть её — выполни <b>усложнённую версию</b> сегодня.`
+      : `Habit <span class="revival-task-name">"${task.name}"</span> was destroyed after ${ELIMINATION_DAYS} missed days.<br><br>To bring it back — complete the <b>hard mode version</b> today.`;
+  }
+  revivalOverlay.classList.add('open');
+}
+function closeRevivalModal(){
+  revivalOverlay.classList.remove('open');
+  revivalTargetId = null;
+}
+document.getElementById('revivalCancel')?.addEventListener('click', closeRevivalModal);
+document.getElementById('revivalConfirm')?.addEventListener('click', ()=>{
+  const task = state.tasks.find(t => t.id === revivalTargetId);
+  if(task){
+    closeRevivalModal();
+    reviveTask(task);
+    toggleToday(task.id);
+  }
+});
+revivalOverlay?.addEventListener('click', e=>{ if(e.target===revivalOverlay) closeRevivalModal(); });
+
+// ════════════════════════════════════════════════════════════════
+// CURSE DECAY
+// ════════════════════════════════════════════════════════════════
+function calcDecayLevel(task){
+  if(!blFeatures.curseDecay) return 0;
+  const dm = getDayMap(task);
+  const activeDays = task.activeDays || [0,1,2,3,4,5,6];
+  let misses = 0;
+  let checks = 0;
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  for(let i = 0; i < DECAY_WINDOW; i++){
+    const ds = localDateStr(d);
+    const dow = (d.getDay() + 6) % 7;
+    if(activeDays.includes(dow)){
+      checks++;
+      if(dm[ds] !== 'done') misses++;
+    }
+    d.setDate(d.getDate() - 1);
+  }
+  if(checks === 0) return 0;
+  const ratio = misses / checks;
+  if(ratio >= 0.75) return 3;
+  if(ratio >= 0.5) return 2;
+  if(ratio >= 0.25) return 1;
+  return 0;
+}
+
+function applyDecayToCard(card, level){
+  card.classList.remove('curse-lvl-1','curse-lvl-2','curse-lvl-3');
+  if(level > 0) card.classList.add(`curse-lvl-${level}`);
+}
+
+// ════════════════════════════════════════════════════════════════
+// RIVAL GHOST
+// ════════════════════════════════════════════════════════════════
+function recordDailySnapshot(){
+  if(!blFeatures.rivalGhost) return;
+  const today = todayStr();
+  if(!state.dailySnapshots) state.dailySnapshots = {};
+  if(state.dailySnapshots[today]) return;
+  const sum = SKILL_KEYS.reduce((a,k)=>a+(state.stats[k]||0), 0);
+  state.dailySnapshots[today] = { sum, stats: {...state.stats} };
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-90);
+  Object.keys(state.dailySnapshots).forEach(d=>{
+    if(new Date(d) < cutoff) delete state.dailySnapshots[d];
+  });
+  saveState();
+}
+
+function getGhostData(){
+  if(!blFeatures.rivalGhost || !state.dailySnapshots){
+    return SKILL_KEYS.map(()=>0);
+  }
+  const days = Object.keys(state.dailySnapshots).sort();
+  const recent = days.slice(-30);
+  if(recent.length === 0) return SKILL_KEYS.map(()=>0);
+  const avg = {};
+  SKILL_KEYS.forEach(k=> avg[k]=0);
+  recent.forEach(d=>{
+    const snap = state.dailySnapshots[d];
+    if(snap && snap.stats){
+      SKILL_KEYS.forEach(k=> avg[k] += (snap.stats[k]||0));
     }
   });
+  return SKILL_KEYS.map(k=> Math.round(avg[k]/recent.length));
 }
 
-function triggerAwakening(skillKey){
-  const overlay = document.getElementById('genesisAwakeningOverlay');
-  const textEl = document.getElementById('genesisAwakeningText');
-  const skill = SKILLS[skillKey];
-  const name = skill.label;
-  if(textEl) textEl.textContent = `${name.toUpperCase()} — ${uiSettings.lang==='ru'?'ПРОБУЖДЕНИЕ':'AWAKENING'}`;
-  if(overlay) overlay.classList.add('active');
-  playTone('epic');
-  if(aCtx && awakeningCanvas){
-    awakeningCanvas.width = window.innerWidth;
-    awakeningCanvas.height = window.innerHeight;
-    const cx = awakeningCanvas.width / 2;
-    const cy = awakeningCanvas.height / 2;
-    let frame = 0;
-    function anim(){
-      if(!overlay.classList.contains('active')) return;
-      frame++;
-      aCtx.fillStyle = `rgba(0,0,0,${0.1 + frame/200})`;
-      aCtx.fillRect(0,0,awakeningCanvas.width, awakeningCanvas.height);
-      for(let i = 0; i < 3; i++){
-        const r = (frame * 3 + i * 40) % 300;
-        aCtx.beginPath();
-        aCtx.arc(cx, cy, r, 0, Math.PI * 2);
-        aCtx.strokeStyle = `rgba(0,212,255,${1 - r/300})`;
-        aCtx.lineWidth = 2;
-        aCtx.stroke();
-      }
-      if(frame < 30){
-        aCtx.fillStyle = `rgba(255,255,255,${1 - frame/30})`;
-        aCtx.fillRect(0,0,awakeningCanvas.width, awakeningCanvas.height);
-      }
-      if(frame < 180) requestAnimationFrame(anim);
-    }
-    anim();
+function updateGhostRadar(){
+  if(!radarChart) return;
+  const ghostData = getGhostData();
+  const hasGhost = ghostData.some(v=>v>0);
+  let ghostDS = radarChart.data.datasets.find(ds => ds.label === 'GHOST');
+  if(!hasGhost){
+    if(ghostDS) radarChart.data.datasets = radarChart.data.datasets.filter(ds=>ds.label!=='GHOST');
+    return;
   }
-  setTimeout(() => { if(overlay) overlay.classList.remove('active'); }, 3000);
-  showToast(`${skill.icon} ${name} — ${uiSettings.lang==='ru'?'Пробуждено!':'Awakened!'}`, 'success');
-  addLog(`AWAKENING: ${name} reached 100pts — spirit formed`, 'success');
+  if(!ghostDS){
+    ghostDS = {
+      label:'GHOST',
+      data: ghostData,
+      backgroundColor:'rgba(255,255,255,0.04)',
+      borderColor:'rgba(255,255,255,0.25)',
+      borderWidth:1.5,
+      borderDash:[6,4],
+      pointBackgroundColor:'rgba(255,255,255,0.3)',
+      pointBorderColor:'transparent',
+      pointRadius:3,
+      pointHoverRadius:5,
+    };
+    radarChart.data.datasets.push(ghostDS);
+  } else {
+    ghostDS.data = ghostData;
+  }
 }
 
-function enterGenesisView(){
-  const screen = document.getElementById('genesisScreen');
-  if(screen) screen.classList.add('visible');
-  if(!genesisLoopId) drawGenesisFrame();
-  updateGenesis();
-  checkZone();
+function updateGhostRadarModal(){
+  if(!radarChartModal) return;
+  const ghostData = getGhostData();
+  const hasGhost = ghostData.some(v=>v>0);
+  let ghostDS = radarChartModal.data.datasets.find(ds => ds.label === 'GHOST');
+  if(!hasGhost){
+    if(ghostDS) radarChartModal.data.datasets = radarChartModal.data.datasets.filter(ds=>ds.label!=='GHOST');
+    return;
+  }
+  if(!ghostDS){
+    ghostDS = {
+      label:'GHOST',
+      data: ghostData,
+      backgroundColor:'rgba(255,255,255,0.04)',
+      borderColor:'rgba(255,255,255,0.25)',
+      borderWidth:1.5,
+      borderDash:[6,4],
+      pointBackgroundColor:'rgba(255,255,255,0.3)',
+      pointBorderColor:'transparent',
+      pointRadius:2,
+      pointHoverRadius:4,
+    };
+    radarChartModal.data.datasets.push(ghostDS);
+  } else {
+    ghostDS.data = ghostData;
+  }
 }
 
-function exitGenesisView(){
-  const screen = document.getElementById('genesisScreen');
-  if(screen) screen.classList.remove('visible');
-  stopGenesisLoop();
+// ════════════════════════════════════════════════════════════════
+// SCOUT REPORT
+// ════════════════════════════════════════════════════════════════
+function shouldShowScoutReport(){
+  if(!blFeatures.scoutReport) return false;
+  const last = state.lastScoutReport || 0;
+  return (Date.now() - last) > 7 * 24 * 60 * 60 * 1000;
 }
+
+function generateScoutReport(){
+  const lang = uiSettings.lang;
+  const isRu = lang === 'ru';
+  const totalTasks = state.tasks.length;
+  const totalDone = state.tasks.reduce((s,t)=>s+(t.totalDone||0), 0);
+  const totalAttempts = state.completedCount + state.deletedCount;
+  const winRate = totalAttempts > 0 ? Math.round(state.completedCount/totalAttempts*100) : 0;
+
+  const skillStats = SKILL_KEYS.map(k=>{
+    const tasks = state.tasks.filter(t=>t.skill===k);
+    const done = tasks.reduce((s,t)=>s+(t.totalDone||0), 0);
+    return { key:k, label:SKILLS[k].label, val:Math.round(state.stats[k]||0), tasks:tasks.length, done };
+  }).sort((a,b)=>b.val - a.val);
+
+  const strongest = skillStats[0];
+  const weakest = skillStats[skillStats.length-1];
+
+  const streaks = state.tasks.map(t=>{ try{return calcStreak(t);}catch(e){return 0;} });
+  const bestStreak = Math.max(0, ...streaks);
+
+  const d = new Date();
+  let consistentDays = 0;
+  for(let i=0;i<7;i++){
+    const ds = localDateStr(d);
+    const totalActive = state.tasks.filter(t=>{
+      const ad = t.activeDays||[0,1,2,3,4,5,6];
+      const dow = (d.getDay()+6)%7;
+      return ad.includes(dow);
+    }).length;
+    const doneToday = state.tasks.filter(t=>{
+      const dm=getDayMap(t);
+      return dm[ds]==='done';
+    }).length;
+    if(totalActive>0 && doneToday/totalActive >= 0.5) consistentDays++;
+    d.setDate(d.getDate()-1);
+  }
+
+  const clutchRate = winRate >= 70 ? 'high' : winRate >= 40 ? 'medium' : 'low';
+
+  return {
+    title: isRu ? 'ДОСЬЕ СКАУТА — НЕДЕЛЯ ' + getWeekNumber() : 'SCOUT REPORT — WEEK ' + getWeekNumber(),
+    overall: isRu
+      ? `Общий рейтинг: <b class="scout-highlight">${winRate}%</b> побед. Активных привычек: <b>${totalTasks}</b>. Всего выполнено: <b class="scout-highlight">${totalDone}</b>.`
+      : `Overall rating: <b class="scout-highlight">${winRate}%</b> win rate. Active habits: <b>${totalTasks}</b>. Total completed: <b class="scout-highlight">${totalDone}</b>.`,
+    strengths: isRu
+      ? `Сильная сторона — <b class="scout-highlight">${strongest.label}</b> (${strongest.val} pts). Ты стабильно прокачиваешь этот атрибут. Продолжай в том же духе.`
+      : `Strength — <b class="scout-highlight">${strongest.label}</b> (${strongest.val} pts). You consistently level this attribute. Keep the pressure on.`,
+    weaknesses: isRu
+      ? `Уязвимость — <b class="scout-weak">${weakest.label}</b> (${weakest.val} pts). Скаут рекомендует срочно добавить привычки на этот навык, иначе провал неизбежен.`
+      : `Weakness — <b class="scout-weak">${weakest.label}</b> (${weakest.val} pts). Scout recommends adding habits for this skill immediately or failure is guaranteed.`,
+    clutch: isRu
+      ? `Клатч-фактор: <b class="scout-highlight">${clutchRate==='high'?'ВЫСОКИЙ':clutchRate==='medium'?'СРЕДНИЙ':'НИЗКИЙ'}</b>. ${consistentDays}/7 дней стабильности. Лучший стрик: <b class="scout-highlight">${bestStreak}</b> дней.`
+      : `Clutch factor: <b class="scout-highlight">${clutchRate.toUpperCase()}</b>. ${consistentDays}/7 consistency days. Best streak: <b class="scout-highlight">${bestStreak}</b> days.`,
+    verdict: isRu
+      ? `ВЕРДИКТ: ${winRate>=70?'Игрок с потенциалом TOP-1. Не сбавляй.':winRate>=40?'Есть задатки, но нужно больше эгоизма.':'Вне поля зрения скаутов. Рискуешь вылететь.'}`
+      : `VERDICT: ${winRate>=70?'Player with TOP-1 potential. Do not slow down.':winRate>=40?'Raw talent, but needs more ego.':'Off the scout radar. Risk of elimination.'}`,
+  };
+}
+
+function getWeekNumber(){
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const diff = now - start + ((start.getTimezoneOffset() - now.getTimezoneOffset()) * 60 * 1000);
+  const day = Math.floor(diff / (1000 * 60 * 60 * 24));
+  return Math.ceil(day / 7);
+}
+
+function renderScoutReport(){
+  const report = generateScoutReport();
+  const body = document.getElementById('scoutBody');
+  if(!body) return;
+  body.innerHTML = `
+    <div class="scout-card">
+      <div class="scout-card-title">📊 OVERALL</div>
+      <div class="scout-card-text">${report.overall}</div>
+    </div>
+    <div class="scout-card">
+      <div class="scout-card-title" style="color:var(--neon-green)">⬆ STRENGTHS</div>
+      <div class="scout-card-text">${report.strengths}</div>
+    </div>
+    <div class="scout-card">
+      <div class="scout-card-title" style="color:var(--neon-red)">⬇ WEAKNESSES</div>
+      <div class="scout-card-text">${report.weaknesses}</div>
+    </div>
+    <div class="scout-card">
+      <div class="scout-card-title" style="color:var(--neon-gold)">🔥 CLUTCH / CONSISTENCY</div>
+      <div class="scout-card-text">${report.clutch}</div>
+    </div>
+    <div class="scout-card" style="border-color:rgba(0,212,255,0.3);background:rgba(0,212,255,0.06);">
+      <div class="scout-card-title" style="color:var(--neon-blue)">⚡ VERDICT</div>
+      <div class="scout-card-text" style="font-size:13px;font-weight:600;">${report.verdict}</div>
+    </div>
+  `;
+  document.getElementById('scoutOverlay').classList.add('open');
+  state.lastScoutReport = Date.now();
+  saveState();
+}
+
+function closeScoutReport(){
+  document.getElementById('scoutOverlay').classList.remove('open');
+}
+document.getElementById('scoutClose')?.addEventListener('click', closeScoutReport);
+document.getElementById('scoutCloseBtn')?.addEventListener('click', closeScoutReport);
+document.getElementById('scoutOverlay')?.addEventListener('click', e=>{ if(e.target===document.getElementById('scoutOverlay')) closeScoutReport(); });
+
+function saveScoutAsPng(){
+  const modal = document.querySelector('.scout-modal');
+  if(!modal) return;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const w = 800;
+  const scale = w / modal.offsetWidth;
+  const h = modal.offsetHeight * scale;
+  canvas.width = w;
+  canvas.height = h;
+
+  ctx.fillStyle = '#080f1a';
+  ctx.fillRect(0,0,w,h);
+
+  ctx.strokeStyle = 'rgba(0,212,255,0.4)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(1,1,w-2,h-2);
+
+  ctx.fillStyle = '#e8f4ff';
+  ctx.font = 'bold 28px "Bebas Neue", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('SCOUT REPORT', w/2, 50);
+
+  const cards = modal.querySelectorAll('.scout-card');
+  let y = 90;
+  cards.forEach((card, i)=>{
+    const title = card.querySelector('.scout-card-title')?.textContent || '';
+    const text = card.querySelector('.scout-card-text')?.innerText || '';
+
+    ctx.fillStyle = 'rgba(0,212,255,0.06)';
+    ctx.strokeStyle = 'rgba(0,212,255,0.15)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, 30, y, w-60, 110, 10);
+    ctx.fill(); ctx.stroke();
+
+    const colors = ['#00d4ff','#39ff14','#ff2442','#ffd700','#00d4ff'];
+    ctx.fillStyle = colors[i] || '#00d4ff';
+    ctx.font = 'bold 18px "Bebas Neue", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(title, 50, y+28);
+
+    ctx.fillStyle = '#b0c4de';
+    ctx.font = '16px "Rajdhani", sans-serif';
+    wrapText(ctx, text, 50, y+55, w-100, 22);
+    y += 125;
+  });
+
+  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  ctx.font = '12px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('Generated by Egoist Engine // Blue Lock Facility', w/2, h-20);
+
+  const link = document.createElement('a');
+  link.download = `scout_report_week_${getWeekNumber()}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  showToast('💾 Scout Report saved!', 'success');
+}
+
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
+
+function wrapText(ctx, text, x, y, maxWidth, lineHeight){
+  const words = text.split(' ');
+  let line = '';
+  for(let n=0; n<words.length; n++){
+    const testLine = line + words[n] + ' ';
+    const metrics = ctx.measureText(testLine);
+    if(metrics.width > maxWidth && n > 0){
+      ctx.fillText(line, x, y);
+      line = words[n] + ' ';
+      y += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, x, y);
+}
+
+document.getElementById('scoutSaveBtn')?.addEventListener('click', saveScoutAsPng);
+
+// ════════════════════════════════════════════════════════════════
+// INTEGRATION HOOKS
+// ════════════════════════════════════════════════════════════════
+
+const _origRenderTasks2 = renderTasks;
+renderTasks = function(){
+  _origRenderTasks2();
+  if(!blFeatures.elimination && !blFeatures.curseDecay) return;
+
+  state.tasks.forEach(task=>{
+    if(blFeatures.elimination) checkElimination(task);
+
+    const card = document.querySelector(`.task-item[data-id="${task.id}"]`);
+    if(!card) return;
+
+    if(blFeatures.elimination && task.eliminated){
+      card.classList.add('eliminated');
+      const controls = card.querySelector('.hc-controls');
+      if(controls && !controls.querySelector('.revival-btn')){
+        const check = controls.querySelector('.hc-check');
+        if(check) check.style.display = 'none';
+        const badge = document.createElement('div');
+        badge.className = 'eliminated-badge';
+        badge.textContent = uiSettings.lang==='ru' ? 'УНИЧТОЖЕН' : 'ELIMINATED';
+        const revive = document.createElement('button');
+        revive.className = 'revival-btn';
+        revive.textContent = uiSettings.lang==='ru' ? 'ВОЗРОЖДЕНИЕ' : 'REVIVAL';
+        revive.addEventListener('click', (e)=>{ e.stopPropagation(); openRevivalModal(task); });
+        controls.appendChild(badge);
+        controls.appendChild(revive);
+      }
+    }
+
+    if(blFeatures.curseDecay){
+      const decayLevel = calcDecayLevel(task);
+      applyDecayToCard(card, decayLevel);
+      if(decayLevel > 0 && !card.querySelector('.curse-indicator')){
+        const meta = card.querySelector('.hc-meta');
+        if(meta){
+          const ind = document.createElement('span');
+          ind.className = 'curse-indicator';
+          ind.textContent = 'CRACKING...';
+          meta.appendChild(ind);
+        }
+      }
+    }
+  });
+};
+
+const _origUpdateChart2 = updateChart;
+updateChart = function(){
+  _origUpdateChart2();
+  updateGhostRadar();
+};
+
+const _origOpenSkillsOverlay2 = openSkillsOverlay;
+openSkillsOverlay = function(){
+  _origOpenSkillsOverlay2();
+  updateGhostRadarModal();
+  if(radarChartModal) radarChartModal.update();
+};
+
+const _origRenderAll2 = renderAll;
+renderAll = function(){
+  _origRenderAll2();
+  if(shouldShowScoutReport()){
+    setTimeout(()=>{
+      if(blFeatures.scoutReport) renderScoutReport();
+    }, 1200);
+  }
+};
+
+const _origLoadState2 = loadState;
+loadState = function(){
+  _origLoadState2();
+  setTimeout(recordDailySnapshot, 500);
+};
+
+// I18N additions
+I18N.en.settings_bl_features = 'BLUE LOCK FEATURES';
+I18N.en.setting_elimination = 'Elimination Mode (true Blue Lock)';
+I18N.en.setting_elimination_desc = 'Miss a habit N days in a row and the card "dies" — cracks, blacks out, locks for 24h. Revive only through a hard "revival match".';
+I18N.en.setting_rival_ghost = 'Rival Ghost (past self)';
+I18N.en.setting_rival_ghost_desc = 'A second line on the radar shows your 30-day average form. Beat your yesterday's self.';
+I18N.en.setting_scout_report = 'Scout Report (weekly)';
+I18N.en.setting_scout_report_desc = 'Auto-generates a weekly football-scout-style report with strengths, weaknesses and clutch stats. Save as image.';
+I18N.en.setting_curse_decay = 'Curse Decay (visual degradation)';
+I18N.en.setting_curse_decay_desc = 'Cards slowly crack and darken when you skip habits. Reversible if you catch up. More visceral than dry point penalties.';
+I18N.en.revival_title = 'ELIMINATED';
+I18N.en.revival_cancel = 'RETREAT';
+I18N.en.revival_fight = 'REVIVAL MATCH';
+
+I18N.ru.settings_bl_features = 'ФУНКЦИИ BLUE LOCK';
+I18N.ru.setting_elimination = 'Режим Элиминации (настоящий Blue Lock)';
+I18N.ru.setting_elimination_desc = 'Пропусти привычку N дней подряд — карточка "умирает": трескается, чернеет, блокируется на 24ч. Возродить можно только через "матч возрождения".';
+I18N.ru.setting_rival_ghost = 'Призрак соперника (прошлый ты)';
+I18N.ru.setting_rival_ghost_desc = 'Вторая линия на радаре показывает твою среднюю форму за 30 дней. Обыграй вчерашнего себя.';
+I18N.ru.setting_scout_report = 'Отчёт скаута (еженедельно)';
+I18N.ru.setting_scout_report_desc = 'Авто-генерация футбольного отчёта с сильными/слабыми сторонами. Можно сохранить как картинку.';
+I18N.ru.setting_curse_decay = 'Проклятие деградации (визуальное)';
+I18N.ru.setting_curse_decay_desc = 'Карточки трескаются и темнеют при пропусках. Обратимо, если наверстать. Психологически сильнее сухих штрафов.';
+I18N.ru.revival_title = 'УНИЧТОЖЕН';
+I18N.ru.revival_cancel = 'ОТСТУПИТЬ';
+I18N.ru.revival_fight = 'МАТЧ ВОЗРОЖДЕНИЯ';
+
+// ════════════════════════════════════════════════════════════════
+// INIT — load new features
+// ════════════════════════════════════════════════════════════════
+loadBLFeatures();
+applyBLToggles();
 
 // ════════════════════════════════════════════════════════════════
 // 13. INIT
-
 // ════════════════════════════════════════════════════════════════
 loadUISettings();
 loadState();
@@ -8421,7 +8855,6 @@ loadFlowMode();
 loadSoundPref();
 loadPenaltyMode();
 loadInterfaceScale();
-loadGenesisState();
 applyTheme(uiSettings.theme);
 applyLang(uiSettings.lang);
 applyFlowMode();
@@ -8443,8 +8876,6 @@ renderAll();                          // ← карточки рендерятс
 applyGlass(uiSettings.glass ?? 'on'); // ← теперь классы вешаются на уже существующие элементы
 runDailyPenaltyCheck();
 addLog(t('log_sys_ready'),'success');
-initGenesis();
-initGenesis();
 
 // ════════════════════════════════════════════════════════════════
 // 14. CUSTOM BACKGROUND IMAGE
