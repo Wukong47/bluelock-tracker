@@ -2991,346 +2991,137 @@ body.metavision-active .skills-detail-bars {
   box-shadow:0 0 0 1px rgba(0,212,255,.4) inset;
 }
 .timepick-btn.confirm:hover{box-shadow:0 0 20px rgba(0,212,255,.2),0 0 0 1px rgba(0,212,255,.6) inset;}
-
-
-/* ════════════════════════════════════════════════════════════════
-   ELIMINATION MODE — True Blue Lock
-════════════════════════════════════════════════════════════════ */
-.task-item.eliminated {
-  position: relative;
-  background: #0a0a0a !important;
-  border-color: #ff2442 !important;
-  opacity: 0.85;
-  overflow: hidden;
+/* ══════════════════════════════════════════════════════════════
+   BLUE LOCK EXPANSION — Elimination / Curse Decay / Ghost / Scout
+   ══════════════════════════════════════════════════════════════ */
+.bl-setting-desc{
+  font-family:var(--font-mono);font-size:9px;color:var(--text-muted);
+  letter-spacing:1px;margin-top:6px;line-height:1.5;
 }
-.task-item.eliminated::after {
-  content: '';
-  position: absolute;
-  inset: 0;
+.bl-scout-manual-btn{
+  width:100%;margin-top:10px;padding:10px;border-radius:10px;
+  border:1px solid rgba(255,215,0,.4);background:rgba(255,215,0,.06);
+  color:var(--neon-gold);font-family:var(--font-display);font-size:12px;
+  letter-spacing:2.5px;cursor:pointer;transition:all .2s;
+}
+.bl-scout-manual-btn:hover{background:rgba(255,215,0,.14);box-shadow:0 0 14px rgba(255,215,0,.25);}
+.bl-scout-manual-btn:active{transform:scale(.97);}
+
+/* ── Curse Decay: progressive visual rot BEFORE elimination ── */
+.task-item.bl-decay-1{ filter:saturate(.75) brightness(.92); }
+.task-item.bl-decay-1 .hc-name::after{ content:' ⚠'; color:var(--neon-red); opacity:.6; font-size:.85em; }
+.task-item.bl-decay-2{
+  filter:saturate(.45) brightness(.8) contrast(1.05);
+  animation:bl-flicker 3.4s infinite ease-in-out;
+}
+.task-item.bl-decay-2::after{
+  content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;
   background:
-    repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,36,66,0.08) 10px, rgba(255,36,66,0.08) 11px),
-    repeating-linear-gradient(-45deg, transparent, transparent 15px, rgba(0,0,0,0.2) 15px, rgba(0,0,0,0.2) 16px);
-  pointer-events: none;
-  z-index: 2;
-  border-radius: inherit;
+    repeating-linear-gradient(115deg, rgba(0,0,0,.35) 0 2px, transparent 2px 40px),
+    repeating-linear-gradient(25deg, rgba(255,36,66,.10) 0 1px, transparent 1px 55px);
+  mix-blend-mode:multiply;
 }
-.task-item.eliminated .hc-name,
-.task-item.eliminated .hc-desc,
-.task-item.eliminated .hc-skill-tag {
-  color: #555 !important;
-  text-shadow: none;
-}
-.task-item.eliminated .hc-icon {
-  filter: grayscale(100%) brightness(0.4);
-  border-color: #333 !important;
-}
-.task-item.eliminated .hc-check {
-  display: none !important;
-}
-.eliminated-badge {
-  font-family: var(--font-display);
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--neon-red);
-  background: rgba(255,36,66,0.12);
-  border: 1px solid rgba(255,36,66,0.4);
-  padding: 3px 8px;
-  border-radius: 4px;
-  text-transform: uppercase;
-  animation: eliminatedPulse 2s ease-in-out infinite;
-}
-@keyframes eliminatedPulse {
-  0%,100% { opacity: 0.7; box-shadow: 0 0 6px rgba(255,36,66,0.2); }
-  50% { opacity: 1; box-shadow: 0 0 14px rgba(255,36,66,0.5); }
-}
-.revival-btn {
-  font-family: var(--font-display);
-  font-size: 10px;
-  letter-spacing: 2px;
-  padding: 5px 10px;
-  border: 1px solid var(--neon-blue);
-  background: rgba(0,212,255,0.1);
-  color: var(--neon-blue);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.revival-btn:hover {
-  background: rgba(0,212,255,0.2);
-  box-shadow: 0 0 12px rgba(0,212,255,0.3);
-}
+@keyframes bl-flicker{ 0%,100%{opacity:1;} 48%{opacity:1;} 50%{opacity:.88;} 52%{opacity:1;} }
 
-/* ════════════════════════════════════════════════════════════════
-   CURSE DECAY — Visual degradation on missed days
-════════════════════════════════════════════════════════════════ */
-.task-item.curse-lvl-1 {
-  filter: contrast(0.92) brightness(0.92);
+/* ── Full elimination: card is "dead" ── */
+.task-item.bl-eliminated{
+  position:relative;
+  filter:grayscale(1) brightness(.42) contrast(1.15);
+  transition:filter .8s ease;
+  overflow:hidden;
 }
-.task-item.curse-lvl-1::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,36,66,0.04) 2px, rgba(255,36,66,0.04) 3px);
-  pointer-events: none;
-  z-index: 1;
-  border-radius: inherit;
-}
-.task-item.curse-lvl-2 {
-  filter: contrast(0.82) brightness(0.78) grayscale(0.3);
-}
-.task-item.curse-lvl-2::after {
-  content: '';
-  position: absolute;
-  inset: 0;
+.task-item.bl-eliminated::before{
+  content:'';position:absolute;inset:0;z-index:5;pointer-events:none;border-radius:inherit;
   background:
-    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,36,66,0.07) 2px, rgba(255,36,66,0.07) 3px),
-    repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.15) 3px, rgba(0,0,0,0.15) 4px);
-  pointer-events: none;
-  z-index: 1;
-  border-radius: inherit;
+    linear-gradient(115deg, transparent 42%, rgba(0,0,0,.9) 43%, rgba(0,0,0,.9) 44%, transparent 45%),
+    linear-gradient(65deg, transparent 20%, rgba(0,0,0,.85) 21%, rgba(0,0,0,.85) 21.6%, transparent 22.4%),
+    linear-gradient(150deg, transparent 65%, rgba(0,0,0,.85) 66%, rgba(0,0,0,.85) 66.6%, transparent 67.4%),
+    linear-gradient(10deg, transparent 78%, rgba(0,0,0,.8) 79%, rgba(0,0,0,.8) 79.5%, transparent 80.3%),
+    radial-gradient(ellipse at 30% 40%, rgba(255,36,66,.12), transparent 60%);
 }
-.task-item.curse-lvl-3 {
-  filter: contrast(0.7) brightness(0.6) grayscale(0.55);
-  border-color: rgba(255,36,66,0.35) !important;
+.task-item.bl-eliminated .hc-check,
+.task-item.bl-eliminated .hc-icon{ pointer-events:none; opacity:.3; filter:grayscale(1); }
+.bl-eliminated-stamp{
+  position:absolute; top:8px; right:10px; z-index:6;
+  font-family:var(--font-display); font-size:14px; letter-spacing:3px;
+  color:var(--neon-red); border:1.5px solid var(--neon-red); border-radius:5px;
+  padding:2px 8px; transform:rotate(-8deg); background:rgba(5,5,5,.6);
+  text-shadow:0 0 8px rgba(255,36,66,.6); pointer-events:none;
 }
-.task-item.curse-lvl-3::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,36,66,0.1) 8px, rgba(255,36,66,0.1) 9px),
-    repeating-linear-gradient(-30deg, transparent, transparent 12px, rgba(0,0,0,0.25) 12px, rgba(0,0,0,0.25) 13px);
-  pointer-events: none;
-  z-index: 1;
-  border-radius: inherit;
+.bl-revival-row{
+  position:relative; z-index:6; margin-top:8px; padding-top:8px;
+  border-top:1px dashed rgba(255,36,66,.3);
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
 }
-.curse-indicator {
-  font-family: var(--font-mono);
-  font-size: 7px;
-  letter-spacing: 1px;
-  color: var(--neon-red);
-  opacity: 0.8;
-  margin-left: 4px;
+.bl-revival-lock{
+  font-family:var(--font-mono); font-size:9px; letter-spacing:1px; color:var(--text-muted);
+}
+.bl-revival-btn{
+  font-family:var(--font-display); font-size:11px; letter-spacing:2px;
+  color:#fff; background:linear-gradient(135deg,var(--neon-red),#7a0014);
+  border:1px solid rgba(255,80,100,.6); border-radius:8px; padding:6px 12px;
+  cursor:pointer; box-shadow:0 0 14px rgba(255,36,66,.35); pointer-events:auto;
+  animation:bl-pulse-red 1.6s infinite;
+}
+@keyframes bl-pulse-red{ 0%,100%{box-shadow:0 0 8px rgba(255,36,66,.3);} 50%{box-shadow:0 0 20px rgba(255,36,66,.6);} }
+
+/* ── Revival Match modal (built dynamically in JS) ── */
+.bl-revival-overlay{
+  position:fixed; inset:0; z-index:9999; background:rgba(2,2,4,.88);
+  display:flex; align-items:center; justify-content:center; padding:20px;
+  opacity:0; pointer-events:none; transition:opacity .25s ease;
+  font-family:var(--font-body);
+}
+.bl-revival-overlay.open{ opacity:1; pointer-events:all; }
+.bl-revival-card{
+  width:min(360px,100%); background:var(--bg-card); border:1px solid rgba(255,36,66,.5);
+  border-radius:var(--r-lg); padding:24px 20px; text-align:center;
+  box-shadow:0 0 50px rgba(255,36,66,.2), 0 20px 60px rgba(0,0,0,.7);
+  transform:scale(.9); transition:transform .25s ease;
+}
+.bl-revival-overlay.open .bl-revival-card{ transform:scale(1); }
+.bl-revival-title{
+  font-family:var(--font-display); font-size:22px; letter-spacing:4px;
+  color:var(--neon-red); text-shadow:0 0 14px rgba(255,36,66,.5); margin-bottom:6px;
+}
+.bl-revival-sub{ font-family:var(--font-mono); font-size:10px; color:var(--text-secondary); letter-spacing:1px; margin-bottom:18px; line-height:1.6; }
+.bl-hold-btn{
+  position:relative; width:100%; padding:18px; border-radius:12px; overflow:hidden;
+  background:rgba(255,36,66,.08); border:1.5px solid rgba(255,36,66,.5);
+  color:#fff; font-family:var(--font-display); font-size:15px; letter-spacing:3px;
+  cursor:pointer; -webkit-user-select:none; user-select:none; touch-action:none;
+}
+.bl-hold-fill{
+  position:absolute; inset:0; width:0%; background:linear-gradient(90deg,var(--neon-red),#ff6b7a);
+  transition:width .05s linear; z-index:0;
+}
+.bl-hold-btn span{ position:relative; z-index:1; }
+.bl-revival-cancel{
+  margin-top:14px; background:none; border:none; color:var(--text-muted);
+  font-family:var(--font-mono); font-size:10px; letter-spacing:2px; cursor:pointer;
 }
 
-/* ════════════════════════════════════════════════════════════════
-   RIVAL GHOST — Past self radar line
-════════════════════════════════════════════════════════════════ */
-.ghost-legend {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 8px;
+/* ── Scout Report modal ── */
+.bl-scout-overlay{
+  position:fixed; inset:0; z-index:9999; background:rgba(2,2,4,.9);
+  display:flex; align-items:center; justify-content:center; padding:16px;
+  opacity:0; pointer-events:none; transition:opacity .25s ease;
 }
-.ghost-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: 1px;
-  color: var(--text-muted);
+.bl-scout-overlay.open{ opacity:1; pointer-events:all; }
+.bl-scout-wrap{
+  width:min(380px,100%); max-height:92vh; overflow-y:auto;
+  background:var(--bg-card); border:1px solid var(--border-glow); border-radius:var(--r-lg);
+  padding:0; box-shadow:0 0 50px rgba(0,212,255,.15), 0 20px 60px rgba(0,0,0,.7);
 }
-.ghost-legend-line {
-  width: 16px;
-  height: 2px;
-  border-radius: 1px;
+.bl-scout-close{
+  display:block; margin:10px auto 0; background:none; border:none; color:var(--text-muted);
+  font-family:var(--font-mono); font-size:10px; letter-spacing:2px; cursor:pointer; padding:8px;
 }
-.ghost-legend-line.current {
-  background: var(--neon-blue);
-  box-shadow: 0 0 6px var(--neon-blue);
+.bl-scout-save{
+  display:block; width:calc(100% - 32px); margin:6px 16px 16px; padding:10px;
+  border-radius:10px; border:1px solid rgba(0,212,255,.4); background:rgba(0,212,255,.07);
+  color:var(--neon-blue); font-family:var(--font-display); font-size:12px; letter-spacing:2px; cursor:pointer;
 }
-.ghost-legend-line.past {
-  background: rgba(255,255,255,0.25);
-  border: 1px dashed rgba(255,255,255,0.3);
-}
-
-/* ════════════════════════════════════════════════════════════════
-   SCOUT REPORT — Weekly auto-generated report
-════════════════════════════════════════════════════════════════ */
-.scout-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.88);
-  z-index: 1300;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-.scout-overlay.open { opacity: 1; pointer-events: all; }
-.scout-modal {
-  width: calc(min(420px, 100vw - 24px) / var(--ui-scale,1));
-  max-height: 92vh;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-glow);
-  border-radius: 20px;
-  overflow: hidden;
-  display: flex; flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(0,212,255,0.08);
-  transform: scale(0.92) translateY(20px);
-  transform-origin: center center;
-  transition: transform 0.35s cubic-bezier(.34,1.56,.64,1);
-}
-.scout-overlay.open .scout-modal { transform: scale(var(--ui-scale,1)) translateY(0); }
-.scout-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 16px 12px;
-  border-bottom: 1px solid rgba(0,212,255,0.1);
-  flex-shrink: 0;
-}
-.scout-title {
-  font-family: var(--font-display);
-  font-size: 16px;
-  letter-spacing: 4px;
-  color: var(--text-primary);
-}
-.scout-close {
-  width: 30px; height: 30px;
-  border: 1px solid rgba(255,36,66,0.4);
-  background: rgba(255,36,66,0.06);
-  color: var(--neon-red); border-radius: var(--r-sm);
-  cursor: pointer; font-size: 11px;
-  display: flex; align-items: center; justify-content: center;
-  transition: all .2s;
-}
-.scout-close:hover { background: rgba(255,36,66,0.18); }
-.scout-body {
-  padding: 14px 16px;
-  overflow-y: auto;
-  flex: 1;
-}
-.scout-card {
-  background: rgba(0,212,255,0.04);
-  border: 1px solid rgba(0,212,255,0.12);
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 10px;
-}
-.scout-card-title {
-  font-family: var(--font-display);
-  font-size: 12px;
-  letter-spacing: 3px;
-  color: var(--neon-blue);
-  margin-bottom: 8px;
-}
-.scout-card-text {
-  font-family: var(--font-body);
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-.scout-card-text b {
-  color: var(--text-primary);
-  font-weight: 600;
-}
-.scout-card-text .scout-highlight {
-  color: var(--neon-gold);
-  font-weight: 700;
-}
-.scout-card-text .scout-weak {
-  color: var(--neon-red);
-  font-weight: 700;
-}
-.scout-footer {
-  display: flex; gap: 8px;
-  padding: 12px 16px 16px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  flex-shrink: 0;
-}
-.scout-btn {
-  flex: 1; padding: 11px;
-  border-radius: 12px; border: none;
-  font-family: var(--font-display);
-  font-size: 12px; letter-spacing: 2px;
-  cursor: pointer; transition: all 0.2s;
-}
-.scout-btn.save {
-  background: linear-gradient(135deg, rgba(0,212,255,0.25), rgba(0,100,200,0.3));
-  color: var(--neon-blue);
-  box-shadow: 0 0 0 1px rgba(0,212,255,0.4) inset;
-}
-.scout-btn.save:hover {
-  box-shadow: 0 0 20px rgba(0,212,255,0.2), 0 0 0 1px rgba(0,212,255,0.6) inset;
-}
-.scout-btn.close {
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.6);
-}
-.scout-btn.close:hover { background: rgba(255,255,255,0.1); }
-
-/* ════════════════════════════════════════════════════════════════
-   REVIVAL MATCH MODAL
-════════════════════════════════════════════════════════════════ */
-.revival-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.85);
-  z-index: 1400;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.25s ease;
-}
-.revival-overlay.open { opacity: 1; pointer-events: all; }
-.revival-modal {
-  width: calc(min(340px, calc(100vw - 40px)) / var(--ui-scale,1));
-  background: var(--bg-card);
-  border: 1px solid var(--neon-red);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 0 40px rgba(255,36,66,0.15), 0 20px 60px rgba(0,0,0,0.6);
-  text-align: center;
-  padding: 22px 18px 18px;
-  transform: scale(0.9);
-  transform-origin: center center;
-  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
-}
-.revival-overlay.open .revival-modal { transform: scale(var(--ui-scale,1)); }
-.revival-icon { font-size: 36px; margin-bottom: 10px; }
-.revival-title {
-  font-family: var(--font-display);
-  font-size: 18px;
-  letter-spacing: 4px;
-  color: var(--neon-red);
-  margin-bottom: 6px;
-}
-.revival-sub {
-  font-family: var(--font-body);
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  margin-bottom: 16px;
-}
-.revival-task-name {
-  color: var(--text-primary);
-  font-weight: 700;
-}
-.revival-btns {
-  display: flex; gap: 8px;
-}
-.revival-btn-confirm {
-  flex: 1; padding: 11px;
-  border-radius: 10px; border: none;
-  background: linear-gradient(135deg, rgba(255,36,66,0.2), rgba(180,20,40,0.3));
-  color: #ff6b6b;
-  font-family: var(--font-display);
-  font-size: 13px; letter-spacing: 2px;
-  cursor: pointer; transition: all 0.2s;
-}
-.revival-btn-confirm:hover {
-  box-shadow: 0 0 16px rgba(255,36,66,0.3);
-}
-.revival-btn-cancel {
-  flex: 1; padding: 11px;
-  border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);
-  background: transparent;
-  color: rgba(255,255,255,0.5);
-  font-family: var(--font-display);
-  font-size: 13px; letter-spacing: 2px;
-  cursor: pointer; transition: all 0.2s;
-}
-.revival-btn-cancel:hover { background: rgba(255,255,255,0.06); }
-
 </style>
 </head>
 <body>
@@ -3688,6 +3479,44 @@ body.metavision-active .skills-detail-bars {
       </div>
     </div>
 
+    <!-- ═══ BLUE LOCK: ДОПОЛНИТЕЛЬНЫЕ НАСТРОЙКИ (Elimination Mode expansion) ═══ -->
+    <div class="settings-group" id="blExpansionGroup">
+      <div class="settings-group-label">⚔ ДОПОЛНИТЕЛЬНЫЕ НАСТРОЙКИ</div>
+
+      <div class="settings-check-row">
+        <span class="settings-check-label">💀 Elimination Mode</span>
+        <div class="ios-toggle on" id="blEliminationToggle"></div>
+      </div>
+      <div class="bl-setting-desc">
+        Пропустил привычку N дней подряд — карточка "умирает": трескается, чернеет и блокируется на 24ч. Разблокировать можно только через матч возрождения.
+      </div>
+
+      <div class="settings-check-row" style="margin-top:14px;">
+        <span class="settings-check-label">👻 Rival Ghost</span>
+        <div class="ios-toggle on" id="blGhostToggle"></div>
+      </div>
+      <div class="bl-setting-desc">
+        На радаре появляется тень — твоя средняя форма за последние 30 дней. Обыграй себя вчерашнего.
+      </div>
+
+      <div class="settings-check-row" style="margin-top:14px;">
+        <span class="settings-check-label">📋 Scout Report</span>
+        <div class="ios-toggle on" id="blScoutToggle"></div>
+      </div>
+      <div class="bl-setting-desc">
+        Раз в неделю приложение собирает статистику в карту скаута: сильные и слабые стороны, клатч-фактор, прогресс.
+      </div>
+      <button class="bl-scout-manual-btn" id="blScoutManualBtn">📋 СОЗДАТЬ ОТЧЁТ СЕЙЧАС</button>
+
+      <div class="settings-check-row" style="margin-top:14px;">
+        <span class="settings-check-label">🩸 Curse Decay</span>
+        <div class="ios-toggle on" id="blDecayToggle"></div>
+      </div>
+      <div class="bl-setting-desc">
+        Постепенная деградация карточки при пропусках — трещины и потускнение нарастают кадр за кадром, но всё обратимо, если наверстать.
+      </div>
+    </div>
+
     <!-- DATA MANAGEMENT -->
     <div class="settings-group settings-data-row">
       <div class="settings-data-label">Data Management</div>
@@ -3708,41 +3537,7 @@ body.metavision-active .skills-detail-bars {
       </button>
     </div>
 
-    
-    <!-- BLUE LOCK FEATURES -->
-    <div class="settings-group">
-      <div class="settings-group-label" data-i18n="settings_bl_features">BLUE LOCK FEATURES</div>
-      <div class="settings-check-row">
-        <span class="settings-check-label" data-i18n="setting_elimination">Elimination Mode (true Blue Lock)</span>
-        <div class="ios-toggle on" id="eliminationToggle"></div>
-      </div>
-      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);letter-spacing:1px;margin-top:4px;margin-bottom:10px;line-height:1.5;" data-i18n="setting_elimination_desc">
-        Miss a habit N days in a row and the card "dies" — cracks, blacks out, locks for 24h. Revive only through a hard "revival match".
-      </div>
-      <div class="settings-check-row">
-        <span class="settings-check-label" data-i18n="setting_rival_ghost">Rival Ghost (past self)</span>
-        <div class="ios-toggle on" id="rivalGhostToggle"></div>
-      </div>
-      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);letter-spacing:1px;margin-top:4px;margin-bottom:10px;line-height:1.5;" data-i18n="setting_rival_ghost_desc">
-        A second line on the radar shows your 30-day average form. Beat your yesterday's self.
-      </div>
-      <div class="settings-check-row">
-        <span class="settings-check-label" data-i18n="setting_scout_report">Scout Report (weekly)</span>
-        <div class="ios-toggle on" id="scoutReportToggle"></div>
-      </div>
-      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);letter-spacing:1px;margin-top:4px;margin-bottom:10px;line-height:1.5;" data-i18n="setting_scout_report_desc">
-        Auto-generates a weekly football-scout-style report with strengths, weaknesses and clutch stats. Save as image.
-      </div>
-      <div class="settings-check-row">
-        <span class="settings-check-label" data-i18n="setting_curse_decay">Curse Decay (visual degradation)</span>
-        <div class="ios-toggle on" id="curseDecayToggle"></div>
-      </div>
-      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);letter-spacing:1px;margin-top:4px;line-height:1.5;" data-i18n="setting_curse_decay_desc">
-        Cards slowly crack and darken when you skip habits. Reversible if you catch up. More visceral than dry point penalties.
-      </div>
-    </div>
-
-<!-- DANGER ZONE -->
+    <!-- DANGER ZONE -->
     <div class="settings-danger-row">
       <button class="btn-danger-full" id="fullResetBtn">
         <span>⚠</span>
@@ -4153,35 +3948,6 @@ body.metavision-active .skills-detail-bars {
   <!-- Bottom padding for dock -->
 </div><!-- end profile-screen -->
 </div><!-- end app-content-wrapper -->
-
-
-<!-- ═══ SCOUT REPORT MODAL ═══ -->
-<div class="scout-overlay" id="scoutOverlay">
-  <div class="scout-modal">
-    <div class="scout-header">
-      <span class="scout-title">📋 SCOUT REPORT</span>
-      <button class="scout-close" id="scoutClose">✕</button>
-    </div>
-    <div class="scout-body" id="scoutBody"></div>
-    <div class="scout-footer">
-      <button class="scout-btn close" id="scoutCloseBtn">CLOSE</button>
-      <button class="scout-btn save" id="scoutSaveBtn">💾 SAVE PNG</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ REVIVAL MATCH MODAL ═══ -->
-<div class="revival-overlay" id="revivalOverlay">
-  <div class="revival-modal">
-    <div class="revival-icon">💀</div>
-    <div class="revival-title" data-i18n="revival_title">ELIMINATED</div>
-    <div class="revival-sub" id="revivalSub"></div>
-    <div class="revival-btns">
-      <button class="revival-btn-cancel" id="revivalCancel" data-i18n="revival_cancel">RETREAT</button>
-      <button class="revival-btn-confirm" id="revivalConfirm" data-i18n="revival_fight">REVIVAL MATCH</button>
-    </div>
-  </div>
-</div>
 
 <script>
 // ════════════════════════════════════════════════════════════════
@@ -4793,7 +4559,34 @@ const radarChart = new Chart(ctx,{
 
 function updateChart(){
   radarChart.data.datasets[0].data = SKILL_KEYS.map(k=>state.stats[k]);
+  applyGhostDataset(radarChart);
   radarChart.update();
+}
+
+// ── Rival Ghost: second radar dataset = 30-day rolling average ──
+function applyGhostDataset(chart){
+  if(typeof blGhostEnabled === 'undefined') return;
+  const existingIdx = chart.data.datasets.findIndex(d => d.__ghost);
+  if(!blGhostEnabled){
+    if(existingIdx > -1) chart.data.datasets.splice(existingIdx, 1);
+    return;
+  }
+  const ghostData = typeof computeGhostAverages === 'function' ? computeGhostAverages() : SKILL_KEYS.map(k=>state.stats[k]);
+  const ds = {
+    __ghost: true,
+    label: (uiSettings.lang==='ru' ? 'ПРИЗРАК (30д)' : 'GHOST (30d)'),
+    data: ghostData,
+    backgroundColor: 'rgba(160,160,180,0.06)',
+    borderColor: 'rgba(180,180,200,0.55)',
+    borderWidth: 2,
+    borderDash: [4,3],
+    pointBackgroundColor: 'rgba(180,180,200,0.7)',
+    pointBorderColor: 'rgba(255,255,255,0.4)',
+    pointBorderWidth: 1,
+    pointRadius: 3, pointHoverRadius: 5,
+  };
+  if(existingIdx > -1) chart.data.datasets[existingIdx] = ds;
+  else chart.data.datasets.push(ds);
 }
 
 // ── Intersection Observer: replay animation when radar scrolls into view ──
@@ -5950,6 +5743,7 @@ function renderAll(){
   renderSkillBarsModal();
   updateChart();
   updateTotals();
+  if(typeof applyBlueLockCardVisuals === 'function') applyBlueLockCardVisuals();
   // Re-stamp liquid glass onto freshly rendered dynamic elements (no recursion — call helper directly)
   stampLiquidGlass(uiSettings.glass === 'on');
   // Content height may have changed (cards added/removed) — recompute scale compensation
@@ -6001,6 +5795,10 @@ function addTask(){
 
 function toggleToday(id){
   const task=state.tasks.find(t=>t.id===id); if(!task) return;
+  if(typeof blIsLocked === 'function' && blIsLocked(task)){
+    if(typeof openRevivalMatch === 'function') openRevivalMatch(id);
+    return;
+  }
   const dm=getDayMap(task);
   const today=todayStr();
   const wasDone=dm[today]==='done';
@@ -8205,6 +8003,435 @@ function runDailyPenaltyCheck(){
 }
 
 // ════════════════════════════════════════════════════════════════
+// BLUE LOCK EXPANSION — Elimination Mode / Curse Decay / Rival Ghost / Scout Report
+// All four are independently toggleable, ON by default.
+// ════════════════════════════════════════════════════════════════
+const BL_TR = (ru, en) => (uiSettings.lang === 'ru' ? ru : en);
+const BL_MISS_THRESHOLD = 3;     // consecutive missed active days → elimination
+const BL_LOCK_HOURS     = 24;
+const BL_GHOST_WINDOW   = 30;    // days for rival-ghost rolling average
+
+let blEliminationEnabled = true;
+let blGhostEnabled       = true;
+let blScoutEnabled       = true;
+let blDecayEnabled       = true;
+
+function loadBlueLockExpansion(){
+  try {
+    const g = k => localStorage.getItem(k);
+    blEliminationEnabled = g('blExpElimination') === null ? true : g('blExpElimination') === 'true';
+    blGhostEnabled        = g('blExpGhost')        === null ? true : g('blExpGhost')        === 'true';
+    blScoutEnabled         = g('blExpScout')         === null ? true : g('blExpScout')         === 'true';
+    blDecayEnabled         = g('blExpDecay')         === null ? true : g('blExpDecay')         === 'true';
+  } catch(e){}
+  applyBlExpansionToggles();
+  if(!state.statsHistory) state.statsHistory = {};
+}
+function saveBlExpansionSetting(key, val){
+  try { localStorage.setItem(key, String(val)); } catch(e){}
+}
+function applyBlExpansionToggles(){
+  document.getElementById('blEliminationToggle')?.classList.toggle('on', blEliminationEnabled);
+  document.getElementById('blGhostToggle')?.classList.toggle('on', blGhostEnabled);
+  document.getElementById('blScoutToggle')?.classList.toggle('on', blScoutEnabled);
+  document.getElementById('blDecayToggle')?.classList.toggle('on', blDecayEnabled);
+}
+
+document.getElementById('blEliminationToggle')?.addEventListener('click', function(){
+  blEliminationEnabled = !blEliminationEnabled;
+  applyBlExpansionToggles(); saveBlExpansionSetting('blExpElimination', blEliminationEnabled);
+  showToast(blEliminationEnabled ? BL_TR('💀 ELIMINATION MODE ВКЛЮЧЁН','💀 ELIMINATION MODE ON') : BL_TR('Elimination Mode выключен','Elimination Mode off'), blEliminationEnabled?'penalty':'info');
+  try{ playTone('click'); }catch(e){}
+  applyBlueLockCardVisuals();
+});
+document.getElementById('blGhostToggle')?.addEventListener('click', function(){
+  blGhostEnabled = !blGhostEnabled;
+  applyBlExpansionToggles(); saveBlExpansionSetting('blExpGhost', blGhostEnabled);
+  showToast(blGhostEnabled ? BL_TR('👻 RIVAL GHOST ВКЛЮЧЁН','👻 RIVAL GHOST ON') : BL_TR('Rival Ghost выключен','Rival Ghost off'), 'info');
+  try{ playTone('click'); }catch(e){}
+  updateChart();
+});
+document.getElementById('blScoutToggle')?.addEventListener('click', function(){
+  blScoutEnabled = !blScoutEnabled;
+  applyBlExpansionToggles(); saveBlExpansionSetting('blExpScout', blScoutEnabled);
+  showToast(blScoutEnabled ? BL_TR('📋 SCOUT REPORT ВКЛЮЧЁН','📋 SCOUT REPORT ON') : BL_TR('Scout Report выключен','Scout Report off'), 'info');
+  try{ playTone('click'); }catch(e){}
+});
+document.getElementById('blDecayToggle')?.addEventListener('click', function(){
+  blDecayEnabled = !blDecayEnabled;
+  applyBlExpansionToggles(); saveBlExpansionSetting('blExpDecay', blDecayEnabled);
+  showToast(blDecayEnabled ? BL_TR('🩸 CURSE DECAY ВКЛЮЧЁН','🩸 CURSE DECAY ON') : BL_TR('Curse Decay выключен','Curse Decay off'), 'info');
+  try{ playTone('click'); }catch(e){}
+  applyBlueLockCardVisuals();
+});
+document.getElementById('blScoutManualBtn')?.addEventListener('click', () => generateScoutReport(true));
+
+// ── Missed-streak calc: consecutive active days without 'done'/'skip', ending yesterday ──
+function calcMissedStreak(task){
+  const dayMap = task.dayMap || {};
+  const activeDays = task.activeDays || [0,1,2,3,4,5,6];
+  const isSkip = s => (s === 'skip' || s === 'skipped');
+  function isScheduledOff(dateStr){
+    if(activeDays.length === 7) return false;
+    const d = new Date(dateStr);
+    const dow = (d.getDay() + 6) % 7;
+    return !activeDays.includes(dow);
+  }
+  // Don't count tasks created very recently
+  const createdAt = task.createdAt ? new Date(task.createdAt) : null;
+
+  let streak = 0;
+  const cur = new Date();
+  cur.setDate(cur.getDate() - 1); // start yesterday
+  let guard = 0;
+  while(guard++ < 400){
+    const ds = localDateStr(cur);
+    if(createdAt && cur < new Date(createdAt.getFullYear(), createdAt.getMonth(), createdAt.getDate())) break;
+    const status = dayMap[ds];
+    if(status === 'done') break;
+    if(isSkip(status) || isScheduledOff(ds)){ cur.setDate(cur.getDate() - 1); continue; }
+    streak++;
+    cur.setDate(cur.getDate() - 1);
+  }
+  return streak;
+}
+
+function blIsLocked(task){
+  if(!blEliminationEnabled) return false;
+  if(!task.blEliminated) return false;
+  const since = task.blEliminatedAt ? new Date(task.blEliminatedAt) : null;
+  if(!since) return false;
+  const hoursPassed = (Date.now() - since.getTime()) / 36e5;
+  return hoursPassed < BL_LOCK_HOURS; // still locked
+}
+
+// ── Daily check: run once per day — evaluate eliminations + snapshot stats for ghost ──
+function runBlueLockDailyCheck(){
+  const today = todayStr();
+  if(state.blLastCheckedDate === today){
+    // still record a snapshot if missing (covers first-run same day)
+    if(blGhostEnabled) recordDailyStatsSnapshot();
+    return;
+  }
+  if(blEliminationEnabled){
+    let anyNew = false;
+    state.tasks.forEach(task=>{
+      if(task.blEliminated) return;
+      const missed = calcMissedStreak(task);
+      if(missed >= BL_MISS_THRESHOLD){
+        task.blEliminated = true;
+        task.blEliminatedAt = new Date().toISOString();
+        anyNew = true;
+        addLog(BL_TR(`💀 ЭЛИМИНАЦИЯ: "${task.name}" — ${missed} дн. без прогресса`, `💀 ELIMINATED: "${task.name}" — ${missed}d no progress`), 'penalty');
+      }
+    });
+    if(anyNew){
+      triggerFlash('penalty');
+      showToast(BL_TR('💀 КАРТОЧКА ЭЛИМИНИРОВАНА. Нужен матч возрождения.', '💀 CARD ELIMINATED. Revival match required.'), 'penalty');
+    }
+  }
+  if(blGhostEnabled) recordDailyStatsSnapshot();
+  state.blLastCheckedDate = today;
+  saveState();
+  applyBlueLockCardVisuals();
+}
+
+// ── Rival Ghost: snapshot + rolling average ──────────────────────
+function recordDailyStatsSnapshot(){
+  const today = todayStr();
+  if(!state.statsHistory) state.statsHistory = {};
+  const snap = {};
+  SKILL_KEYS.forEach(k => snap[k] = state.stats[k]);
+  state.statsHistory[today] = snap;
+  // prune anything older than ~90 days to keep storage lean
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 90);
+  Object.keys(state.statsHistory).forEach(d => { if(new Date(d) < cutoff) delete state.statsHistory[d]; });
+}
+function computeGhostAverages(){
+  const hist = state.statsHistory || {};
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - BL_GHOST_WINDOW);
+  const relevant = Object.entries(hist).filter(([d]) => new Date(d) >= cutoff && d !== todayStr());
+  if(!relevant.length) return SKILL_KEYS.map(k => state.stats[k]); // no history yet — mirror current
+  return SKILL_KEYS.map(k=>{
+    const vals = relevant.map(([,snap]) => snap[k]).filter(v => typeof v === 'number');
+    if(!vals.length) return state.stats[k];
+    return vals.reduce((a,b)=>a+b,0) / vals.length;
+  });
+}
+
+// ── Post-render visual pass: apply decay / elimination classes ──
+function applyBlueLockCardVisuals(){
+  const container = document.getElementById('taskList');
+  if(!container) return;
+  container.querySelectorAll('.task-item[data-id]').forEach(card=>{
+    const id = parseInt(card.dataset.id, 10);
+    const task = state.tasks.find(x => x.id === id);
+    if(!task) return;
+    card.classList.remove('bl-decay-1','bl-decay-2','bl-eliminated');
+    card.querySelector('.bl-eliminated-stamp')?.remove();
+    card.querySelector('.bl-revival-row')?.remove();
+
+    if(task.blEliminated && blEliminationEnabled){
+      card.classList.add('bl-eliminated');
+      const stamp = document.createElement('div');
+      stamp.className = 'bl-eliminated-stamp';
+      stamp.textContent = BL_TR('ELIMINATED','ELIMINATED');
+      card.appendChild(stamp);
+
+      const row = document.createElement('div');
+      row.className = 'bl-revival-row';
+      if(blIsLocked(task)){
+        const since = new Date(task.blEliminatedAt);
+        const remainMs = BL_LOCK_HOURS*36e5 - (Date.now() - since.getTime());
+        const remainH = Math.max(0, Math.ceil(remainMs/36e5));
+        row.innerHTML = `<span class="bl-revival-lock">🔒 ${BL_TR('разблокировка через','unlocks in')} ~${remainH}${BL_TR('ч','h')}</span>`;
+      } else {
+        row.innerHTML = `<span class="bl-revival-lock">${BL_TR('готов к возрождению','ready for revival')}</span><button class="bl-revival-btn" data-revive="${task.id}">⚔ ${BL_TR('МАТЧ ВОЗРОЖДЕНИЯ','REVIVAL MATCH')}</button>`;
+      }
+      card.querySelector('.hc-history')?.insertAdjacentElement('afterend', row);
+      row.querySelector('.bl-revival-btn')?.addEventListener('click', e=>{ e.stopPropagation(); openRevivalMatch(task.id); });
+    } else if(blDecayEnabled){
+      const missed = calcMissedStreak(task);
+      if(missed >= 2) card.classList.add('bl-decay-2');
+      else if(missed >= 1) card.classList.add('bl-decay-1');
+    }
+  });
+}
+
+// ── Revival Match: hold-to-confirm "harder version" of the task ──
+let blRevivalTargetId = null;
+function ensureRevivalOverlay(){
+  if(document.getElementById('blRevivalOverlay')) return;
+  const div = document.createElement('div');
+  div.id = 'blRevivalOverlay';
+  div.className = 'bl-revival-overlay';
+  div.innerHTML = `
+    <div class="bl-revival-card">
+      <div class="bl-revival-title">⚔ REVIVAL MATCH</div>
+      <div class="bl-revival-sub">${BL_TR('Докажи, что достоин вернуться. Удерживай кнопку 3 секунды без отпускания — это твой усложнённый матч.','Prove you deserve to come back. Hold the button for 3 seconds without releasing — this is your harder challenge.')}</div>
+      <div class="bl-hold-btn" id="blHoldBtn"><div class="bl-hold-fill" id="blHoldFill"></div><span id="blHoldLabel">${BL_TR('УДЕРЖИВАЙ','HOLD')}</span></div>
+      <button class="bl-revival-cancel" id="blRevivalCancel">${BL_TR('ОТМЕНА','CANCEL')}</button>
+    </div>`;
+  document.body.appendChild(div);
+
+  const holdBtn = div.querySelector('#blHoldBtn');
+  const fill = div.querySelector('#blHoldFill');
+  const label = div.querySelector('#blHoldLabel');
+  let holdTimer = null, holdStart = 0;
+  const DURATION = 3000;
+
+  function startHold(e){
+    e.preventDefault();
+    holdStart = Date.now();
+    label.textContent = BL_TR('НЕ ОТПУСКАЙ...','HOLD ON...');
+    holdTimer = setInterval(()=>{
+      const pct = Math.min(100, ((Date.now()-holdStart)/DURATION)*100);
+      fill.style.width = pct + '%';
+      if(pct >= 100){
+        clearInterval(holdTimer); holdTimer = null;
+        completeRevival();
+      }
+    }, 30);
+  }
+  function cancelHold(){
+    if(holdTimer){ clearInterval(holdTimer); holdTimer = null; }
+    fill.style.width = '0%';
+    label.textContent = BL_TR('УДЕРЖИВАЙ','HOLD');
+  }
+  holdBtn.addEventListener('mousedown', startHold);
+  holdBtn.addEventListener('touchstart', startHold, {passive:false});
+  ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev => holdBtn.addEventListener(ev, cancelHold));
+
+  div.querySelector('#blRevivalCancel').addEventListener('click', closeRevivalMatch);
+  div.addEventListener('click', e => { if(e.target === div) closeRevivalMatch(); });
+}
+function openRevivalMatch(taskId){
+  ensureRevivalOverlay();
+  blRevivalTargetId = taskId;
+  document.getElementById('blRevivalOverlay')?.classList.add('open');
+  try{ playTone('click'); }catch(e){}
+}
+function closeRevivalMatch(){
+  document.getElementById('blRevivalOverlay')?.classList.remove('open');
+  const fill = document.getElementById('blHoldFill');
+  const label = document.getElementById('blHoldLabel');
+  if(fill) fill.style.width = '0%';
+  if(label) label.textContent = BL_TR('УДЕРЖИВАЙ','HOLD');
+  blRevivalTargetId = null;
+}
+function completeRevival(){
+  const task = state.tasks.find(t => t.id === blRevivalTargetId);
+  closeRevivalMatch();
+  if(!task) return;
+  // Clear the curse: erase the missed streak as transparent 'skip' days so it doesn't
+  // instantly re-trigger, then mark today done as the "harder version" reward.
+  const dm = getDayMap(task);
+  const cur = new Date(); cur.setDate(cur.getDate()-1);
+  let guard = 0;
+  while(guard++ < 400){
+    const ds = localDateStr(cur);
+    if(dm[ds] === 'done') break;
+    if(!dm[ds]) dm[ds] = 'skip';
+    cur.setDate(cur.getDate()-1);
+    if(dm[localDateStr(cur)] === 'done') break;
+    if(guard > BL_MISS_THRESHOLD + 30) break;
+  }
+  task.blEliminated = false;
+  delete task.blEliminatedAt;
+  const today = todayStr();
+  if(dm[today] !== 'done'){
+    dm[today] = 'done';
+    task.totalDone = countDone(task);
+    const gain = Math.round((state.gainPerTask||5) * 1.5); // harder version = bonus reward
+    state.stats[task.skill] += gain; clampStat(task.skill); state.completedCount++;
+    showToast(`⚔ +${gain} ${SKILLS[task.skill]?.label||task.skill} — ${BL_TR('ВОЗРОЖДЁН','REVIVED')}`, 'success');
+  } else {
+    showToast(BL_TR('⚔ КАРТОЧКА ВОЗРОЖДЕНА','⚔ CARD REVIVED'), 'success');
+  }
+  addLog(BL_TR(`⚔ ВОЗРОЖДЕНИЕ: "${task.name}"`, `⚔ REVIVED: "${task.name}"`), 'success');
+  triggerFlash('success');
+  try{ playTone('click'); }catch(e){}
+  saveState(); renderAll();
+}
+
+// ── Scout Report: weekly auto-generated stylized stat card ──────
+function maybeAutoScoutReport(){
+  if(!blScoutEnabled) return;
+  const today = todayStr();
+  const last = state.blLastScoutDate;
+  if(last){
+    const days = Math.floor((new Date(today) - new Date(last)) / 86400000);
+    if(days < 7) return;
+  }
+  generateScoutReport(false);
+}
+function scoutStrongWeak(){
+  let strong = SKILL_KEYS[0], weak = SKILL_KEYS[0];
+  SKILL_KEYS.forEach(k=>{
+    if(state.stats[k] > state.stats[strong]) strong = k;
+    if(state.stats[k] < state.stats[weak]) weak = k;
+  });
+  return {strong, weak};
+}
+function scoutTrend(){
+  // compare today's stats vs snapshot ~7 days ago
+  const hist = state.statsHistory || {};
+  const dates = Object.keys(hist).sort();
+  if(!dates.length) return null;
+  const weekAgoTarget = new Date(); weekAgoTarget.setDate(weekAgoTarget.getDate()-7);
+  let best = null, bestDiff = Infinity;
+  dates.forEach(d=>{ const diff = Math.abs(new Date(d)-weekAgoTarget); if(diff < bestDiff){ bestDiff = diff; best = d; } });
+  if(!best) return null;
+  let mostImproved = SKILL_KEYS[0], delta = -Infinity;
+  SKILL_KEYS.forEach(k=>{
+    const d = state.stats[k] - (hist[best][k] ?? state.stats[k]);
+    if(d > delta){ delta = d; mostImproved = k; }
+  });
+  return { skill: mostImproved, delta: Math.round(delta) };
+}
+function generateScoutReport(manual){
+  const {strong, weak} = scoutStrongWeak();
+  const totalTasks = state.tasks.length;
+  const activeToday = state.tasks.filter(t=>{
+    const dow=(new Date().getDay()+6)%7; return (t.activeDays||[0,1,2,3,4,5,6]).includes(dow);
+  }).length;
+  const bestStreakOverall = state.tasks.reduce((m,t)=> Math.max(m, calcBestStreak(t)), 0);
+  const eliminatedCount = state.tasks.filter(t=>t.blEliminated).length;
+  const trend = scoutTrend();
+  const overallScore = Math.round(SKILL_KEYS.reduce((a,k)=>a+state.stats[k],0)/SKILL_KEYS.length);
+
+  const lines = [];
+  lines.push(BL_TR(`Общий уровень эго: ${overallScore}/100`, `Overall ego level: ${overallScore}/100`));
+  lines.push(BL_TR(`💪 Сильная сторона: ${SKILLS[strong]?.label||strong} (${Math.round(state.stats[strong])})`, `💪 Strong side: ${SKILLS[strong]?.label||strong} (${Math.round(state.stats[strong])})`));
+  lines.push(BL_TR(`⚠ Слабая сторона: ${SKILLS[weak]?.label||weak} (${Math.round(state.stats[weak])})`, `⚠ Weak side: ${SKILLS[weak]?.label||weak} (${Math.round(state.stats[weak])})`));
+  if(trend && trend.delta !== 0){
+    lines.push(BL_TR(`📈 Прогресс недели: ${SKILLS[trend.skill]?.label||trend.skill} ${trend.delta>0?'+':''}${trend.delta}`, `📈 Weekly progress: ${SKILLS[trend.skill]?.label||trend.skill} ${trend.delta>0?'+':''}${trend.delta}`));
+  }
+  lines.push(BL_TR(`🔥 Лучший стрик: ${bestStreakOverall} дн.`, `🔥 Best streak: ${bestStreakOverall}d`));
+  lines.push(BL_TR(`🎯 Активных задач сегодня: ${activeToday}/${totalTasks}`, `🎯 Active tasks today: ${activeToday}/${totalTasks}`));
+  if(eliminatedCount > 0){
+    lines.push(BL_TR(`💀 Элиминировано карточек: ${eliminatedCount}`, `💀 Eliminated cards: ${eliminatedCount}`));
+  }
+
+  state.blLastScoutDate = todayStr();
+  saveState();
+  showScoutReportModal(lines, overallScore);
+  if(!manual) showToast(BL_TR('📋 Скаут-отчёт готов','📋 Scout report ready'), 'info');
+}
+function showScoutReportModal(lines, score){
+  document.getElementById('blScoutOverlay')?.remove();
+  const overlay = document.createElement('div');
+  overlay.className = 'bl-scout-overlay';
+  overlay.id = 'blScoutOverlay';
+  const dateLabel = new Date().toLocaleDateString(uiSettings.lang==='ru'?'ru-RU':'en-US', {day:'numeric',month:'short',year:'numeric'});
+  overlay.innerHTML = `
+    <div class="bl-scout-wrap">
+      <canvas id="blScoutCanvas" width="640" height="800" style="width:100%;display:block;border-radius:var(--r-lg) var(--r-lg) 0 0;"></canvas>
+      <button class="bl-scout-save" id="blScoutSaveBtn">⬇ ${BL_TR('СОХРАНИТЬ КАК КАРТИНКУ','SAVE AS IMAGE')}</button>
+      <button class="bl-scout-close" id="blScoutCloseBtn">✕ ${BL_TR('ЗАКРЫТЬ','CLOSE')}</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>{
+    overlay.classList.add('open');
+    drawScoutCard(document.getElementById('blScoutCanvas'), lines, score, dateLabel);
+  });
+  overlay.querySelector('#blScoutCloseBtn').addEventListener('click', ()=> overlay.remove());
+  overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+  overlay.querySelector('#blScoutSaveBtn').addEventListener('click', ()=>{
+    const canvas = document.getElementById('blScoutCanvas');
+    const a = document.createElement('a');
+    a.download = `scout-report-${todayStr()}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  });
+}
+function drawScoutCard(canvas, lines, score, dateLabel){
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#050c14'); bg.addColorStop(1,'#000205');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  // border glow
+  ctx.strokeStyle = 'rgba(0,212,255,.5)'; ctx.lineWidth = 3;
+  ctx.strokeRect(10,10,W-20,H-20);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#00d4ff';
+  ctx.font = '700 28px "Share Tech Mono", monospace';
+  ctx.fillText(BL_TR('SCOUT REPORT','SCOUT REPORT'), W/2, 70);
+  ctx.fillStyle = '#4a7a94';
+  ctx.font = '14px "Share Tech Mono", monospace';
+  ctx.fillText(dateLabel, W/2, 98);
+
+  // score circle
+  const cx = W/2, cy = 210, r = 90;
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.strokeStyle='rgba(0,212,255,.2)'; ctx.lineWidth=14; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,r,-Math.PI/2, -Math.PI/2 + (Math.PI*2*score/100));
+  ctx.strokeStyle = score>66 ? '#39ff14' : score>33 ? '#ffd700' : '#ff2442';
+  ctx.lineWidth = 14; ctx.lineCap='round'; ctx.stroke();
+  ctx.fillStyle = '#e8f4ff'; ctx.font = '700 46px "Bebas Neue", sans-serif';
+  ctx.fillText(String(score), cx, cy+16);
+  ctx.fillStyle = '#6a9ab8'; ctx.font = '13px "Share Tech Mono", monospace';
+  ctx.fillText(BL_TR('ОБЩИЙ УРОВЕНЬ','OVERALL LEVEL'), cx, cy+46);
+
+  // stat lines
+  let y = 350;
+  ctx.textAlign = 'left';
+  lines.forEach(line=>{
+    ctx.fillStyle = '#0d1e2e'; ctx.fillRect(40, y-26, W-80, 44);
+    ctx.strokeStyle = 'rgba(0,212,255,.15)'; ctx.strokeRect(40, y-26, W-80, 44);
+    ctx.fillStyle = '#e8f4ff'; ctx.font = '16px "Rajdhani", sans-serif';
+    ctx.fillText(line, 58, y+2);
+    y += 58;
+  });
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#2a4a5e'; ctx.font = '11px "Share Tech Mono", monospace';
+  ctx.fillText('EGOIST ENGINE — ' + BL_TR('ВЫЖИВИ. РАЗВИВАЙСЯ. ПОБЕЖДАЙ.','SURVIVE. GROW. WIN.'), W/2, H-24);
+}
+
+// ════════════════════════════════════════════════════════════════
 // INTERFACE SCALE SLIDER
 // Scales ONLY #app-content-wrapper via transform:scale().
 // System overlays (menus, dock, modals) live outside this wrapper
@@ -8270,581 +8497,6 @@ document.getElementById('interfaceScale')?.addEventListener('input', (e) => {
   saveInterfaceScale();
 });
 
-
-// ════════════════════════════════════════════════════════════════
-// BLUE LOCK ADVANCED FEATURES
-// Elimination Mode | Rival Ghost | Scout Report | Curse Decay
-// ════════════════════════════════════════════════════════════════
-
-// ── Settings state ─────────────────────────────────────────────
-let blFeatures = {
-  elimination: true,
-  rivalGhost: true,
-  scoutReport: true,
-  curseDecay: true,
-};
-const ELIMINATION_DAYS = 3;
-const DECAY_WINDOW = 7;
-
-function loadBLFeatures(){
-  try{
-    const raw = localStorage.getItem('blFeatures');
-    if(raw) blFeatures = Object.assign(blFeatures, JSON.parse(raw));
-  }catch(e){}
-}
-function saveBLFeatures(){
-  try{ localStorage.setItem('blFeatures', JSON.stringify(blFeatures)); }catch(e){}
-}
-function applyBLToggles(){
-  document.getElementById('eliminationToggle')?.classList.toggle('on', blFeatures.elimination);
-  document.getElementById('rivalGhostToggle')?.classList.toggle('on', blFeatures.rivalGhost);
-  document.getElementById('scoutReportToggle')?.classList.toggle('on', blFeatures.scoutReport);
-  document.getElementById('curseDecayToggle')?.classList.toggle('on', blFeatures.curseDecay);
-}
-
-// Wire toggles
-document.getElementById('eliminationToggle')?.addEventListener('click', ()=>{
-  blFeatures.elimination = !blFeatures.elimination;
-  applyBLToggles(); saveBLFeatures();
-  renderAll();
-  showToast(blFeatures.elimination ? '💀 Elimination ON' : 'Elimination OFF', 'info');
-});
-document.getElementById('rivalGhostToggle')?.addEventListener('click', ()=>{
-  blFeatures.rivalGhost = !blFeatures.rivalGhost;
-  applyBLToggles(); saveBLFeatures();
-  updateChart();
-  showToast(blFeatures.rivalGhost ? '👁 Rival Ghost ON' : 'Rival Ghost OFF', 'info');
-});
-document.getElementById('scoutReportToggle')?.addEventListener('click', ()=>{
-  blFeatures.scoutReport = !blFeatures.scoutReport;
-  applyBLToggles(); saveBLFeatures();
-  showToast(blFeatures.scoutReport ? '📋 Scout Report ON' : 'Scout Report OFF', 'info');
-});
-document.getElementById('curseDecayToggle')?.addEventListener('click', ()=>{
-  blFeatures.curseDecay = !blFeatures.curseDecay;
-  applyBLToggles(); saveBLFeatures();
-  renderAll();
-  showToast(blFeatures.curseDecay ? '🔥 Curse Decay ON' : 'Curse Decay OFF', 'info');
-});
-
-// ════════════════════════════════════════════════════════════════
-// ELIMINATION MODE
-// ════════════════════════════════════════════════════════════════
-function getConsecutiveMisses(task){
-  const dm = getDayMap(task);
-  const activeDays = task.activeDays || [0,1,2,3,4,5,6];
-  let misses = 0;
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  for(let i = 0; i < 90; i++){
-    const ds = localDateStr(d);
-    const dow = (d.getDay() + 6) % 7;
-    if(activeDays.includes(dow)){
-      if(dm[ds] === 'done') break;
-      misses++;
-    }
-    d.setDate(d.getDate() - 1);
-  }
-  return misses;
-}
-
-function checkElimination(task){
-  if(!blFeatures.elimination) return;
-  if(task.eliminated){
-    if(task.eliminatedUntil && Date.now() > task.eliminatedUntil){
-      task.eliminated = false;
-      task.eliminatedUntil = null;
-    }
-    return;
-  }
-  const misses = getConsecutiveMisses(task);
-  if(misses >= ELIMINATION_DAYS){
-    task.eliminated = true;
-    task.eliminatedUntil = Date.now() + 24 * 60 * 60 * 1000;
-    task.revivalMatchNeeded = true;
-    triggerFlash('penalty');
-    showToast(`💀 "${task.name}" ELIMINATED!`, 'penalty');
-    addLog(`ELIMINATION: "${task.name}" locked for 24h after ${misses} missed days`, 'penalty');
-    saveState();
-  }
-}
-
-function reviveTask(task){
-  task.eliminated = false;
-  task.eliminatedUntil = null;
-  task.revivalMatchNeeded = false;
-  showToast(`⚡ "${task.name}" REVIVED!`, 'success');
-  addLog(`REVIVAL: "${task.name}" brought back through revival match`, 'success');
-  playTone('epic');
-  saveState();
-  renderAll();
-}
-
-let revivalTargetId = null;
-const revivalOverlay = document.getElementById('revivalOverlay');
-function openRevivalModal(task){
-  revivalTargetId = task.id;
-  const lang = uiSettings.lang;
-  const sub = document.getElementById('revivalSub');
-  if(sub){
-    sub.innerHTML = lang==='ru'
-      ? `Привычка <span class="revival-task-name">«${task.name}»</span> была уничтожена после ${ELIMINATION_DAYS} пропущенных дней.<br><br>Чтобы вернуть её — выполни <b>усложнённую версию</b> сегодня.`
-      : `Habit <span class="revival-task-name">"${task.name}"</span> was destroyed after ${ELIMINATION_DAYS} missed days.<br><br>To bring it back — complete the <b>hard mode version</b> today.`;
-  }
-  revivalOverlay.classList.add('open');
-}
-function closeRevivalModal(){
-  revivalOverlay.classList.remove('open');
-  revivalTargetId = null;
-}
-document.getElementById('revivalCancel')?.addEventListener('click', closeRevivalModal);
-document.getElementById('revivalConfirm')?.addEventListener('click', ()=>{
-  const task = state.tasks.find(t => t.id === revivalTargetId);
-  if(task){
-    closeRevivalModal();
-    reviveTask(task);
-    toggleToday(task.id);
-  }
-});
-revivalOverlay?.addEventListener('click', e=>{ if(e.target===revivalOverlay) closeRevivalModal(); });
-
-// ════════════════════════════════════════════════════════════════
-// CURSE DECAY
-// ════════════════════════════════════════════════════════════════
-function calcDecayLevel(task){
-  if(!blFeatures.curseDecay) return 0;
-  const dm = getDayMap(task);
-  const activeDays = task.activeDays || [0,1,2,3,4,5,6];
-  let misses = 0;
-  let checks = 0;
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  for(let i = 0; i < DECAY_WINDOW; i++){
-    const ds = localDateStr(d);
-    const dow = (d.getDay() + 6) % 7;
-    if(activeDays.includes(dow)){
-      checks++;
-      if(dm[ds] !== 'done') misses++;
-    }
-    d.setDate(d.getDate() - 1);
-  }
-  if(checks === 0) return 0;
-  const ratio = misses / checks;
-  if(ratio >= 0.75) return 3;
-  if(ratio >= 0.5) return 2;
-  if(ratio >= 0.25) return 1;
-  return 0;
-}
-
-function applyDecayToCard(card, level){
-  card.classList.remove('curse-lvl-1','curse-lvl-2','curse-lvl-3');
-  if(level > 0) card.classList.add(`curse-lvl-${level}`);
-}
-
-// ════════════════════════════════════════════════════════════════
-// RIVAL GHOST
-// ════════════════════════════════════════════════════════════════
-function recordDailySnapshot(){
-  if(!blFeatures.rivalGhost) return;
-  const today = todayStr();
-  if(!state.dailySnapshots) state.dailySnapshots = {};
-  if(state.dailySnapshots[today]) return;
-  const sum = SKILL_KEYS.reduce((a,k)=>a+(state.stats[k]||0), 0);
-  state.dailySnapshots[today] = { sum, stats: {...state.stats} };
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-90);
-  Object.keys(state.dailySnapshots).forEach(d=>{
-    if(new Date(d) < cutoff) delete state.dailySnapshots[d];
-  });
-  saveState();
-}
-
-function getGhostData(){
-  if(!blFeatures.rivalGhost || !state.dailySnapshots){
-    return SKILL_KEYS.map(()=>0);
-  }
-  const days = Object.keys(state.dailySnapshots).sort();
-  const recent = days.slice(-30);
-  if(recent.length === 0) return SKILL_KEYS.map(()=>0);
-  const avg = {};
-  SKILL_KEYS.forEach(k=> avg[k]=0);
-  recent.forEach(d=>{
-    const snap = state.dailySnapshots[d];
-    if(snap && snap.stats){
-      SKILL_KEYS.forEach(k=> avg[k] += (snap.stats[k]||0));
-    }
-  });
-  return SKILL_KEYS.map(k=> Math.round(avg[k]/recent.length));
-}
-
-function updateGhostRadar(){
-  if(!radarChart) return;
-  const ghostData = getGhostData();
-  const hasGhost = ghostData.some(v=>v>0);
-  let ghostDS = radarChart.data.datasets.find(ds => ds.label === 'GHOST');
-  if(!hasGhost){
-    if(ghostDS) radarChart.data.datasets = radarChart.data.datasets.filter(ds=>ds.label!=='GHOST');
-    return;
-  }
-  if(!ghostDS){
-    ghostDS = {
-      label:'GHOST',
-      data: ghostData,
-      backgroundColor:'rgba(255,255,255,0.04)',
-      borderColor:'rgba(255,255,255,0.25)',
-      borderWidth:1.5,
-      borderDash:[6,4],
-      pointBackgroundColor:'rgba(255,255,255,0.3)',
-      pointBorderColor:'transparent',
-      pointRadius:3,
-      pointHoverRadius:5,
-    };
-    radarChart.data.datasets.push(ghostDS);
-  } else {
-    ghostDS.data = ghostData;
-  }
-}
-
-function updateGhostRadarModal(){
-  if(!radarChartModal) return;
-  const ghostData = getGhostData();
-  const hasGhost = ghostData.some(v=>v>0);
-  let ghostDS = radarChartModal.data.datasets.find(ds => ds.label === 'GHOST');
-  if(!hasGhost){
-    if(ghostDS) radarChartModal.data.datasets = radarChartModal.data.datasets.filter(ds=>ds.label!=='GHOST');
-    return;
-  }
-  if(!ghostDS){
-    ghostDS = {
-      label:'GHOST',
-      data: ghostData,
-      backgroundColor:'rgba(255,255,255,0.04)',
-      borderColor:'rgba(255,255,255,0.25)',
-      borderWidth:1.5,
-      borderDash:[6,4],
-      pointBackgroundColor:'rgba(255,255,255,0.3)',
-      pointBorderColor:'transparent',
-      pointRadius:2,
-      pointHoverRadius:4,
-    };
-    radarChartModal.data.datasets.push(ghostDS);
-  } else {
-    ghostDS.data = ghostData;
-  }
-}
-
-// ════════════════════════════════════════════════════════════════
-// SCOUT REPORT
-// ════════════════════════════════════════════════════════════════
-function shouldShowScoutReport(){
-  if(!blFeatures.scoutReport) return false;
-  const last = state.lastScoutReport || 0;
-  return (Date.now() - last) > 7 * 24 * 60 * 60 * 1000;
-}
-
-function generateScoutReport(){
-  const lang = uiSettings.lang;
-  const isRu = lang === 'ru';
-  const totalTasks = state.tasks.length;
-  const totalDone = state.tasks.reduce((s,t)=>s+(t.totalDone||0), 0);
-  const totalAttempts = state.completedCount + state.deletedCount;
-  const winRate = totalAttempts > 0 ? Math.round(state.completedCount/totalAttempts*100) : 0;
-
-  const skillStats = SKILL_KEYS.map(k=>{
-    const tasks = state.tasks.filter(t=>t.skill===k);
-    const done = tasks.reduce((s,t)=>s+(t.totalDone||0), 0);
-    return { key:k, label:SKILLS[k].label, val:Math.round(state.stats[k]||0), tasks:tasks.length, done };
-  }).sort((a,b)=>b.val - a.val);
-
-  const strongest = skillStats[0];
-  const weakest = skillStats[skillStats.length-1];
-
-  const streaks = state.tasks.map(t=>{ try{return calcStreak(t);}catch(e){return 0;} });
-  const bestStreak = Math.max(0, ...streaks);
-
-  const d = new Date();
-  let consistentDays = 0;
-  for(let i=0;i<7;i++){
-    const ds = localDateStr(d);
-    const totalActive = state.tasks.filter(t=>{
-      const ad = t.activeDays||[0,1,2,3,4,5,6];
-      const dow = (d.getDay()+6)%7;
-      return ad.includes(dow);
-    }).length;
-    const doneToday = state.tasks.filter(t=>{
-      const dm=getDayMap(t);
-      return dm[ds]==='done';
-    }).length;
-    if(totalActive>0 && doneToday/totalActive >= 0.5) consistentDays++;
-    d.setDate(d.getDate()-1);
-  }
-
-  const clutchRate = winRate >= 70 ? 'high' : winRate >= 40 ? 'medium' : 'low';
-
-  return {
-    title: isRu ? 'ДОСЬЕ СКАУТА — НЕДЕЛЯ ' + getWeekNumber() : 'SCOUT REPORT — WEEK ' + getWeekNumber(),
-    overall: isRu
-      ? `Общий рейтинг: <b class="scout-highlight">${winRate}%</b> побед. Активных привычек: <b>${totalTasks}</b>. Всего выполнено: <b class="scout-highlight">${totalDone}</b>.`
-      : `Overall rating: <b class="scout-highlight">${winRate}%</b> win rate. Active habits: <b>${totalTasks}</b>. Total completed: <b class="scout-highlight">${totalDone}</b>.`,
-    strengths: isRu
-      ? `Сильная сторона — <b class="scout-highlight">${strongest.label}</b> (${strongest.val} pts). Ты стабильно прокачиваешь этот атрибут. Продолжай в том же духе.`
-      : `Strength — <b class="scout-highlight">${strongest.label}</b> (${strongest.val} pts). You consistently level this attribute. Keep the pressure on.`,
-    weaknesses: isRu
-      ? `Уязвимость — <b class="scout-weak">${weakest.label}</b> (${weakest.val} pts). Скаут рекомендует срочно добавить привычки на этот навык, иначе провал неизбежен.`
-      : `Weakness — <b class="scout-weak">${weakest.label}</b> (${weakest.val} pts). Scout recommends adding habits for this skill immediately or failure is guaranteed.`,
-    clutch: isRu
-      ? `Клатч-фактор: <b class="scout-highlight">${clutchRate==='high'?'ВЫСОКИЙ':clutchRate==='medium'?'СРЕДНИЙ':'НИЗКИЙ'}</b>. ${consistentDays}/7 дней стабильности. Лучший стрик: <b class="scout-highlight">${bestStreak}</b> дней.`
-      : `Clutch factor: <b class="scout-highlight">${clutchRate.toUpperCase()}</b>. ${consistentDays}/7 consistency days. Best streak: <b class="scout-highlight">${bestStreak}</b> days.`,
-    verdict: isRu
-      ? `ВЕРДИКТ: ${winRate>=70?'Игрок с потенциалом TOP-1. Не сбавляй.':winRate>=40?'Есть задатки, но нужно больше эгоизма.':'Вне поля зрения скаутов. Рискуешь вылететь.'}`
-      : `VERDICT: ${winRate>=70?'Player with TOP-1 potential. Do not slow down.':winRate>=40?'Raw talent, but needs more ego.':'Off the scout radar. Risk of elimination.'}`,
-  };
-}
-
-function getWeekNumber(){
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  const diff = now - start + ((start.getTimezoneOffset() - now.getTimezoneOffset()) * 60 * 1000);
-  const day = Math.floor(diff / (1000 * 60 * 60 * 24));
-  return Math.ceil(day / 7);
-}
-
-function renderScoutReport(){
-  const report = generateScoutReport();
-  const body = document.getElementById('scoutBody');
-  if(!body) return;
-  body.innerHTML = `
-    <div class="scout-card">
-      <div class="scout-card-title">📊 OVERALL</div>
-      <div class="scout-card-text">${report.overall}</div>
-    </div>
-    <div class="scout-card">
-      <div class="scout-card-title" style="color:var(--neon-green)">⬆ STRENGTHS</div>
-      <div class="scout-card-text">${report.strengths}</div>
-    </div>
-    <div class="scout-card">
-      <div class="scout-card-title" style="color:var(--neon-red)">⬇ WEAKNESSES</div>
-      <div class="scout-card-text">${report.weaknesses}</div>
-    </div>
-    <div class="scout-card">
-      <div class="scout-card-title" style="color:var(--neon-gold)">🔥 CLUTCH / CONSISTENCY</div>
-      <div class="scout-card-text">${report.clutch}</div>
-    </div>
-    <div class="scout-card" style="border-color:rgba(0,212,255,0.3);background:rgba(0,212,255,0.06);">
-      <div class="scout-card-title" style="color:var(--neon-blue)">⚡ VERDICT</div>
-      <div class="scout-card-text" style="font-size:13px;font-weight:600;">${report.verdict}</div>
-    </div>
-  `;
-  document.getElementById('scoutOverlay').classList.add('open');
-  state.lastScoutReport = Date.now();
-  saveState();
-}
-
-function closeScoutReport(){
-  document.getElementById('scoutOverlay').classList.remove('open');
-}
-document.getElementById('scoutClose')?.addEventListener('click', closeScoutReport);
-document.getElementById('scoutCloseBtn')?.addEventListener('click', closeScoutReport);
-document.getElementById('scoutOverlay')?.addEventListener('click', e=>{ if(e.target===document.getElementById('scoutOverlay')) closeScoutReport(); });
-
-function saveScoutAsPng(){
-  const modal = document.querySelector('.scout-modal');
-  if(!modal) return;
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  const w = 800;
-  const scale = w / modal.offsetWidth;
-  const h = modal.offsetHeight * scale;
-  canvas.width = w;
-  canvas.height = h;
-
-  ctx.fillStyle = '#080f1a';
-  ctx.fillRect(0,0,w,h);
-
-  ctx.strokeStyle = 'rgba(0,212,255,0.4)';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(1,1,w-2,h-2);
-
-  ctx.fillStyle = '#e8f4ff';
-  ctx.font = 'bold 28px "Bebas Neue", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('SCOUT REPORT', w/2, 50);
-
-  const cards = modal.querySelectorAll('.scout-card');
-  let y = 90;
-  cards.forEach((card, i)=>{
-    const title = card.querySelector('.scout-card-title')?.textContent || '';
-    const text = card.querySelector('.scout-card-text')?.innerText || '';
-
-    ctx.fillStyle = 'rgba(0,212,255,0.06)';
-    ctx.strokeStyle = 'rgba(0,212,255,0.15)';
-    ctx.lineWidth = 1;
-    roundRect(ctx, 30, y, w-60, 110, 10);
-    ctx.fill(); ctx.stroke();
-
-    const colors = ['#00d4ff','#39ff14','#ff2442','#ffd700','#00d4ff'];
-    ctx.fillStyle = colors[i] || '#00d4ff';
-    ctx.font = 'bold 18px "Bebas Neue", sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText(title, 50, y+28);
-
-    ctx.fillStyle = '#b0c4de';
-    ctx.font = '16px "Rajdhani", sans-serif';
-    wrapText(ctx, text, 50, y+55, w-100, 22);
-    y += 125;
-  });
-
-  ctx.fillStyle = 'rgba(255,255,255,0.2)';
-  ctx.font = '12px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('Generated by Egoist Engine // Blue Lock Facility', w/2, h-20);
-
-  const link = document.createElement('a');
-  link.download = `scout_report_week_${getWeekNumber()}.png`;
-  link.href = canvas.toDataURL('image/png');
-  link.click();
-  showToast('💾 Scout Report saved!', 'success');
-}
-
-function roundRect(ctx, x, y, w, h, r){
-  ctx.beginPath();
-  ctx.moveTo(x+r, y);
-  ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
-  ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-  ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
-  ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
-  ctx.closePath();
-}
-
-function wrapText(ctx, text, x, y, maxWidth, lineHeight){
-  const words = text.split(' ');
-  let line = '';
-  for(let n=0; n<words.length; n++){
-    const testLine = line + words[n] + ' ';
-    const metrics = ctx.measureText(testLine);
-    if(metrics.width > maxWidth && n > 0){
-      ctx.fillText(line, x, y);
-      line = words[n] + ' ';
-      y += lineHeight;
-    } else {
-      line = testLine;
-    }
-  }
-  ctx.fillText(line, x, y);
-}
-
-document.getElementById('scoutSaveBtn')?.addEventListener('click', saveScoutAsPng);
-
-// ════════════════════════════════════════════════════════════════
-// INTEGRATION HOOKS
-// ════════════════════════════════════════════════════════════════
-
-const _origRenderTasks2 = renderTasks;
-renderTasks = function(){
-  _origRenderTasks2();
-  if(!blFeatures.elimination && !blFeatures.curseDecay) return;
-
-  state.tasks.forEach(task=>{
-    if(blFeatures.elimination) checkElimination(task);
-
-    const card = document.querySelector(`.task-item[data-id="${task.id}"]`);
-    if(!card) return;
-
-    if(blFeatures.elimination && task.eliminated){
-      card.classList.add('eliminated');
-      const controls = card.querySelector('.hc-controls');
-      if(controls && !controls.querySelector('.revival-btn')){
-        const check = controls.querySelector('.hc-check');
-        if(check) check.style.display = 'none';
-        const badge = document.createElement('div');
-        badge.className = 'eliminated-badge';
-        badge.textContent = uiSettings.lang==='ru' ? 'УНИЧТОЖЕН' : 'ELIMINATED';
-        const revive = document.createElement('button');
-        revive.className = 'revival-btn';
-        revive.textContent = uiSettings.lang==='ru' ? 'ВОЗРОЖДЕНИЕ' : 'REVIVAL';
-        revive.addEventListener('click', (e)=>{ e.stopPropagation(); openRevivalModal(task); });
-        controls.appendChild(badge);
-        controls.appendChild(revive);
-      }
-    }
-
-    if(blFeatures.curseDecay){
-      const decayLevel = calcDecayLevel(task);
-      applyDecayToCard(card, decayLevel);
-      if(decayLevel > 0 && !card.querySelector('.curse-indicator')){
-        const meta = card.querySelector('.hc-meta');
-        if(meta){
-          const ind = document.createElement('span');
-          ind.className = 'curse-indicator';
-          ind.textContent = 'CRACKING...';
-          meta.appendChild(ind);
-        }
-      }
-    }
-  });
-};
-
-const _origUpdateChart2 = updateChart;
-updateChart = function(){
-  _origUpdateChart2();
-  updateGhostRadar();
-};
-
-const _origOpenSkillsOverlay2 = openSkillsOverlay;
-openSkillsOverlay = function(){
-  _origOpenSkillsOverlay2();
-  updateGhostRadarModal();
-  if(radarChartModal) radarChartModal.update();
-};
-
-const _origRenderAll2 = renderAll;
-renderAll = function(){
-  _origRenderAll2();
-  if(shouldShowScoutReport()){
-    setTimeout(()=>{
-      if(blFeatures.scoutReport) renderScoutReport();
-    }, 1200);
-  }
-};
-
-const _origLoadState2 = loadState;
-loadState = function(){
-  _origLoadState2();
-  setTimeout(recordDailySnapshot, 500);
-};
-
-// I18N additions
-I18N.en.settings_bl_features = 'BLUE LOCK FEATURES';
-I18N.en.setting_elimination = 'Elimination Mode (true Blue Lock)';
-I18N.en.setting_elimination_desc = 'Miss a habit N days in a row and the card "dies" — cracks, blacks out, locks for 24h. Revive only through a hard "revival match".';
-I18N.en.setting_rival_ghost = 'Rival Ghost (past self)';
-I18N.en.setting_rival_ghost_desc = 'A second line on the radar shows your 30-day average form. Beat your yesterday's self.';
-I18N.en.setting_scout_report = 'Scout Report (weekly)';
-I18N.en.setting_scout_report_desc = 'Auto-generates a weekly football-scout-style report with strengths, weaknesses and clutch stats. Save as image.';
-I18N.en.setting_curse_decay = 'Curse Decay (visual degradation)';
-I18N.en.setting_curse_decay_desc = 'Cards slowly crack and darken when you skip habits. Reversible if you catch up. More visceral than dry point penalties.';
-I18N.en.revival_title = 'ELIMINATED';
-I18N.en.revival_cancel = 'RETREAT';
-I18N.en.revival_fight = 'REVIVAL MATCH';
-
-I18N.ru.settings_bl_features = 'ФУНКЦИИ BLUE LOCK';
-I18N.ru.setting_elimination = 'Режим Элиминации (настоящий Blue Lock)';
-I18N.ru.setting_elimination_desc = 'Пропусти привычку N дней подряд — карточка "умирает": трескается, чернеет, блокируется на 24ч. Возродить можно только через "матч возрождения".';
-I18N.ru.setting_rival_ghost = 'Призрак соперника (прошлый ты)';
-I18N.ru.setting_rival_ghost_desc = 'Вторая линия на радаре показывает твою среднюю форму за 30 дней. Обыграй вчерашнего себя.';
-I18N.ru.setting_scout_report = 'Отчёт скаута (еженедельно)';
-I18N.ru.setting_scout_report_desc = 'Авто-генерация футбольного отчёта с сильными/слабыми сторонами. Можно сохранить как картинку.';
-I18N.ru.setting_curse_decay = 'Проклятие деградации (визуальное)';
-I18N.ru.setting_curse_decay_desc = 'Карточки трескаются и темнеют при пропусках. Обратимо, если наверстать. Психологически сильнее сухих штрафов.';
-I18N.ru.revival_title = 'УНИЧТОЖЕН';
-I18N.ru.revival_cancel = 'ОТСТУПИТЬ';
-I18N.ru.revival_fight = 'МАТЧ ВОЗРОЖДЕНИЯ';
-
-// ════════════════════════════════════════════════════════════════
-// INIT — load new features
-// ════════════════════════════════════════════════════════════════
-loadBLFeatures();
-applyBLToggles();
-
 // ════════════════════════════════════════════════════════════════
 // 13. INIT
 // ════════════════════════════════════════════════════════════════
@@ -8861,6 +8513,7 @@ applyFlowMode();
 applySoundToggle();
 applyPenaltyModeToggle();
 applyInterfaceScale(interfaceScale);
+loadBlueLockExpansion();
 renderFilterBar();
 renderAll();                          // ← карточки рендерятся здесь
 // Pre-warm video cache from IndexedDB for any tasks with video backgrounds
@@ -8875,6 +8528,8 @@ renderAll();                          // ← карточки рендерятс
 })();
 applyGlass(uiSettings.glass ?? 'on'); // ← теперь классы вешаются на уже существующие элементы
 runDailyPenaltyCheck();
+runBlueLockDailyCheck();
+maybeAutoScoutReport();
 addLog(t('log_sys_ready'),'success');
 
 // ════════════════════════════════════════════════════════════════
