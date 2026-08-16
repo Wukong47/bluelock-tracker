@@ -3123,6 +3123,54 @@ body.metavision-active .skills-detail-bars {
   border-radius:10px; border:1px solid rgba(0,212,255,.4); background:rgba(0,212,255,.07);
   color:var(--neon-blue); font-family:var(--font-display); font-size:12px; letter-spacing:2px; cursor:pointer;
 }
+
+/* ── Profile stat cards: clickable → detail modal ── */
+.pstat-clickable{ cursor:pointer; transition:transform .15s ease, box-shadow .15s ease; position:relative; }
+.pstat-clickable:active{ transform:scale(.96); }
+.pstat-clickable::after{
+  content:'›'; position:absolute; top:8px; right:10px;
+  font-family:var(--font-display); font-size:16px; color:var(--pstat-color,var(--neon-blue));
+  opacity:.55;
+}
+
+.bl-stat-detail-overlay{
+  position:fixed; inset:0; z-index:9999; background:rgba(2,2,4,.9);
+  display:flex; align-items:center; justify-content:center; padding:16px;
+  opacity:0; pointer-events:none; transition:opacity .25s ease;
+}
+.bl-stat-detail-overlay.open{ opacity:1; pointer-events:all; }
+.bl-stat-detail-panel{
+  width:min(400px,100%); max-height:82vh; display:flex; flex-direction:column;
+  background:var(--bg-card); border:1px solid var(--border-glow); border-radius:var(--r-lg);
+  box-shadow:0 0 50px rgba(0,212,255,.15), 0 20px 60px rgba(0,0,0,.7); overflow:hidden;
+}
+.bl-stat-detail-header{
+  padding:16px 18px 12px; border-bottom:1px solid rgba(0,212,255,.15);
+  display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-shrink:0;
+}
+.bl-stat-detail-title{ font-family:var(--font-display); font-size:18px; letter-spacing:2.5px; color:var(--neon-blue); }
+.bl-stat-detail-sub{ font-family:var(--font-mono); font-size:9px; color:var(--text-secondary); letter-spacing:1px; margin-top:4px; line-height:1.5; }
+.bl-stat-detail-close{ background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer; flex-shrink:0; padding:2px 4px; }
+.bl-stat-detail-body{ overflow-y:auto; padding:10px 14px 16px; }
+.bl-stat-detail-body::-webkit-scrollbar{width:3px;}
+.bl-stat-detail-body::-webkit-scrollbar-thumb{background:var(--accent-mid);border-radius:2px;}
+.bl-stat-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:9px 10px; border-radius:9px; background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.05); margin-bottom:6px;
+}
+.bl-stat-row-left{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+.bl-stat-row-name{ font-family:var(--font-body); font-size:13px; color:var(--text-primary); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bl-stat-row-meta{ font-family:var(--font-mono); font-size:9px; color:var(--text-muted); letter-spacing:.5px; }
+.bl-stat-row-val{ font-family:var(--font-display); font-size:15px; letter-spacing:1px; flex-shrink:0; }
+.bl-stat-empty{ text-align:center; padding:30px 10px; font-family:var(--font-mono); font-size:11px; color:var(--text-muted); letter-spacing:1px; line-height:1.7; }
+.bl-stat-highlight-card{
+  text-align:center; padding:22px 16px; border-radius:var(--r-md);
+  background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.06); margin-bottom:8px;
+}
+.bl-stat-highlight-icon{ font-size:34px; margin-bottom:8px; }
+.bl-stat-highlight-name{ font-family:var(--font-display); font-size:20px; letter-spacing:2px; color:var(--text-primary); }
+.bl-stat-highlight-val{ font-family:var(--font-mono); font-size:11px; color:var(--text-secondary); letter-spacing:1px; margin-top:6px; }
 </style>
 </head>
 <body>
@@ -3887,22 +3935,22 @@ body.metavision-active .skills-detail-bars {
 
   <!-- ── 2×2 STATS GRID ── -->
   <div class="profile-stats-grid">
-    <div class="pstat-card" style="--pstat-color:var(--neon-green)">
+    <div class="pstat-card pstat-clickable" id="pstatTotalDone" style="--pstat-color:var(--neon-green)">
       <div class="pstat-icon">🏅</div>
       <div class="pstat-val" id="pTotalDone">0</div>
       <div class="pstat-label">Выполнено задач<br>за всё время</div>
     </div>
-    <div class="pstat-card" style="--pstat-color:#ff7a35">
+    <div class="pstat-card pstat-clickable" id="pstatBestStreak" style="--pstat-color:#ff7a35">
       <div class="pstat-icon">🔥</div>
       <div class="pstat-val" id="pBestStreak">0</div>
       <div class="pstat-label">Максимальный<br>стрик (дни)</div>
     </div>
-    <div class="pstat-card" style="--pstat-color:var(--neon-red)">
+    <div class="pstat-card pstat-clickable" id="pstatPenalties" style="--pstat-color:var(--neon-red)">
       <div class="pstat-icon">💀</div>
       <div class="pstat-val" id="pPenalties">0</div>
       <div class="pstat-label">Получено<br>штрафов (-8 очков)</div>
     </div>
-    <div class="pstat-card" style="--pstat-color:var(--neon-gold)">
+    <div class="pstat-card pstat-clickable" id="pstatCurrentStreak" style="--pstat-color:var(--neon-gold)">
       <div class="pstat-icon">⚡</div>
       <div class="pstat-val" id="pCurrentStreak">0</div>
       <div class="pstat-label">Текущий стрик<br>(лучшая привычка)</div>
@@ -5819,6 +5867,7 @@ function toggleToday(id){
     triggerFlash('success');
     showToast(`+${gain} ${SKILLS[task.skill]?.label||task.skill}`,'success');
     addLog(t('log_cleared',{name:task.name,n:gain,skill:SKILLS[task.skill]?.label||task.skill}),'success');
+    if(typeof blLogCompletion==='function') blLogCompletion(task);
   } else {
     delete dm[today];
     task.totalDone=countDone(task);
@@ -5826,6 +5875,7 @@ function toggleToday(id){
     state.completedCount=Math.max(0,state.completedCount-1);
     showToast(`-${state.penaltyPerDelete} ${SKILLS[task.skill]?.label||task.skill}`,'penalty');
     addLog(t('log_abandoned',{name:task.name,n:state.penaltyPerDelete,skill:SKILLS[task.skill]?.label||task.skill}),'penalty');
+    if(typeof blLogPenalty==='function') blLogPenalty(task.name, task.skill, state.penaltyPerDelete, 'uncheck');
   }
   saveState(); renderAll();
 }
@@ -5840,6 +5890,7 @@ function deleteTask(id){
     triggerFlash('penalty');
     showToast(`-${state.penaltyPerDelete} ${SKILLS[task.skill]?.label||task.skill} PENALTY`,'penalty');
     addLog(t('log_abandoned',{name:task.name,n:state.penaltyPerDelete,skill:SKILLS[task.skill]?.label||task.skill}),'penalty');
+    if(typeof blLogPenalty==='function') blLogPenalty(task.name, task.skill, state.penaltyPerDelete, 'deleted');
   } else { addLog(t('log_removed',{name:task.name}),''); }
   saveState(); renderAll();
 }
@@ -7124,6 +7175,7 @@ document.getElementById('penaltyBtn').addEventListener('click',()=>{
   triggerFlash('penalty');
   showToast(t('toast_manual_penalty',{n:penalty}),'penalty');
   addLog(t('log_penalty',{n:penalty}),'penalty');
+  if(typeof blLogPenalty==='function') blLogPenalty(null, null, penalty, 'manual');
   saveState(); renderAll();
 });
 
@@ -7137,6 +7189,7 @@ document.getElementById('resetBtn').addEventListener('click',()=>{
     state.stats[task.skill]-=state.penaltyPerReset; clampStat(task.skill);
     totalPenalties[task.skill]=(totalPenalties[task.skill]||0)+state.penaltyPerReset;
     state.deletedCount++;
+    if(typeof blLogPenalty==='function') blLogPenalty(task.name, task.skill, state.penaltyPerReset, 'daily-reset');
   });
   state.tasks=state.tasks.filter(t=>t.completed);
   const penaltyStr=Object.entries(totalPenalties).map(([k,v])=>`${SKILLS[k]?.label||k}: -${v}`).join(', ');
@@ -7630,7 +7683,7 @@ document.getElementById('exportBtn')?.addEventListener('click', ()=>{
   } catch(e) { console.error('[export] localStorage read failed:', e); }
 
   const payload = {
-    version: '1.0',
+    version: '2.0-beta',
     exportedAt: new Date().toISOString(),
     localStorage: dump,
   };
@@ -7986,6 +8039,7 @@ function runDailyPenaltyCheck(){
     clampStat(task.skill);
     bySkill[task.skill] = (bySkill[task.skill] || 0) + PENALTY;
     missed++;
+    if(typeof blLogPenalty==='function') blLogPenalty(task.name, task.skill, PENALTY, 'auto');
   });
 
   if(missed > 0){
@@ -8294,6 +8348,7 @@ function completeRevival(){
     const gain = Math.round((state.gainPerTask||5) * 1.5); // harder version = bonus reward
     state.stats[task.skill] += gain; clampStat(task.skill); state.completedCount++;
     showToast(`⚔ +${gain} ${SKILLS[task.skill]?.label||task.skill} — ${BL_TR('ВОЗРОЖДЁН','REVIVED')}`, 'success');
+    if(typeof blLogCompletion==='function') blLogCompletion(task, 'revival');
   } else {
     showToast(BL_TR('⚔ КАРТОЧКА ВОЗРОЖДЕНА','⚔ CARD REVIVED'), 'success');
   }
@@ -8439,6 +8494,149 @@ function drawScoutCard(canvas, lines, score, dateLabel){
   ctx.fillStyle = '#2a4a5e'; ctx.font = '11px "Share Tech Mono", monospace';
   ctx.fillText('EGOIST ENGINE — ' + BL_TR('ВЫЖИВИ. РАЗВИВАЙСЯ. ПОБЕЖДАЙ.','SURVIVE. GROW. WIN.'), W/2, H-24);
 }
+
+// ════════════════════════════════════════════════════════════════
+// PROFILE STAT DETAIL — click-through on the 2×2 stats grid
+// ════════════════════════════════════════════════════════════════
+
+// ── Persisted logs (grow going forward; seeded once from existing data) ──
+function blLogCompletion(task, tag){
+  if(!state.blCompletionLog) state.blCompletionLog = [];
+  state.blCompletionLog.unshift({ name: task.name, skill: task.skill, date: todayStr(), ts: Date.now(), tag: tag||'done' });
+  if(state.blCompletionLog.length > 500) state.blCompletionLog.length = 500;
+}
+function blLogPenalty(name, skill, amount, reason){
+  if(!state.blPenaltyLog) state.blPenaltyLog = [];
+  state.blPenaltyLog.unshift({ name, skill, amount, reason, date: todayStr(), ts: Date.now() });
+  if(state.blPenaltyLog.length > 500) state.blPenaltyLog.length = 500;
+}
+
+function blFmtDate(ds){
+  try {
+    const d = new Date(ds);
+    return d.toLocaleDateString(uiSettings.lang==='ru' ? 'ru-RU' : 'en-US', {day:'numeric', month:'short', year:'numeric'});
+  } catch(e){ return ds; }
+}
+const BL_PENALTY_REASON_LABEL = {
+  uncheck:      { ru:'снята отметка',        en:'unchecked' },
+  deleted:      { ru:'привычка удалена',     en:'habit deleted' },
+  auto:         { ru:'авто-штраф (пропуск)', en:'auto-penalty (missed)' },
+  'daily-reset':{ ru:'ежедневный сброс',     en:'daily reset' },
+  manual:       { ru:'ручной штраф',         en:'manual penalty' },
+};
+
+function ensureStatDetailOverlay(){
+  if(document.getElementById('blStatDetailOverlay')) return;
+  const div = document.createElement('div');
+  div.id = 'blStatDetailOverlay';
+  div.className = 'bl-stat-detail-overlay';
+  div.innerHTML = `
+    <div class="bl-stat-detail-panel">
+      <div class="bl-stat-detail-header">
+        <div>
+          <div class="bl-stat-detail-title" id="blStatDetailTitle">—</div>
+          <div class="bl-stat-detail-sub" id="blStatDetailSub"></div>
+        </div>
+        <button class="bl-stat-detail-close" id="blStatDetailClose">✕</button>
+      </div>
+      <div class="bl-stat-detail-body" id="blStatDetailBody"></div>
+    </div>`;
+  document.body.appendChild(div);
+  div.querySelector('#blStatDetailClose').addEventListener('click', closeStatDetail);
+  div.addEventListener('click', e => { if(e.target === div) closeStatDetail(); });
+}
+function closeStatDetail(){
+  document.getElementById('blStatDetailOverlay')?.classList.remove('open');
+}
+function openStatDetail(title, sub, bodyHtml){
+  ensureStatDetailOverlay();
+  document.getElementById('blStatDetailTitle').textContent = title;
+  document.getElementById('blStatDetailSub').textContent = sub || '';
+  document.getElementById('blStatDetailBody').innerHTML = bodyHtml;
+  document.getElementById('blStatDetailOverlay').classList.add('open');
+  try{ playTone('click'); }catch(e){}
+}
+
+// ── 1. Все выполненные задачи (derived from every task's dayMap) ──
+function openCompletedDetail(){
+  const rows = [];
+  state.tasks.forEach(task=>{
+    const dm = getDayMap(task);
+    Object.entries(dm).forEach(([date, status])=>{
+      if(status === 'done') rows.push({ date, name: task.name, skill: task.skill });
+    });
+  });
+  rows.sort((a,b)=> b.date.localeCompare(a.date));
+  const total = state.tasks.reduce((s,t)=>s+(t.totalDone||0),0);
+  const sub = BL_TR(`Всего: ${total}`, `Total: ${total}`);
+  if(!rows.length){
+    openStatDetail(BL_TR('ВЫПОЛНЕННЫЕ ЗАДАЧИ','COMPLETED TASKS'), sub,
+      `<div class="bl-stat-empty">${BL_TR('Пока нет выполненных задач','No completed tasks yet')}</div>`);
+    return;
+  }
+  const html = rows.map(r=>{
+    const cfg = SKILLS[r.skill] || {};
+    return `<div class="bl-stat-row">
+      <div class="bl-stat-row-left">
+        <span class="bl-stat-row-name">${escapeHtml(r.name)}</span>
+        <span class="bl-stat-row-meta">${blFmtDate(r.date)} · ${escapeHtml(cfg.label||r.skill)}</span>
+      </div>
+      <div class="bl-stat-row-val" style="color:var(--neon-green)">${cfg.icon||'✓'}</div>
+    </div>`;
+  }).join('');
+  openStatDetail(BL_TR('ВЫПОЛНЕННЫЕ ЗАДАЧИ','COMPLETED TASKS'), sub, html);
+}
+
+// ── 2. Все полученные штрафы (persisted log — tracked from v2.0) ──
+function openPenaltiesDetail(){
+  const log = state.blPenaltyLog || [];
+  const sub = BL_TR('История штрафов ведётся с версии 2.0','Penalty history tracked since v2.0');
+  if(!log.length){
+    openStatDetail(BL_TR('ПОЛУЧЕННЫЕ ШТРАФЫ','PENALTIES RECEIVED'), sub,
+      `<div class="bl-stat-empty">${BL_TR('Штрафов пока не было — так держать!','No penalties yet — keep it up!')}</div>`);
+    return;
+  }
+  const html = log.map(r=>{
+    const cfg = r.skill ? (SKILLS[r.skill]||{}) : {};
+    const reason = BL_PENALTY_REASON_LABEL[r.reason] || {ru:r.reason,en:r.reason};
+    const name = r.name || BL_TR('Все навыки','All skills');
+    return `<div class="bl-stat-row">
+      <div class="bl-stat-row-left">
+        <span class="bl-stat-row-name">${escapeHtml(name)}</span>
+        <span class="bl-stat-row-meta">${blFmtDate(r.date)} · ${uiSettings.lang==='ru'?reason.ru:reason.en}${cfg.label?(' · '+escapeHtml(cfg.label)):''}</span>
+      </div>
+      <div class="bl-stat-row-val" style="color:var(--neon-red)">−${r.amount}</div>
+    </div>`;
+  }).join('');
+  openStatDetail(BL_TR('ПОЛУЧЕННЫЕ ШТРАФЫ','PENALTIES RECEIVED'), sub, html);
+}
+
+// ── 3 & 4. Владелец максимального / текущего стрика ──
+function openStreakOwnerDetail(kind){
+  const isBest = kind === 'best';
+  let ownerTask = null, ownerVal = -1;
+  state.tasks.forEach(task=>{
+    const val = isBest ? (task.bestStreak||0) : (()=>{ try{ return calcStreak(task); }catch(e){ return 0; } })();
+    if(val > ownerVal){ ownerVal = val; ownerTask = task; }
+  });
+  const title = isBest ? BL_TR('МАКСИМАЛЬНЫЙ СТРИК','BEST STREAK') : BL_TR('ТЕКУЩИЙ СТРИК','CURRENT STREAK');
+  if(!ownerTask || ownerVal <= 0){
+    openStatDetail(title, '', `<div class="bl-stat-empty">${BL_TR('Пока нет активных стриков','No active streaks yet')}</div>`);
+    return;
+  }
+  const cfg = SKILLS[ownerTask.skill] || {};
+  const html = `<div class="bl-stat-highlight-card">
+    <div class="bl-stat-highlight-icon">${cfg.icon||'🔥'}</div>
+    <div class="bl-stat-highlight-name">${escapeHtml(ownerTask.name)}</div>
+    <div class="bl-stat-highlight-val">${escapeHtml(cfg.label||ownerTask.skill)} · ${ownerVal} ${BL_TR('дн.','d')}</div>
+  </div>`;
+  openStatDetail(title, BL_TR('Привычка-рекордсмен','Record-holding habit'), html);
+}
+
+document.getElementById('pstatTotalDone')?.addEventListener('click', openCompletedDetail);
+document.getElementById('pstatPenalties')?.addEventListener('click', openPenaltiesDetail);
+document.getElementById('pstatBestStreak')?.addEventListener('click', ()=>openStreakOwnerDetail('best'));
+document.getElementById('pstatCurrentStreak')?.addEventListener('click', ()=>openStreakOwnerDetail('current'));
 
 // ════════════════════════════════════════════════════════════════
 // INTERFACE SCALE SLIDER
