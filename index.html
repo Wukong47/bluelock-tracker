@@ -3528,42 +3528,12 @@ body.metavision-active .skills-detail-bars {
       </div>
     </div>
 
-    <!-- ═══ BLUE LOCK: ДОПОЛНИТЕЛЬНЫЕ НАСТРОЙКИ (Elimination Mode expansion) ═══ -->
-    <div class="settings-group" id="blExpansionGroup">
-      <div class="settings-group-label">⚔ ДОПОЛНИТЕЛЬНЫЕ НАСТРОЙКИ</div>
-
-      <div class="settings-check-row">
-        <span class="settings-check-label">💀 Elimination Mode</span>
-        <div class="ios-toggle on" id="blEliminationToggle"></div>
-      </div>
-      <div class="bl-setting-desc">
-        Пропустил привычку N дней подряд — карточка "умирает": трескается, чернеет и блокируется на 24ч. Разблокировать можно только через матч возрождения.
-      </div>
-
-      <div class="settings-check-row" style="margin-top:14px;">
-        <span class="settings-check-label">👻 Rival Ghost</span>
-        <div class="ios-toggle on" id="blGhostToggle"></div>
-      </div>
-      <div class="bl-setting-desc">
-        На радаре появляется тень — твоя средняя форма за последние 30 дней. Обыграй себя вчерашнего.
-      </div>
-
-      <div class="settings-check-row" style="margin-top:14px;">
-        <span class="settings-check-label">📋 Scout Report</span>
-        <div class="ios-toggle on" id="blScoutToggle"></div>
-      </div>
-      <div class="bl-setting-desc">
-        Раз в неделю приложение собирает статистику в карту скаута: сильные и слабые стороны, клатч-фактор, прогресс.
-      </div>
-      <button class="bl-scout-manual-btn" id="blScoutManualBtn">📋 СОЗДАТЬ ОТЧЁТ СЕЙЧАС</button>
-
-      <div class="settings-check-row" style="margin-top:14px;">
-        <span class="settings-check-label">🩸 Curse Decay</span>
-        <div class="ios-toggle on" id="blDecayToggle"></div>
-      </div>
-      <div class="bl-setting-desc">
-        Постепенная деградация карточки при пропусках — трещины и потускнение нарастают кадр за кадром, но всё обратимо, если наверстать.
-      </div>
+    <!-- ═══ BLUE LOCK: доп. настройки — opens as its own slide-in panel ═══ -->
+    <div class="settings-group">
+      <button class="notif-open-btn" id="openBlSettingsPanel">
+        <span>⚔ Дополнительные настройки</span>
+        <span class="notif-open-arrow">›</span>
+      </button>
     </div>
 
     <!-- DATA MANAGEMENT -->
@@ -3690,6 +3660,70 @@ body.metavision-active .skills-detail-bars {
           <div class="notif-future-chip">🔥 Стрики</div>
           <div class="notif-future-chip">📅 Напоминания</div>
           <div class="notif-future-chip">🌙 Вечерний отчёт</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ BLUE LOCK: ДОПОЛНИТЕЛЬНЫЕ НАСТРОЙКИ PANEL ═══ -->
+<div class="notif-overlay" id="blSettingsOverlay">
+  <div class="notif-panel" id="blSettingsPanel">
+
+    <!-- Header -->
+    <div class="notif-header">
+      <button class="notif-back-btn" id="blSettingsClose">✕</button>
+      <span class="notif-title">ДОПОЛНИТЕЛЬНЫЕ НАСТРОЙКИ</span>
+      <div style="width:36px;"></div>
+    </div>
+
+    <div class="notif-content" id="blSettingsContent" style="padding:16px;overflow-y:auto;">
+
+      <div class="notif-section">
+        <div class="settings-check-row">
+          <span class="settings-check-label">💀 Elimination Mode</span>
+          <div class="ios-toggle on" id="blEliminationToggle"></div>
+        </div>
+        <div class="bl-setting-desc">
+          Пропустил привычку N дней подряд — карточка "умирает": трескается, чернеет и блокируется на 24ч. Разблокировать можно только через матч возрождения.
+        </div>
+      </div>
+
+      <div class="notif-divider"></div>
+
+      <div class="notif-section">
+        <div class="settings-check-row">
+          <span class="settings-check-label">👻 Rival Ghost</span>
+          <div class="ios-toggle on" id="blGhostToggle"></div>
+        </div>
+        <div class="bl-setting-desc">
+          На радаре появляется тень — твоя средняя форма за последние 30 дней. Обыграй себя вчерашнего.
+        </div>
+      </div>
+
+      <div class="notif-divider"></div>
+
+      <div class="notif-section">
+        <div class="settings-check-row">
+          <span class="settings-check-label">📋 Scout Report</span>
+          <div class="ios-toggle on" id="blScoutToggle"></div>
+        </div>
+        <div class="bl-setting-desc">
+          Раз в неделю приложение собирает статистику в карту скаута: сильные и слабые стороны, клатч-фактор, прогресс.
+        </div>
+        <button class="bl-scout-manual-btn" id="blScoutManualBtn">📋 СОЗДАТЬ ОТЧЁТ СЕЙЧАС</button>
+      </div>
+
+      <div class="notif-divider"></div>
+
+      <div class="notif-section">
+        <div class="settings-check-row">
+          <span class="settings-check-label">🩸 Curse Decay</span>
+          <div class="ios-toggle on" id="blDecayToggle"></div>
+        </div>
+        <div class="bl-setting-desc">
+          Постепенная деградация карточки при пропусках — трещины и потускнение нарастают кадр за кадром, но всё обратимо, если наверстать.
         </div>
       </div>
 
@@ -8129,6 +8163,17 @@ document.getElementById('blDecayToggle')?.addEventListener('click', function(){
   applyBlueLockCardVisuals();
 });
 document.getElementById('blScoutManualBtn')?.addEventListener('click', () => generateScoutReport(true));
+
+// ── Доп. настройки panel — open/close (mirrors the notifications panel) ──
+const blSettingsOverlay = document.getElementById('blSettingsOverlay');
+document.getElementById('openBlSettingsPanel')?.addEventListener('click', ()=>{
+  document.getElementById('settingsOverlay')?.classList.remove('open');
+  blSettingsOverlay?.classList.add('open');
+});
+document.getElementById('blSettingsClose')?.addEventListener('click', ()=>{
+  blSettingsOverlay?.classList.remove('open');
+  document.getElementById('settingsOverlay')?.classList.add('open');
+});
 
 // ── Missed-streak calc: consecutive active days without 'done'/'skip', ending yesterday ──
 function calcMissedStreak(task){
