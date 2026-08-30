@@ -32,7 +32,7 @@ if ('serviceWorker' in navigator) {
     console.log('Тестовая среда Claude: Сервис-воркер пропущен.');
   } else {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js?v=4', {
+      navigator.serviceWorker.register('./sw.js?v=3', {
         scope: './',
         updateViaCache: 'none'
       })
@@ -858,7 +858,7 @@ body.flow-active #bgOverlay {
 
 /* ── FILTER BAR ── */
 .filter-bar{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-start;width:100%;}
-.filter-btn{font-family:var(--font-mono);font-size:8px;letter-spacing:1px;padding:3px 8px;border:1px solid var(--text-muted);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;text-transform:uppercase;border-radius:var(--r-sm);white-space:nowrap;flex-shrink:0;}
+.filter-btn{font-family:var(--font-mono);font-size:8px;letter-spacing:1px;padding:3px 8px;border:1px solid var(--text-secondary);background:rgba(255,255,255,.04);color:var(--text-secondary);cursor:pointer;transition:all .2s;text-transform:uppercase;border-radius:var(--r-sm);white-space:nowrap;flex-shrink:0;}
 .filter-btn.active,.filter-btn:hover{border-color:var(--neon-blue);color:var(--neon-blue);background:rgba(0,212,255,.07);}
 
 /* ══════════ HABITSTACK CARDS ══════════ */
@@ -1161,8 +1161,6 @@ body.reorder-mode #taskList{padding-bottom:70px;}
 .hc-dot.failed{background:#ff2442;box-shadow:0 0 6px rgba(255,36,66,.8),0 0 12px rgba(255,36,66,.4);border:1px solid rgba(255,36,66,.8);}
 .hc-dot.skip{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);position:relative;}
 .hc-dot.skip::after{content:'↓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;color:rgba(255,255,255,.5);line-height:1;}
-.hc-dot.challenge{position:relative;box-shadow:0 0 6px rgba(255,215,0,.8),0 0 12px rgba(255,215,0,.4)!important;border:1px solid rgba(255,215,0,.85)!important;}
-.hc-dot.challenge::after{content:attr(data-ch-letter);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#0a0a0a;line-height:1;}
 
 /* ── Calendar day states inside modal ── */
 .cal-day--failed{
@@ -3214,19 +3212,9 @@ body.metavision-active .skills-detail-bars {
   <div class="ios-menu-divider"></div>
   <button class="ios-menu-item" id="menuEdit"><span data-i18n="ctx_edit">Edit</span><span class="ios-icon">✏️</span></button>
   <div class="ios-menu-divider"></div>
-  <button class="ios-menu-item" id="menuExtra"><span>Доп.</span><span class="ios-icon">›</span></button>
-  <div class="ios-menu-divider"></div>
   <button class="ios-menu-item" id="menuReset"><span data-i18n="ctx_reset">Reset Progress</span><span class="ios-icon">🔄</span></button>
   <div class="ios-menu-divider"></div>
   <button class="ios-menu-item destructive" id="menuDelete"><span data-i18n="ctx_delete">Delete</span><span class="ios-icon">🗑️</span></button>
-</div>
-
-<!-- iOS Context Menu — "Доп." submenu -->
-<div class="ios-menu" id="iosMenuExtra">
-  <button class="ios-menu-item" id="menuExtraBack"><span>‹ Назад</span><span class="ios-icon">↩️</span></button>
-  <div class="ios-menu-divider"></div>
-  <button class="ios-menu-item" id="menuChallengeCreate"><span>Челлендж</span><span class="ios-icon">🏆</span></button>
-  <button class="ios-menu-item" id="menuChallengeFinish" style="display:none;"><span>Закончить челлендж</span><span class="ios-icon">🏁</span></button>
 </div>
 
 <!-- Edit Modal -->
@@ -4549,18 +4537,15 @@ function buildCalendarGrid(task){
       const linearIdx = col * 7 + row;
       const dayOffset = linearIdx - jan1Dow;
       if(dayOffset < 0 || dayOffset >= totalDays){
-        dots.push({cls:'future'});
+        dots.push('future');
       } else {
         const cellDate = new Date(year, 0, 1 + dayOffset);
         const dateStr  = localDateStr(cellDate);
         const status   = dayMap[dateStr];
-        const isChallengeDay = !!(task.challengeDays && task.challengeDays[dateStr]);
-        let cls;
-        if(status === 'done')   cls = col % 2 === 0 ? 'done' : 'done-alt';
-        else if(status === 'failed') cls = 'failed';
-        else if(status === 'skip')   cls = 'skip';
-        else cls = 'empty';
-        dots.push({cls, challenge: isChallengeDay && status === 'done'});
+        if(status === 'done')   dots.push(col % 2 === 0 ? 'done' : 'done-alt');
+        else if(status === 'failed') dots.push('failed');
+        else if(status === 'skip')   dots.push('skip');
+        else dots.push('empty');
       }
     }
   }
@@ -4569,99 +4554,15 @@ function buildCalendarGrid(task){
   for(let r = 0; r < 7; r++) labelsHtml += `<div class="hc-dow-label">${dowLabels[r]}</div>`;
   labelsHtml += '</div>';
 
-  const chLetter = (uiSettings.lang === 'ru') ? 'Ч' : 'C';
   let gridHtml = `<div class="hc-cal" style="grid-template-columns:repeat(${totalWeeks},10px);">`;
-  for(const d of dots){
-    if(d.cls === 'skip') gridHtml += `<div class="hc-dot skip" title="skip">↓</div>`;
-    else if(d.challenge) gridHtml += `<div class="hc-dot ${d.cls} challenge" data-ch-letter="${chLetter}" title="Челлендж"></div>`;
-    else gridHtml += `<div class="hc-dot ${d.cls}"></div>`;
+  for(const cls of dots){
+    if(cls === 'skip') gridHtml += `<div class="hc-dot skip" title="skip">↓</div>`;
+    else gridHtml += `<div class="hc-dot ${cls}"></div>`;
   }
   gridHtml += '</div>';
 
   return `<div class="hc-cal-wrap">${labelsHtml}${gridHtml}</div>`;
 }
-
-// ════════════════════════════════════════════════════════════════
-// 5b. CHALLENGE SYSTEM — a linked sub-habit that also completes its parent
-// ════════════════════════════════════════════════════════════════
-function createChallengeForTask(parentId){
-  const parent = state.tasks.find(t=>t.id===parentId);
-  if(!parent) return;
-  if(parent.isChallenge){ showToast(BL_TR('У челленджа не может быть своего челленджа','A challenge can\'t have its own challenge'),'penalty'); return; }
-  if(parent.activeChallengeId && state.tasks.some(t=>t.id===parent.activeChallengeId)){
-    showToast(BL_TR('У этой привычки уже есть активный челлендж','This habit already has an active challenge'),'penalty');
-    return;
-  }
-  const challenge = {
-    id: state.nextId++,
-    name: BL_TR(`Челлендж: ${parent.name}`, `Challenge: ${parent.name}`),
-    desc: BL_TR('Связан с привычкой: ', 'Linked to habit: ') + parent.name,
-    skill: parent.skill,
-    completed:false, createdAt:new Date().toISOString(),
-    dayMap:{}, totalDone:0, bestStreak:0,
-    activeDays: parent.activeDays || [0,1,2,3,4,5,6],
-    hideOnInactive: parent.hideOnInactive || false,
-    subtasks:[], dayNotes:{},
-    isChallenge:true, challengeParentId: parent.id,
-  };
-  const parentIdx = state.tasks.findIndex(t=>t.id===parent.id);
-  state.tasks.splice(parentIdx > -1 ? parentIdx : 0, 0, challenge);
-  parent.activeChallengeId = challenge.id;
-  if(!parent.challengeDays) parent.challengeDays = {};
-  triggerFlash('success');
-  showToast('🏆 ' + BL_TR('ЧЕЛЛЕНДЖ СОЗДАН','CHALLENGE CREATED'), 'success');
-  addLog(BL_TR(`🏆 Челлендж создан для "${parent.name}"`, `🏆 Challenge created for "${parent.name}"`), 'success');
-  saveState(); renderAll();
-}
-
-function finishChallenge(taskId){
-  const task = state.tasks.find(t=>t.id===taskId);
-  if(!task) return;
-  let parent, challenge;
-  if(task.isChallenge){ challenge = task; parent = state.tasks.find(t=>t.id===task.challengeParentId); }
-  else { parent = task; challenge = state.tasks.find(t=>t.id===task.activeChallengeId); }
-  if(!parent){ showToast(BL_TR('Активный челлендж не найден','No active challenge found'),'penalty'); return; }
-  parent.activeChallengeId = null;
-  if(challenge) challenge.challengeParentId = challenge.challengeParentId; // kept for history, just unlinked from parent's active slot
-  showToast('🏁 ' + BL_TR('ЧЕЛЛЕНДЖ ЗАВЕРШЁН','CHALLENGE FINISHED'), 'info');
-  addLog(BL_TR(`🏁 Челлендж завершён для "${parent.name}"`, `🏁 Challenge finished for "${parent.name}"`), 'info');
-  saveState(); renderAll();
-}
-
-// Called from toggleToday for the CHALLENGE task itself — mirrors the check
-// onto its linked parent habit and stamps the parent's calendar cell with "Ч".
-function syncChallengeOnToggle(task, isNowDone){
-  if(!task.isChallenge) return;
-  const parent = state.tasks.find(t=>t.id===task.challengeParentId);
-  if(!parent) return;
-  // Only auto-link while this challenge is still the parent's ACTIVE one.
-  if(parent.activeChallengeId !== task.id) return;
-  const today = todayStr();
-  const parentDm = getDayMap(parent);
-  if(!parent.challengeDays) parent.challengeDays = {};
-
-  if(isNowDone){
-    if(parentDm[today] !== 'done'){
-      parentDm[today] = 'done';
-      parent.totalDone = countDone(parent);
-      state.stats[parent.skill] += state.gainPerTask; clampStat(parent.skill); state.completedCount++;
-      addLog(BL_TR(`⚔ "${parent.name}" зачтено через челлендж`, `⚔ "${parent.name}" counted via challenge`), 'success');
-    }
-    parent.challengeDays[today] = true;
-  } else {
-    // Only undo the parent's day if that day was actually granted BY this challenge.
-    if(parent.challengeDays[today]){
-      delete parent.challengeDays[today];
-      if(parentDm[today] === 'done'){
-        delete parentDm[today];
-        parent.totalDone = countDone(parent);
-        state.stats[parent.skill] -= state.penaltyPerDelete; clampStat(parent.skill);
-        state.completedCount = Math.max(0, state.completedCount-1);
-      }
-    }
-  }
-}
-
 
 // ════════════════════════════════════════════════════════════════
 // 6. CHART SETUP
@@ -4781,6 +4682,7 @@ function renderFilterBar(){
       bar.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       state.filter=btn.dataset.filter;
+      saveState();
       renderTasks();
     });
   });
@@ -5086,8 +4988,6 @@ function renderTasks(){
             <div class="hc-meta">
               <span class="hc-skill-tag" style="--skill-color:${cfg.color}">${escapeHtml(cfg.label)}</span>
               ${schedTag}
-              ${task.isChallenge ? `<span class="hc-skill-tag" style="--skill-color:#ffd700">🏆 ${BL_TR('ЧЕЛЛЕНДЖ','CHALLENGE')}</span>` : ''}
-              ${(!task.isChallenge && task.activeChallengeId && state.tasks.some(x=>x.id===task.activeChallengeId)) ? `<span class="hc-skill-tag" style="--skill-color:#ffd700">🏆</span>` : ''}
             </div>
             <div class="hc-subtask-list${isExpanded ? ' expanded' : ''}" data-id="${task.id}">
               <div class="hc-subtask-list-inner">${subtaskRowsHtml}</div>
@@ -5969,7 +5869,6 @@ function toggleToday(id){
     showToast(`+${gain} ${SKILLS[task.skill]?.label||task.skill}`,'success');
     addLog(t('log_cleared',{name:task.name,n:gain,skill:SKILLS[task.skill]?.label||task.skill}),'success');
     if(typeof blLogCompletion==='function') blLogCompletion(task);
-    if(typeof syncChallengeOnToggle==='function') syncChallengeOnToggle(task, true);
   } else {
     delete dm[today];
     task.totalDone=countDone(task);
@@ -5978,7 +5877,6 @@ function toggleToday(id){
     showToast(`-${state.penaltyPerDelete} ${SKILLS[task.skill]?.label||task.skill}`,'penalty');
     addLog(t('log_abandoned',{name:task.name,n:state.penaltyPerDelete,skill:SKILLS[task.skill]?.label||task.skill}),'penalty');
     if(typeof blLogPenalty==='function') blLogPenalty(task.name, task.skill, state.penaltyPerDelete, 'uncheck');
-    if(typeof syncChallengeOnToggle==='function') syncChallengeOnToggle(task, false);
   }
   saveState(); renderAll();
 }
@@ -5987,14 +5885,6 @@ function deleteTask(id){
   const task=state.tasks.find(t=>t.id===id); if(!task) return;
   const wasActive=!task.completed;
   state.tasks=state.tasks.filter(t=>t.id!==id);
-  // Unlink the challenge system so nothing points at a deleted task.
-  if(task.isChallenge){
-    const parent = state.tasks.find(t=>t.id===task.challengeParentId);
-    if(parent && parent.activeChallengeId===task.id) parent.activeChallengeId = null;
-  } else if(task.activeChallengeId){
-    const challenge = state.tasks.find(t=>t.id===task.activeChallengeId);
-    if(challenge) challenge.challengeParentId = null;
-  }
   if(wasActive){
     state.deletedCount++;
     state.stats[task.skill]-=state.penaltyPerDelete; clampStat(task.skill);
@@ -6073,29 +5963,23 @@ function fullReset(){
 // ════════════════════════════════════════════════════════════════
 const LP_DURATION=500;
 let lpTimer=null, lpActiveId=null, lpActiveCard=null;
-let lastMenuX=0, lastMenuY=0;
 const backdrop=document.getElementById('lpBackdrop');
 const iosMenu =document.getElementById('iosMenu');
-const iosMenuExtra = document.getElementById('iosMenuExtra');
-
-function positionMenu(menu,x,y){
-  const menuW = 200, menuH = 180;
-  const vw = window.innerWidth, vh = window.innerHeight;
-  const left = Math.max(menuW/2 + 8, Math.min(x, vw - menuW/2 - 8));
-  const top  = Math.max(menuH/2 + 8, Math.min(y, vh - menuH/2 - 8));
-  menu.style.left = left + 'px';
-  menu.style.top  = top  + 'px';
-}
 
 function openContextMenu(card,id,x,y){
   lpActiveId=id; lpActiveCard=card;
-  lastMenuX=x; lastMenuY=y;
   card.classList.add('long-pressing');
   backdrop.classList.add('visible');
 
   // x,y are raw clientX/clientY — position:fixed + translate(-50%,-50%) centres menu here.
   // Clamp so the menu (230×200px, now with the Reorder item) never escapes the physical viewport.
-  positionMenu(iosMenu, x, y);
+  const menuW = 200, menuH = 180;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const left = Math.max(menuW/2 + 8, Math.min(x, vw - menuW/2 - 8));
+  const top  = Math.max(menuH/2 + 8, Math.min(y, vh - menuH/2 - 8));
+
+  iosMenu.style.left = left + 'px';
+  iosMenu.style.top  = top  + 'px';
   iosMenu.classList.add('visible');
 }
 
@@ -6103,35 +5987,7 @@ function closeContextMenu(){
   if(lpActiveCard) lpActiveCard.classList.remove('long-pressing');
   backdrop.classList.remove('visible');
   iosMenu.classList.remove('visible');
-  iosMenuExtra.classList.remove('visible');
   lpActiveId=null; lpActiveCard=null;
-}
-
-function openExtraMenu(){
-  const task = state.tasks.find(t=>t.id===lpActiveId);
-  if(!task) return;
-  const createBtn = document.getElementById('menuChallengeCreate');
-  const finishBtn = document.getElementById('menuChallengeFinish');
-  if(task.isChallenge){
-    // This card IS a challenge — offer to finish it.
-    createBtn.style.display = 'none';
-    finishBtn.style.display = 'flex';
-  } else if(task.activeChallengeId && state.tasks.some(t=>t.id===task.activeChallengeId)){
-    // Parent already has a running challenge — offer to finish it from here too.
-    createBtn.style.display = 'none';
-    finishBtn.style.display = 'flex';
-  } else {
-    createBtn.style.display = 'flex';
-    finishBtn.style.display = 'none';
-  }
-  iosMenu.classList.remove('visible');
-  positionMenu(iosMenuExtra, lastMenuX, lastMenuY);
-  iosMenuExtra.classList.add('visible');
-}
-function backToMainMenu(){
-  iosMenuExtra.classList.remove('visible');
-  positionMenu(iosMenu, lastMenuX, lastMenuY);
-  iosMenu.classList.add('visible');
 }
 
 function attachLongPress(card,id){
@@ -6154,10 +6010,6 @@ document.getElementById('menuReorder').addEventListener('click',()=>{ closeConte
 document.getElementById('menuEdit').addEventListener('click',()=>{ const id=lpActiveId; closeContextMenu(); openEditModal(id); });
 document.getElementById('menuReset').addEventListener('click',()=>{ const id=lpActiveId; closeContextMenu(); resetTaskProgress(id); });
 document.getElementById('menuDelete').addEventListener('click',()=>{ const id=lpActiveId; closeContextMenu(); deleteTask(id); });
-document.getElementById('menuExtra').addEventListener('click', openExtraMenu);
-document.getElementById('menuExtraBack').addEventListener('click', backToMainMenu);
-document.getElementById('menuChallengeCreate').addEventListener('click', ()=>{ const id=lpActiveId; closeContextMenu(); createChallengeForTask(id); });
-document.getElementById('menuChallengeFinish').addEventListener('click', ()=>{ const id=lpActiveId; closeContextMenu(); finishChallenge(id); });
 
 // ════════════════════════════════════════════════════════════════
 // 9b. REORDER MODE — drag habits into a new order via a ☰ handle
