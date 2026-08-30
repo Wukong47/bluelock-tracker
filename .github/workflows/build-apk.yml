@@ -22,6 +22,17 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      # ── 2b. STABLE DEBUG SIGNING KEY ─────────────────────────────
+      # Without this, Gradle auto-generates a NEW random debug.keystore
+      # on every fresh runner → every APK gets a different signature →
+      # Android always demands "uninstall before install", forever.
+      # This restores the SAME keystore every run, so signatures match
+      # and installing a new APK over the old one works as an update.
+      - name: Restore stable debug keystore
+        run: |
+          mkdir -p ~/.android
+          echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 -d > ~/.android/debug.keystore
+
       # ── 3. Android SDK licenses (SDK предустановлен на раннере) ──
       - name: Accept Android SDK licenses
         run: yes | sdkmanager --licenses || true
@@ -191,20 +202,37 @@ jobs:
           npx cap add android
           npx cap copy android
           npx cap sync android
-          
+
+      # ── 8b. AUTO-INCREMENTING VERSION ────────────────────────────
+      # versionCode MUST strictly increase for Android to treat a new
+      # APK as an "update" rather than a conflicting install.
+      # github.run_number always goes up by 1 on every workflow run,
+      # on every branch, forever — so it's a perfect, zero-maintenance
+      # versionCode. versionName is just the human-readable label.
+      - name: Set auto-incrementing version
+        run: |
+          GRADLE_FILE="android/app/build.gradle"
+          VERSION_CODE=${{ github.run_number }}
+          VERSION_NAME="2.0.${{ github.run_number }}"
+          echo "versionCode -> $VERSION_CODE"
+          echo "versionName -> $VERSION_NAME"
+          sed -i "s/versionCode [0-9]\+/versionCode $VERSION_CODE/" $GRADLE_FILE
+          sed -i "s/versionName \"[^\"]*\"/versionName \"$VERSION_NAME\"/" $GRADLE_FILE
+          grep -n "versionCode\|versionName" $GRADLE_FILE
+
       # ── 9. Patch AndroidManifest.xml ──
       - name: Patch AndroidManifest.xml
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
           grep -q "POST_NOTIFICATIONS" $MANIFEST || \
           sed -i 's|<uses-permission android:name="android.permission.INTERNET"|<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>\n    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>\n    <uses-permission android:name="android.permission.VIBRATE"/>\n    <uses-permission android:name="android.permission.WAKE_LOCK"/>\n    <uses-permission android:name="android.permission.INTERNET"|' $MANIFEST
-          
+
       # ── 11. Install Local Notifications plugin (v6 под core 6) ──
       - name: Install Capacitor plugins
         run: |
           npm install @capacitor/local-notifications@6 @capacitor/filesystem@6 @capacitor/share@6
           npx cap sync android
-          
+
       # ── 12. Build APK ──
       - name: Build debug APK
         run: |
